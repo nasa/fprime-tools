@@ -46,7 +46,7 @@ py_dict
 /ci-venv/
 /ci-logs*
 .eggs
-src/fprime-tools.egg-info
+src/fprime_tools.egg-info
 **/DefaultDict/serializable/*
 /.idea/
 /venv/

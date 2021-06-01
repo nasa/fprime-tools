@@ -16,7 +16,6 @@
 # pip install -e ./Fw/Python
 # ```
 ###
-import os
 from setuptools import find_packages, setup
 
 # Setup a python package using setup-tools. This is a newer (and more recommended) technology
@@ -30,7 +29,7 @@ setup(
     ####
     name="fprime-tools",
     use_scm_version={
-        "root": os.path.join("..", ".."),
+        "root": ".",
         "relative_to": __file__,
     },
     license="Apache 2.0 License",
