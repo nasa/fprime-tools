@@ -360,6 +360,14 @@ class Build:
             "auto_location": auto_location,
         }
 
+    def check_target(self, cwd: Path, target: Target):
+        if isinstance(target, GlobalTarget):
+            return
+
+        valid_cmake_targets = self.cmake.get_available_targets(self.build_dir, cwd)
+        if target.cmake_target not in valid_cmake_targets:
+            raise NoSuchTargetException("Target '{}' does not exist in current directory".format(target))
+
     def find_toolchain(self):
         """Locates a toolchain file in know locations
 

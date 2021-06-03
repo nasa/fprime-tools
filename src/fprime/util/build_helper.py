@@ -393,6 +393,8 @@ def utility_entry(args):
             target = get_target(parsed)
             build = Build(target.build_type, deployment, verbose=parsed.verbose)
             build.load(cwd, parsed.platform)
+            # Verify that matched target actually exists
+            build.check_target(cwd, target)
             build.execute(target, context=Path(parsed.path), make_args=make_args)
     except GenerateException as genex:
         print(
