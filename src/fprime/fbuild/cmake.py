@@ -106,7 +106,11 @@ class CMakeHandler:
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
             environment["VERBOSE"] = "1"
-        run_args.extend(["--target", cmake_target])
+
+        # The cmake target is "" when running build in the root of the F' repo.
+        if cmake_target != "":
+            run_args.extend(["--target", cmake_target])
+
         try:
             return self._run_cmake(
                 run_args + fleshed_args, write_override=True, environment=environment
