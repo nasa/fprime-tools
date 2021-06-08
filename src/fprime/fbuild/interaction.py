@@ -158,11 +158,11 @@ def new_component(
             calculated_defaults["component_path_to_fprime_root"] = str(
                 back_path
             ).rstrip(os.sep)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError): 
             print(
                 "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
             )
-        source = "gh:SterlingPeet/cookiecutter-fprime-component"
+        source = __file__ + "/../../cookiecutter_templates/cookiecutter-fprime-component-master.zip"
         print("[INFO] Cookiecutter source: {}".format(source))
         print()
         print("----------------")
