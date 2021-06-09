@@ -162,7 +162,13 @@ def new_component(
             print(
                 "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
             )
-        source = __file__ + "/../../cookiecutter_templates/cookiecutter-fprime-component-master.zip"
+
+        #Checks if cookiecutter is set, else uses local as default
+        if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "native":
+            source = settings['cookiecutter']
+        else:
+            source = __file__ + "/../../cookiecutter_templates/cookiecutter-fprime-component-master.zip"
+        
         print("[INFO] Cookiecutter source: {}".format(source))
         print()
         print("----------------")

@@ -39,6 +39,7 @@ def test_settings():
                 "library_locations": [],
                 "environment_file": full_path("settings-data/settings-empty.ini"),
                 "environment": {},
+                "cookiecutter": "native",
             },
         },
         {
@@ -54,6 +55,7 @@ def test_settings():
                     "settings-data/settings-custom-install.ini"
                 ),
                 "environment": {},
+                "cookiecutter": "native",
             },
         },
         {
@@ -69,6 +71,7 @@ def test_settings():
                     "settings-data/settings-custom-toolchain.ini"
                 ),
                 "environment": {},
+                "cookiecutter": "native",
             },
         },
     ]

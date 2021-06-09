@@ -148,6 +148,9 @@ class IniSettings:
             "install_dest": install_dest,
             "environment_file": env_file,
             "environment": environment,
+            "cookiecutter": confparse.get(
+                "fprime", "cookiecutter", fallback="native"
+            ),
         }
         # Set the project root
         if proj_root is not None:
