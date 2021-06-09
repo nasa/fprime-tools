@@ -163,7 +163,7 @@ def new_component(
                 "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
             )
 
-        #Checks if cookiecutter is set, else uses local as default
+        #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
         if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "native":
             source = settings['cookiecutter']
         else:
