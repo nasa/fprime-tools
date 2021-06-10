@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-model href="{{cookiecutter.component_path_to_fprime_root}}/../Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<component name="{{cookiecutter.component_slug}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
+    <!-- Example of importing a port type -->
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <comment>{{cookiecutter.component_short_description}}</comment>
+    <ports>
+        <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
+        <!-- Input ping port -->
+{%- if cookiecutter.component_kind == 'active' %}
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
+{%- else %}
+        <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1">
+{%- endif %}
+            <comment>
+            The ping input port
+            </comment>
+        </port>
+        <!-- One kind of output port -->
+        <!-- Output ping port -->
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
+            <comment>
+            The ping output port
+            </comment>
+        </port>
+    </ports>
+    <commands>
+{%- if cookiecutter.component_kind == 'active' %}
+        <command kind="async" opcode="0" mnemonic="PR_StopPings">
+{%- else %}
+        <command kind="sync" opcode="0" mnemonic="PR_StopPings">
+{%- endif %}
+            <comment>
+            Command to disable ping response
+            </comment>
+        </command>
+    </commands>
+    <parameters>
+        <parameter id="5" set_opcode="6" save_opcode="1" name="parameter1" data_type="U32" default="10">
+            <comment>
+            A test parameter
+            </comment>
+        </parameter>
+        <parameter id="7" set_opcode="8" save_opcode="3" name="parameter2" data_type="I16" default="11">
+            <comment>
+            A test parameter
+            </comment>
+        </parameter>
+    </parameters>
+    <telemetry>
+        <channel id="0" name="PR_NumPings" data_type="U32">
+            <comment>
+            Number of pings received
+            </comment>
+        </channel>
+    </telemetry>
+    <events>
+        <event id="0" name="PR_PingsDisabled" severity="ACTIVITY_HI" format_string = "PingReceiver ping responsed disabled" >
+            <comment>
+            Disabled ping responses
+            </comment>
+        </event>
+        <event id="1" name="PR_PingReceived" severity="DIAGNOSTIC" format_string = "PingReceiver pinged with code %d" >
+            <comment>
+            Got ping
+            </comment>
+            <args>
+                <arg name="code" type="U32">
+                    <comment>Ping code</comment>
+                </arg>
+            </args>
+        </event>
+    </events>
+</component>

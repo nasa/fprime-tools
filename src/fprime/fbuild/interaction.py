@@ -5,6 +5,8 @@ import glob
 import sys
 from pathlib import Path
 from typing import Dict
+import shutil
+import time
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -140,7 +142,6 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
             test_path = test_path.parent
     return None
 
-
 def new_component(
     path: Path, deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
 ):
@@ -167,7 +168,7 @@ def new_component(
         if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "native":
             source = settings['cookiecutter']
         else:
-            source = __file__ + "/../../cookiecutter_templates/cookiecutter-fprime-component-master.zip"
+            source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-component'
         
         print("[INFO] Cookiecutter source: {}".format(source))
         print()
