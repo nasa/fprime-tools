@@ -7,10 +7,10 @@
     <ports>
         <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
         <!-- Input ping port -->
-{%- if cookiecutter.component_kind == 'active' %}
-        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
-{%- else %}
+{%- if cookiecutter.component_kind == 'passive' %}
         <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1">
+{%- else %}
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
 {%- endif %}
             <comment>
             The ping input port
@@ -25,10 +25,10 @@
         </port>
     </ports>
     <commands>
-{%- if cookiecutter.component_kind == 'active' %}
-        <command kind="async" opcode="0" mnemonic="PR_StopPings">
-{%- else %}
+{%- if cookiecutter.component_kind == 'passive' %}
         <command kind="sync" opcode="0" mnemonic="PR_StopPings">
+{%- else %}
+        <command kind="async" opcode="0" mnemonic="PR_StopPings">
 {%- endif %}
             <comment>
             Command to disable ping response

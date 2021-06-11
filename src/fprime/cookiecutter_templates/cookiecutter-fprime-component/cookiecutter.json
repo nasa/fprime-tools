@@ -11,7 +11,7 @@
     "component_path": "Prjct/Grp",
     "component_path_to_fprime_root": "../..",
     "component_namespace": "{{ cookiecutter.component_path|replace('/','::')|replace('\\\\','::') }}",
-    "component_kind": ["active", "passive"],
+    "component_kind": ["active", "passive", "queued"],
     "component_multiplatform_support": ["no", "yes"],
     "license": ["None", "MIT license", "BSD 2-Clause License", "BSD 3-Clause License"]
 }
