@@ -36,7 +36,7 @@ class CMakeHandler:
     ]
 
     def __init__(self):
-        """ Instantiate a basic CMake handler """
+        """Instantiate a basic CMake handler"""
         self.settings = {}
         self._cmake_cache = None
         self.verbose = False
@@ -48,7 +48,7 @@ class CMakeHandler:
             ) from exc
 
     def set_verbose(self, verbose):
-        """ Sets verbosity """
+        """Sets verbosity"""
         self.verbose = verbose
 
     def validate_cmake_cache(self, cmake_args, build_dir):
@@ -535,14 +535,14 @@ class CMakeHandler:
 
 
 class CMakeException(FprimeException):
-    """ Error occurred within this CMake package """
+    """Error occurred within this CMake package"""
 
 
 class CMakeInconsistentCacheException(CMakeException):
-    """ Project CMakeCache.txt is inconsistent with settings.ini file """
+    """Project CMakeCache.txt is inconsistent with settings.ini file"""
 
     def __init__(self, key, expected, actual):
-        """ Force an appropriate message """
+        """Force an appropriate message"""
         super().__init__(
             "Expected CMake variable {} to be set to '{}', was actually set to '{}'. This is usually caused by updating the settings.ini file without purging and regenerating the accompanying build cache.".format(
                 key, expected, actual
@@ -551,28 +551,28 @@ class CMakeInconsistentCacheException(CMakeException):
 
 
 class CMakeOrphanException(CMakeException):
-    """ File is not managed by CMake project """
+    """File is not managed by CMake project"""
 
     def __init__(self, file_dir):
-        """ Force an appropriate message """
+        """Force an appropriate message"""
         super().__init__("{} is outside the F prime project".format(file_dir))
 
 
 class CMakeProjectException(CMakeException):
-    """ Invalid project directory """
+    """Invalid project directory"""
 
     def __init__(self, project_dir, error):
-        """ Force an appropriate message """
+        """Force an appropriate message"""
         super().__init__(
             "{} is an invalid F prime deployment. {}".format(project_dir, error)
         )
 
 
 class CMakeInvalidBuildException(CMakeException):
-    """ The supplied build directory was not setup as a CMake value """
+    """The supplied build directory was not setup as a CMake value"""
 
     def __init__(self, build_dir):
-        """ Force an appropriate message """
+        """Force an appropriate message"""
         super().__init__(
             "{} is not a CMake build directory. Please setup using 'fprime-util generate'".format(
                 build_dir
@@ -581,10 +581,10 @@ class CMakeInvalidBuildException(CMakeException):
 
 
 class CMakeExecutionException(CMakeException):
-    """ Pass up a CMake Error as an Exception """
+    """Pass up a CMake Error as an Exception"""
 
     def __init__(self, message, stderr, printed):
-        """ The error data should be stored """
+        """The error data should be stored"""
         super().__init__(message)
         self.stderr = stderr
         self.need = not printed
@@ -605,8 +605,8 @@ class CMakeExecutionException(CMakeException):
 
 
 class CMakeNoSuchTargetException(CMakeException):
-    """ The target does not exist. """
+    """The target does not exist."""
 
     def __init__(self, build_dir, target):
-        """  Better messaging for this exception """
+        """Better messaging for this exception"""
         super().__init__("{} does not support target {}".format(build_dir, target))

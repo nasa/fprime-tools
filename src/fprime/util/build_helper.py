@@ -244,7 +244,7 @@ def parse_args(args):
 
 
 def print_info(parsed, deployment):
-    """ Builds and prints the informational output block """
+    """Builds and prints the informational output block"""
     cwd = Path(parsed.path)
     build_types = BuildType
 
@@ -302,7 +302,7 @@ def print_info(parsed, deployment):
 
 
 def print_hash_info(lines, hash_val):
-    """ Prints out hash info from lines """
+    """Prints out hash info from lines"""
     # Print out lines when found
     if lines:
         print("[INFO] File(s) associated with hash 0x{:x}".format(hash_val))
@@ -315,7 +315,7 @@ def print_hash_info(lines, hash_val):
 
 
 def utility_entry(args):
-    """ Main interface to F prime utility """
+    """Main interface to F prime utility"""
     parsed, cmake_args, make_args, parser = parse_args(args)
     cwd = Path(parsed.path)
 
@@ -337,7 +337,9 @@ def utility_entry(args):
             print_info(parsed, deployment)
         elif parsed.command == "new":
             settings = IniSettings.load(deployment / "settings.ini", cwd)
-            status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
+            status = new_component(
+                cwd, deployment, parsed.platform, parsed.verbose, settings
+            )
             sys.exit(status)
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)

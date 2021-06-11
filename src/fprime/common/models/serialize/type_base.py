@@ -37,7 +37,7 @@ class BaseType(abc.ABC):
         raise AbstractMethodException("getSize")
 
     def __repr__(self):
-        """ Produces a string representation of a given type """
+        """Produces a string representation of a given type"""
         return self.__class__.__name__.replace("Type", "")
 
     @abc.abstractmethod
@@ -55,7 +55,7 @@ class ValueType(BaseType):
     """
 
     def __init__(self, val=None):
-        """ Defines the single value """
+        """Defines the single value"""
         self.__val = None
         # Run full setter
         if val is not None:
@@ -73,12 +73,12 @@ class ValueType(BaseType):
 
     @property
     def val(self):
-        """ Getter for .val """
+        """Getter for .val"""
         return self.__val
 
     @val.setter
     def val(self, val):
-        """ Setter for .val calls validate internally """
+        """Setter for .val calls validate internally"""
         self.validate(val)
         self.__val = val
 

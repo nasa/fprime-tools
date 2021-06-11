@@ -39,7 +39,7 @@ class ArrayType(ValueType):
         self.val = val
 
     def validate(self, val):
-        """ Validates the values of the array """
+        """Validates the values of the array"""
         size = self.__arr_size
         if len(val) != size:
             raise ArrayLengthException(self.__arr_type, size, len(val))
@@ -89,13 +89,13 @@ class ArrayType(ValueType):
         return members
 
     def serialize(self):
-        """ Serialize the array by serializing the elements one by one """
+        """Serialize the array by serializing the elements one by one"""
         if self.val is None:
             raise NotInitializedException(type(self))
         return b"".join([item.serialize() for item in self.val])
 
     def deserialize(self, data, offset):
-        """ Deserialize the members of the array """
+        """Deserialize the members of the array"""
         values = []
         for i in range(self.__arr_size):
             item = copy.deepcopy(self.arr_type)
@@ -105,19 +105,19 @@ class ArrayType(ValueType):
 
     @property
     def arr_type(self):
-        """ Property representing the size of the array """
+        """Property representing the size of the array"""
         return self.__arr_type
 
     @property
     def arr_size(self):
-        """ Property representing the number of elements of the array """
+        """Property representing the number of elements of the array"""
         return self.__arr_size
 
     @property
     def arr_format(self):
-        """ Property representing the format string of an item in the array """
+        """Property representing the format string of an item in the array"""
         return self.__arr_format
 
     def getSize(self):
-        """ Return the size of the array """
+        """Return the size of the array"""
         return self.arr_type.getSize() * self.arr_size

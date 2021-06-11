@@ -2,4 +2,4 @@
 
 
 class FprimeException(Exception):
-    """ Base F prime exception """
+    """Base F prime exception"""

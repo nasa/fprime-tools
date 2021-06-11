@@ -181,8 +181,8 @@ class IniSettings:
 
 
 class FprimeLocationUnknownException(Exception):
-    """ Fprime location could not be determined """
+    """Fprime location could not be determined"""
 
 
 class FprimeSettingsException(Exception):
-    """ An exception for handling F prime settings misconfiguration """
+    """An exception for handling F prime settings misconfiguration"""

@@ -44,7 +44,7 @@ class SerializableType(ValueType):
         self.mem_list = new_mem_list
 
     def validate(self, val=None):
-        """ Validate this object including member list and values """
+        """Validate this object including member list and values"""
         # Blank member list does not validate
         if not self.mem_list:
             return
@@ -72,7 +72,7 @@ class SerializableType(ValueType):
 
     @property
     def mem_list(self):
-        """ Gets the member list"""
+        """Gets the member list"""
         return self.__mem_list
 
     @mem_list.setter
@@ -85,7 +85,7 @@ class SerializableType(ValueType):
             self.validate(self.mem_list)
 
     def serialize(self):
-        """ Serializes the members of the serializable """
+        """Serializes the members of the serializable"""
         if self.mem_list is None:
             raise NotInitializedException(type(self))
         return b"".join(
@@ -93,7 +93,7 @@ class SerializableType(ValueType):
         )
 
     def deserialize(self, data, offset):
-        """ Deserialize the values of each of the members """
+        """Deserialize the values of each of the members"""
         new_member_list = []
         for entry1, member_val, entry3, entry4 in self.mem_list:
             cloned = copy.copy(member_val)
@@ -131,7 +131,7 @@ class SerializableType(ValueType):
             member_list_val.val = val_member
 
     def getSize(self):
-        """ The size of a struct is the size of all the members """
+        """The size of a struct is the size of all the members"""
         return sum([mem_type.getSize() for _, mem_type, _, _ in self.mem_list])
 
     def to_jsonable(self):
