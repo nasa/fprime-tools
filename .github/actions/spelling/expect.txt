@@ -269,3 +269,8 @@ wxgui
 xls
 xlsx
 xml
+DEPS
+gatech
+itle
+multiplatform
+RASPIAN
