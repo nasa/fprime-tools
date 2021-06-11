@@ -350,42 +350,42 @@ class TimeType(type_base.BaseType):
         return self.seconds + (self.useconds / 1000000)
 
     def __lt__(self, other):
-        """ Less than """
+        """Less than"""
         if isinstance(other, TimeType):
             return self.compare(self, other) < 0
         else:
             return self.get_float() < other
 
     def __le__(self, other):
-        """ Less than or equal """
+        """Less than or equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) <= 0
         else:
             return self.get_float() <= other
 
     def __eq__(self, other):
-        """ Equal  """
+        """Equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) == 0
         else:
             return self.get_float() == other
 
     def __ne__(self, other):
-        """ Not equal """
+        """Not equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) != 0
         else:
             return self.get_float() != other
 
     def __gt__(self, other):
-        """ Greater than """
+        """Greater than"""
         if isinstance(other, TimeType):
             return self.compare(self, other) > 0
         else:
             return self.get_float() > other
 
     def __ge__(self, other):
-        """ Greater than or equal """
+        """Greater than or equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) >= 0
         else:
@@ -417,35 +417,35 @@ class TimeType(type_base.BaseType):
     # The following Python special methods add support for arithmetic operations on TimeTypes.
 
     def __add__(self, other):
-        """ Addition """
+        """Addition"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = self.get_float() + other
         return self.get_type_from_float(num)
 
     def __sub__(self, other):
-        """ Subtraction """
+        """Subtraction"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = self.get_float() - other
         return self.get_type_from_float(num)
 
     def __mul__(self, other):
-        """ Multiplication """
+        """Multiplication"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = self.get_float() * other
         return self.get_type_from_float(num)
 
     def __truediv__(self, other):
-        """ True division """
+        """True division"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = self.get_float() / other
         return self.get_type_from_float(num)
 
     def __floordiv__(self, other):
-        """ Floored division """
+        """Floored division"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = self.get_float() // other
@@ -454,35 +454,35 @@ class TimeType(type_base.BaseType):
     # The following Python special methods add support for reflected arithmetic operations on TimeTypes.
 
     def __radd__(self, other):
-        """ Reflected addition """
+        """Reflected addition"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = other + self.get_float()
         return self.get_type_from_float(num)
 
     def __rsub__(self, other):
-        """ Reflected subtraction """
+        """Reflected subtraction"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = other - self.get_float()
         return self.get_type_from_float(num)
 
     def __rmul__(self, other):
-        """ Reflected multiplication """
+        """Reflected multiplication"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = other * self.get_float()
         return self.get_type_from_float(num)
 
     def __rtruediv__(self, other):
-        """ Reflected division """
+        """Reflected division"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = other / self.get_float()
         return self.get_type_from_float(num)
 
     def __rfloordiv__(self, other):
-        """ Reflected floored division """
+        """Reflected floored division"""
         if isinstance(other, TimeType):
             other = other.get_float()
         num = other // self.get_float()

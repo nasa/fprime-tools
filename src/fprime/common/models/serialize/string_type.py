@@ -33,7 +33,7 @@ class StringType(type_base.ValueType):
         super().__init__(val)
 
     def validate(self, val):
-        """ Validates that this is a string """
+        """Validates that this is a string"""
         if not isinstance(val, str):
             raise TypeMismatchException(str, type(val))
         elif self.__max_string_len is not None and len(val) > self.__max_string_len:

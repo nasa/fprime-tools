@@ -10,7 +10,7 @@ import fprime.util.build_helper
 
 
 def main():
-    """ Run wrapper, to point a console_script at """
+    """Run wrapper, to point a console_script at"""
     return fprime.util.build_helper.utility_entry(args=sys.argv[1:])
 
 

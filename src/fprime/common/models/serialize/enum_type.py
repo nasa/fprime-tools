@@ -46,7 +46,7 @@ class EnumType(ValueType):
         self.val = val
 
     def validate(self, val):
-        """ Validate the value passed into the enumeration """
+        """Validate the value passed into the enumeration"""
         if not isinstance(self.enum_dict(), dict):
             raise TypeMismatchException(dict, type(self.enum_dict()))
         for member in self.keys():
@@ -100,5 +100,5 @@ class EnumType(ValueType):
             raise TypeRangeException(int_val)
 
     def getSize(self):
-        """ Calculates the size based on the size of an integer used to store it """
+        """Calculates the size based on the size of an integer used to store it"""
         return struct.calcsize(">i")

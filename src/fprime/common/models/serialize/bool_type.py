@@ -23,18 +23,18 @@ class BoolType(ValueType):
     FALSE = 0x00
 
     def validate(self, val):
-        """ Validate the given class """
+        """Validate the given class"""
         if not isinstance(val, bool):
             raise TypeMismatchException(bool, type(val))
 
     def serialize(self):
-        """ Serialize a boolean value """
+        """Serialize a boolean value"""
         if self.val is None:
             raise NotInitializedException(type(self))
         return struct.pack("B", 0xFF if self.val else 0x00)
 
     def deserialize(self, data, offset):
-        """ Deserialize boolean value """
+        """Deserialize boolean value"""
         try:
             int_val = struct.unpack_from("B", data, offset)[0]
             if int_val not in [self.TRUE, self.FALSE]:
