@@ -73,7 +73,7 @@ You will be asked for these fields:
       - .. code:: python
 
             "An example component [...]"
-      - One line description of the project (used in headers and comments).  This should describe the purpose of the component in the Imperetive Voice, not the context where the component is used.
+      - One line description of the project (used in headers and comments).  This should describe the purpose of the component in the Imperative Voice, not the context where the component is used.
 
     * - ``component_slug``
       - .. code:: python
