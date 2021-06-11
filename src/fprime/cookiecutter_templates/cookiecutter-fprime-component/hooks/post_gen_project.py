@@ -49,7 +49,7 @@ if __name__ == "__main__":
 ################################################################################
 ################################################################################
 
-    You have succesfully created the `{{ cookiecutter.component_slug }}` component.
+    You have successfully created the `{{ cookiecutter.component_slug }}` component.
 
 ################################################################################
 
