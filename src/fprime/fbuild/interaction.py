@@ -223,3 +223,57 @@ def new_component(
     except OSError as ose:
         print("[ERROR] {}".format(ose))
     return 1
+
+def new_port(
+    path: Path, settings: Dict[str, str]
+):
+    """ Uses cookiecutter for making new components """
+    try:
+        print("[WARNING] **** fprime-util new is prototype functionality ****")
+        calculated_defaults = {}
+        proj_root = None
+        try:
+            proj_root = Path(settings.get("project_root", None))
+            print(proj_root)
+            port_parent_path = path.relative_to(proj_root)
+            back_path = os.sep.join([".." for _ in str(port_parent_path).split(os.sep)])
+            calculated_defaults["port_path"] = str(port_parent_path).rstrip(os.sep)
+            calculated_defaults["port_path_to_fprime_root"] = str(
+                back_path
+            ).rstrip(os.sep)
+        except (ValueError, TypeError): 
+            print(
+                "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
+            )
+
+        #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
+        if settings.get("port_template") is not None and settings["port_template"] != "native":
+            source = settings['port_template']
+        else:
+            source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-port'
+        
+        print("[INFO] Cookiecutter source: {}".format(source))
+        print()
+        print("----------------")
+        print(
+            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
+        )
+        print("----------------")
+        print()
+        final_port_dir = Path(
+            cookiecutter(source, extra_context=calculated_defaults)
+        ).resolve()
+        if proj_root is None:
+            print(
+                "[INFO] Created port directory without adding to build system nor generating implementation {}".format(
+                    final_port_dir
+                )
+            )
+            return 0
+    except OutputDirExistsException as out_directory_error:
+        print("{}".format(out_directory_error), file=sys.stderr)
+    except CMakeExecutionException as exc:
+        print("[ERROR] Failed to create port. {}".format(exc), file=sys.stderr)
+    except OSError as ose:
+        print("[ERROR] {}".format(ose))
+    return 1

@@ -29,7 +29,7 @@ from fprime.fbuild.builder import (
     InvalidBuildCacheException,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.interaction import confirm, new_component
+from fprime.fbuild.interaction import confirm, new_component, new_port
 from fprime.fbuild.settings import IniSettings
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
@@ -71,7 +71,7 @@ def validate(parsed, unknown):
         }
         cmake_args.update(d_args)
     # Build type only for generate, jobs only for non-generate
-    elif parsed.command not in ["info", "purge", "hash-to-file", "new"]:
+    elif parsed.command not in ["info", "purge", "hash-to-file", "new", "new-port"]:
         parsed.settings = None  # Force to load from cache if possible
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
     return cmake_args, make_args
@@ -227,6 +227,12 @@ def parse_args(args):
         parents=[common_parser],
         add_help=False,
     )
+    subparsers.add_parser(
+        "new-port",
+        help="Generate a new port",
+        parents=[common_parser],
+        add_help=False,
+    )
     for target in Target.get_all_targets():
         add_target_parser(target, subparsers, common_parser, parsers)
     # Parse and prepare to run
@@ -338,6 +344,10 @@ def utility_entry(args):
         elif parsed.command == "new":
             settings = IniSettings.load(deployment / "settings.ini", cwd)
             status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
+            sys.exit(status)
+        elif parsed.command == "new-port":
+            settings = IniSettings.load(deployment / "settings.ini", cwd)
+            status = new_port(cwd, settings)
             sys.exit(status)
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)
