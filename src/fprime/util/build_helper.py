@@ -221,17 +221,23 @@ def parse_args(args):
         add_help=False,
     )
     # New functionality
-    subparsers.add_parser(
+    new_parser = subparsers.add_parser(
         "new",
         help="Generate a new component",
         parents=[common_parser],
         add_help=False,
     )
-    subparsers.add_parser(
-        "new-port",
-        help="Generate a new port",
-        parents=[common_parser],
-        add_help=False,
+    new_parser.add_argument(
+        "--component",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a component",
+    )
+    new_parser.add_argument(
+        "--port",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a port",
     )
     for target in Target.get_all_targets():
         add_target_parser(target, subparsers, common_parser, parsers)
@@ -343,12 +349,17 @@ def utility_entry(args):
             print_info(parsed, deployment)
         elif parsed.command == "new":
             settings = IniSettings.load(deployment / "settings.ini", cwd)
-            status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
-            sys.exit(status)
-        elif parsed.command == "new-port":
-            settings = IniSettings.load(deployment / "settings.ini", cwd)
-            status = new_port(cwd, settings)
-            sys.exit(status)
+            if parsed.component and parsed.port:
+                print("[ERROR] Use --component or --port, not both.")
+            elif parsed.component:
+                status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
+                sys.exit(status)
+            elif parsed.port:
+                status = new_port(cwd, settings)
+                sys.exit(status)
+            else:
+                print("[ERROR] Specify whether you would like to generate a component or a port.")
+                print("Use --component or --port.")
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)
             lines = build.find_hashed_file(parsed.hash)
