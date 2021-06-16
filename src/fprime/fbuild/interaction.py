@@ -11,6 +11,7 @@ import time
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
+from slugify import slugify
 
 from fprime.fbuild.builder import Build, Target
 from fprime.fbuild.cmake import CMakeExecutionException
@@ -254,40 +255,54 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
-<<<<<<< HEAD
 def get_port_input(proj_root):
     defaults = {
         "username" : "Default Name",
         "email" : "noreply@nospam.com",
         "port_name": "Example Port",
         "short_description" : "Example usage of port",
+        "slug" : "",
         "dir_name" : "example_directory",
         "suffix" : "Port",
-        "path_to_port" : os.getcwd(),
+        "path_to_port" : os.path.split(os.getcwd())[-1],
         "path_to_fprime_root" : proj_root,
         "namespace" : "",
         "license" : "None"
     }
 
     defaults["namespace"] = defaults["path_to_port"]
-    defaults["dir_name"] = defaults["port_name"]
+    defaults["slug"] = slugify(defaults["port_name"])
 
-    user_name = input("Full Name[Default Name]: ")
-    email = input("Email[noreply@nospam.com]: ")
-    port_name = input("Port Name[Example Port]: ")
-    short_description = input("Short Description[Example usage of port]: ")
-    slug = input("Slug: ")
-    dir_name = input("Directory Name[{}]: ".format(os.getcwd()))
-    suffix = input("Explicit Port Suffix: ")
-    path_to_port = input("Path to Port: ")
-    path_to_fprime_root = input("Path to Root: ")
-    namespace = input("Namespace: ")
-    license = input("License: ")
-    values = [user_name, email, port_name, short_description, slug, dir_name, suffix, path_to_port, path_to_fprime_root, namespace, license]
+    user_name = input("Full Name[{}]: ".format(defaults["username"]))
+    email = input("Email[{}]: ".format(defaults["email"]))
+    port_name = input("Port Name[{}]: ".format(defaults["port_name"]))
+    short_description = input("Short Description[{}]: ".format(defaults["short_description"]))
+    slug = input("Slug[{}]: ".format(defaults["slug"]))
+    dir_name = input("Directory Name[{}]: ".format(defaults["dir_name"]))
+    suffix = input("Explicit Port Suffix[{}]: ".format(defaults["suffix"]))
+    path_to_port = input("Path to Port[{}]: ".format(defaults["path_to_port"]))
+    path_to_fprime_root = input("Path to Fprime Root[{}]: ".format(defaults["path_to_fprime_root"]))
+    namespace = input("Namespace[{}]: ".format(defaults["namespace"]))
+    license = input("License[{}]: ".format(defaults["license"]))
+    values = {
+        "username" : user_name,
+        "email" : email,
+        "port_name": port_name,
+        "short_description" : short_description,
+        "slug" : slug,
+        "dir_name" : dir_name,
+        "suffix" : suffix,
+        "path_to_port" : path_to_port,
+        "path_to_fprime_root" : path_to_fprime_root,
+        "namespace" : namespace,
+        "license" : license
+    }
+
+    for key in values:
+        if values[key] == "":
+            values[key] = defaults[key]
     return values
 
-=======
->>>>>>> b75678aa544c97346d330761066591822b812852
 def new_port(
     path: Path, settings: Dict[str, str]
 ):
@@ -316,7 +331,6 @@ def new_port(
         else:
             source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-port'
         
-<<<<<<< HEAD
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
@@ -324,17 +338,17 @@ def new_port(
             trim_blocks=False)
         params = get_port_input(proj_root)
         context = {
-            "user_name" : params[0],
-            "email" : params[1],
-            "port_name" : params[2],
-            "short_description" : params[3],
-            "slug" : params[4],
-            "dir_name" : params[5],
-            "suffix" : params[6],
-            "path_to_port" : params[7],
-            "path_to_fprime_root" : params[8],
-            "namespace" : params[9],
-            "license" : params[10]
+            "user_name" : params["username"],
+            "email" : params["email"],
+            "port_name" : params["port_name"],
+            "short_description" : params["short_description"],
+            "slug" : params["slug"],
+            "dir_name" : params["dir_name"],
+            "suffix" : params["suffix"],
+            "path_to_port" : params["path_to_port"],
+            "path_to_fprime_root" : params["path_to_fprime_root"],
+            "namespace" : params["namespace"],
+            "license" : params["license"]
         }
         fname = context["slug"] + "PortAi.xml"
         with open(fname, 'w') as f:
@@ -350,26 +364,6 @@ def new_port(
         else:
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
         return 0
-=======
-        print("[INFO] Cookiecutter source: {}".format(source))
-        print()
-        print("----------------")
-        print(
-            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
-        )
-        print("----------------")
-        print()
-        final_port_dir = Path(
-            cookiecutter(source, extra_context=calculated_defaults)
-        ).resolve()
-        if proj_root is None:
-            print(
-                "[INFO] Created port directory without adding to build system nor generating implementation {}".format(
-                    final_port_dir
-                )
-            )
-            return 0
->>>>>>> b75678aa544c97346d330761066591822b812852
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
     except CMakeExecutionException as exc:
