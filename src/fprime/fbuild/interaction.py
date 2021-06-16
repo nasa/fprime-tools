@@ -254,6 +254,7 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
+<<<<<<< HEAD
 def get_port_input(proj_root):
     defaults = {
         "username" : "Default Name",
@@ -285,6 +286,8 @@ def get_port_input(proj_root):
     values = [user_name, email, port_name, short_description, slug, dir_name, suffix, path_to_port, path_to_fprime_root, namespace, license]
     return values
 
+=======
+>>>>>>> b75678aa544c97346d330761066591822b812852
 def new_port(
     path: Path, settings: Dict[str, str]
 ):
@@ -313,6 +316,7 @@ def new_port(
         else:
             source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-port'
         
+<<<<<<< HEAD
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
@@ -346,6 +350,26 @@ def new_port(
         else:
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
         return 0
+=======
+        print("[INFO] Cookiecutter source: {}".format(source))
+        print()
+        print("----------------")
+        print(
+            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
+        )
+        print("----------------")
+        print()
+        final_port_dir = Path(
+            cookiecutter(source, extra_context=calculated_defaults)
+        ).resolve()
+        if proj_root is None:
+            print(
+                "[INFO] Created port directory without adding to build system nor generating implementation {}".format(
+                    final_port_dir
+                )
+            )
+            return 0
+>>>>>>> b75678aa544c97346d330761066591822b812852
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
     except CMakeExecutionException as exc:
