@@ -10,6 +10,7 @@ import time
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
+from jinja2 import Environment, FileSystemLoader
 
 from fprime.fbuild.builder import Build, Target
 from fprime.fbuild.cmake import CMakeExecutionException
@@ -105,7 +106,36 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     addition = 'add_fprime_subdirectory("${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(
         comp_path
     )
+    print(line)
     lines.insert(line, addition)
+    with open(list_file, "w") as file_handle:
+        file_handle.write("".join(lines))
+    return True
+
+def add_port_to_cmake(list_file: Path, comp_path: Path):
+    """ Adds new component to CMakeLists.txt"""
+    print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
+    with open(list_file, "r") as file_handle:
+        lines = file_handle.readlines()
+    index = 0
+    line = lines[index]
+    while line != "set(SOURCE_FILES\n":
+        index += 1
+        line = lines[index]
+    index += 1
+    if not confirm(
+        "Add component {} to {} {}?".format(
+            comp_path,
+            list_file,
+            "ports in CMakeLists.txt"
+        )
+    ):
+        return False
+
+    addition = '"${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(
+        comp_path
+    )
+    lines.insert(index, addition)
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
     return True
@@ -224,6 +254,37 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
+def get_port_input(proj_root):
+    defaults = {
+        "username" : "Default Name",
+        "email" : "noreply@nospam.com",
+        "port_name": "Example Port",
+        "short_description" : "Example usage of port",
+        "dir_name" : "example_directory",
+        "suffix" : "Port",
+        "path_to_port" : os.getcwd(),
+        "path_to_fprime_root" : proj_root,
+        "namespace" : "",
+        "license" : "None"
+    }
+
+    defaults["namespace"] = defaults["path_to_port"]
+    defaults["dir_name"] = defaults["port_name"]
+
+    user_name = input("Full Name[Default Name]: ")
+    email = input("Email[noreply@nospam.com]: ")
+    port_name = input("Port Name[Example Port]: ")
+    short_description = input("Short Description[Example usage of port]: ")
+    slug = input("Slug: ")
+    dir_name = input("Directory Name[{}]: ".format(os.getcwd()))
+    suffix = input("Explicit Port Suffix: ")
+    path_to_port = input("Path to Port: ")
+    path_to_fprime_root = input("Path to Root: ")
+    namespace = input("Namespace: ")
+    license = input("License: ")
+    values = [user_name, email, port_name, short_description, slug, dir_name, suffix, path_to_port, path_to_fprime_root, namespace, license]
+    return values
+
 def new_port(
     path: Path, settings: Dict[str, str]
 ):
@@ -252,24 +313,39 @@ def new_port(
         else:
             source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-port'
         
-        print("[INFO] Cookiecutter source: {}".format(source))
-        print()
-        print("----------------")
-        print(
-            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
-        )
-        print("----------------")
-        print()
-        final_port_dir = Path(
-            cookiecutter(source, extra_context=calculated_defaults)
-        ).resolve()
-        if proj_root is None:
-            print(
-                "[INFO] Created port directory without adding to build system nor generating implementation {}".format(
-                    final_port_dir
-                )
-            )
-            return 0
+        PATH = os.path.dirname(os.path.abspath(__file__))
+        TEMPLATE_ENVIRONMENT = Environment(
+            autoescape=False,
+            loader=FileSystemLoader(os.path.join(PATH, '../cookiecutter_templates')),
+            trim_blocks=False)
+        params = get_port_input(proj_root)
+        context = {
+            "user_name" : params[0],
+            "email" : params[1],
+            "port_name" : params[2],
+            "short_description" : params[3],
+            "slug" : params[4],
+            "dir_name" : params[5],
+            "suffix" : params[6],
+            "path_to_port" : params[7],
+            "path_to_fprime_root" : params[8],
+            "namespace" : params[9],
+            "license" : params[10]
+        }
+        fname = context["slug"] + "PortAi.xml"
+        with open(fname, 'w') as f:
+            xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(context)
+            f.write(xml_file)
+        if not os.path.isdir(context["dir_name"]):
+            os.mkdir(context["dir_name"])
+        os.rename(fname, context["dir_name"] + "/" + fname)
+        if not os.path.isfile(context["dir_name"] + "/CMakeLists.txt"):
+            with open(context["dir_name"] + "/CMakeLists.txt", 'w') as f:
+                CMake_file = TEMPLATE_ENVIRONMENT.get_template("CMakeLists_template.txt").render(context)
+                f.write(CMake_file)
+        else:
+            add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
+        return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
     except CMakeExecutionException as exc:
