@@ -2,8 +2,11 @@
 <?xml-model href="{{cookiecutter.component_path_to_fprime_root}}/../Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <component name="{{cookiecutter.component_slug}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
     <!-- Example of importing a port type -->
+{% if cookiecutter.ports == "yes" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+{% endif %}
     <comment>{{cookiecutter.component_short_description}}</comment>
+{% if cookiecutter.ports == "yes" %}
     <ports>
         <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
         <!-- Input ping port -->
@@ -24,6 +27,8 @@
             </comment>
         </port>
     </ports>
+{% endif %}
+{% if cookiecutter.commands == "yes" %}
     <commands>
 {%- if cookiecutter.component_kind == 'passive' %}
         <command kind="sync" opcode="0" mnemonic="PR_StopPings">
@@ -35,6 +40,8 @@
             </comment>
         </command>
     </commands>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
     <parameters>
         <parameter id="5" set_opcode="6" save_opcode="1" name="parameter1" data_type="U32" default="10">
             <comment>
@@ -47,6 +54,8 @@
             </comment>
         </parameter>
     </parameters>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
     <telemetry>
         <channel id="0" name="PR_NumPings" data_type="U32">
             <comment>
@@ -54,6 +63,8 @@
             </comment>
         </channel>
     </telemetry>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
     <events>
         <event id="0" name="PR_PingsDisabled" severity="ACTIVITY_HI" format_string = "PingReceiver ping responses disabled" >
             <comment>
@@ -71,4 +82,5 @@
             </args>
         </event>
     </events>
+    {% endif %}
 </component>

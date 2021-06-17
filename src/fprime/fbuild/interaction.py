@@ -255,7 +255,7 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
-def get_port_input(proj_root):
+def get_port_input():
     defaults = {
         "username" : "Default Name",
         "email" : "noreply@nospam.com",
@@ -265,29 +265,35 @@ def get_port_input(proj_root):
         "dir_name" : "example_directory",
         "suffix" : "Port",
         "path_to_port" : os.path.split(os.getcwd())[-1],
-        "path_to_fprime_root" : proj_root,
+        "path_to_fprime_root" : "../..",
         "namespace" : "",
         "arg_number" : 1,
         "license" : "None"
     }
 
-    user_name = input("Full Name[{}]: ".format(defaults["username"]))
-    email = input("Email[{}]: ".format(defaults["email"]))
-    port_name = input("Port Name[{}]: ".format(defaults["port_name"]))
+    user_name = input("Full Name [{}]: ".format(defaults["username"]))
+    email = input("Email [{}]: ".format(defaults["email"]))
+    port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
 
     defaults["slug"] = slugify(defaults["port_name"])
 
-    short_description = input("Short Description[{}]: ".format(defaults["short_description"]))
-    slug = input("Slug[{}]: ".format(defaults["slug"]))
-    dir_name = input("Directory Name[{}]: ".format(defaults["dir_name"]))
-    suffix = input("Explicit Port Suffix[{}]: ".format(defaults["suffix"]))
-    path_to_port = input("Path to Port[{}]: ".format(defaults["path_to_port"]))
+    short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
+    slug = input("Slug [{}]: ".format(defaults["slug"]))
+    dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
+    suffix = input("Explicit Port Suffix [{}]: ".format(defaults["suffix"]))
+    path_to_port = input("Path to Port [{}]: ".format(defaults["path_to_port"]))
 
     defaults["namespace"] = defaults["path_to_port"]
 
-    path_to_fprime_root = input("Path to Fprime Root[{}]: ".format(defaults["path_to_fprime_root"]))
-    namespace = input("Namespace[{}]: ".format(defaults["namespace"]))
-    arg_number = int(input("Number of arguments[{}]: ".format(defaults["arg_number"])))
+    path_to_fprime_root = input("Path to Fprime Root [{}]: ".format(defaults["path_to_fprime_root"]))
+    namespace = input("Namespace [{}]: ".format(defaults["namespace"]))
+    string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
+    if string_arg_number == "":
+            arg_number = 1
+    elif not string_arg_number.isnumeric():
+        print("[ERROR] You have not entered a valid number")
+    else:
+        arg_number = int(string_arg_number)
     license = input("License[{}]: ".format(defaults["license"]))
     values = {
         "username" : user_name,
@@ -328,7 +334,7 @@ def new_port(
             ).rstrip(os.sep)
         except (ValueError, TypeError): 
             print(
-                "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
+                "[WARNING] No found project root. Set 'port_path' and 'port_path_to_fprime_root' carefully"
             )
 
         #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
@@ -342,7 +348,7 @@ def new_port(
             autoescape=False,
             loader=FileSystemLoader(os.path.join(PATH, '../cookiecutter_templates')),
             trim_blocks=False)
-        params = get_port_input(proj_root)
+        params = get_port_input()
         context = {
             "user_name" : params["username"],
             "email" : params["email"],
@@ -370,6 +376,12 @@ def new_port(
                 f.write(CMake_file)
         else:
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
+        print("")
+        print("################################################################################")
+        print("")
+        print("You have succesfully created the port " + context["port_name"] + " located in " + context["dir_name"])
+        print("")
+        print("################################################################################")
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)

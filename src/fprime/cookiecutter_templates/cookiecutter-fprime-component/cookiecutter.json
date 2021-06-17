@@ -13,6 +13,12 @@
     "component_namespace": "{{ cookiecutter.component_path|replace('/','::')|replace('\\\\','::') }}",
     "component_kind": ["active", "passive", "queued"],
     "component_multiplatform_support": ["no", "yes"],
-    "license": ["None", "MIT license", "BSD 2-Clause License", "BSD 3-Clause License"]
+    "license": ["None", "MIT license", "BSD 2-Clause License", "BSD 3-Clause License"],
+    "ports": ["yes","no"],
+    "commands": ["yes","no"],
+    "parameters": ["yes","no"],
+    "events": ["yes","no"],
+    "telemetry": ["yes","no"]
 }
+
 
