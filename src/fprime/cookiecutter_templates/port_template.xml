@@ -5,9 +5,11 @@
     {{short_description}}
     </comment>
     <args>
+    {% for i in range(arg_number) %}
         <arg name="arg1" type="U32">
             <comment>A first arguemnt</comment>
 		</arg>
+    {% endfor %}
         <arg name="arg2" type="U32">
             <comment>A second argument</comment>
 		</arg>

@@ -267,22 +267,27 @@ def get_port_input(proj_root):
         "path_to_port" : os.path.split(os.getcwd())[-1],
         "path_to_fprime_root" : proj_root,
         "namespace" : "",
+        "arg_number" : 1,
         "license" : "None"
     }
-
-    defaults["namespace"] = defaults["path_to_port"]
-    defaults["slug"] = slugify(defaults["port_name"])
 
     user_name = input("Full Name[{}]: ".format(defaults["username"]))
     email = input("Email[{}]: ".format(defaults["email"]))
     port_name = input("Port Name[{}]: ".format(defaults["port_name"]))
+
+    defaults["slug"] = slugify(defaults["port_name"])
+
     short_description = input("Short Description[{}]: ".format(defaults["short_description"]))
     slug = input("Slug[{}]: ".format(defaults["slug"]))
     dir_name = input("Directory Name[{}]: ".format(defaults["dir_name"]))
     suffix = input("Explicit Port Suffix[{}]: ".format(defaults["suffix"]))
     path_to_port = input("Path to Port[{}]: ".format(defaults["path_to_port"]))
+
+    defaults["namespace"] = defaults["path_to_port"]
+
     path_to_fprime_root = input("Path to Fprime Root[{}]: ".format(defaults["path_to_fprime_root"]))
     namespace = input("Namespace[{}]: ".format(defaults["namespace"]))
+    arg_number = int(input("Number of arguments[{}]: ".format(defaults["arg_number"])))
     license = input("License[{}]: ".format(defaults["license"]))
     values = {
         "username" : user_name,
@@ -295,6 +300,7 @@ def get_port_input(proj_root):
         "path_to_port" : path_to_port,
         "path_to_fprime_root" : path_to_fprime_root,
         "namespace" : namespace,
+        "arg_number" : arg_number,
         "license" : license
     }
 
@@ -348,9 +354,10 @@ def new_port(
             "path_to_port" : params["path_to_port"],
             "path_to_fprime_root" : params["path_to_fprime_root"],
             "namespace" : params["namespace"],
-            "license" : params["license"]
+            "arg_number" : params["arg_number"],
+            "license" : params["license"],
         }
-        fname = context["slug"] + "PortAi.xml"
+        fname = context["slug"] + context["suffix"] + "Ai.xml"
         with open(fname, 'w') as f:
             xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(context)
             f.write(xml_file)
