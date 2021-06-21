@@ -6,14 +6,14 @@
 
 ## 2. Requirements
 
-The requirements for `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` are as follows:
+The requirements for `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` are as follows:
 
 *Note:* Requirements are usually labelled with the initials of the component class, e.g. `CookieCutter -> CC-001`.
 
 Requirement | Description | Verification Method
 ----------- | ----------- | -------------------
-CC-001 | The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` component acknowledge ping requests | Unit Test
-CC-002 | The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` component shall save the widgets | Unit Test
+CC-001 | The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` component acknowledge ping requests | Unit Test
+CC-002 | The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` component shall save the widgets | Unit Test
 
 ## 3. Design
 
@@ -21,13 +21,13 @@ CC-002 | The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slu
 
 #### 3.1.1 Component Diagram
 
-The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` component has the following component diagram:
+The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` component has the following component diagram:
 
-![`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` Diagram](img/{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}BDD.jpg "{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}")
+![`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` Diagram](img/{{cookiecutter.component_slug}}ComponentImplBDD.jpg "{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl")
 
 #### 3.1.2 Ports
 
-The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` component uses the following port types:
+The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` component uses the following port types:
 
 Port Data Type | Name | Direction | Kind | Usage
 -------------- | ---- | --------- | ---- | -----
@@ -41,21 +41,21 @@ Port Data Type | Name | Direction | Kind | Usage
 
 #### 3.3.1 FATAL Notification
 
-The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` handles FATAL notifications:
+The `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` handles FATAL notifications:
 
 ![FATAL Notification](img/FatalNotification.jpg)
 
 ### 3.4 State
 
-`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` has no state machines (or does it?).
+`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` has no state machines (or does it?).
 
 ### 3.5 Algorithms
 
-`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}` has no significant algorithms.
+`{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl` has no significant algorithms.
 
 ## 4. Dictionary
 
-Dictionaries: [HTML]({{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}.html) [MD]({{cookiecutter.component_slug}}.md)
+Dictionaries: [HTML]({{cookiecutter.component_slug}}ComponentImpl.html) [MD]({{cookiecutter.component_slug}}.md)
 
 ## 4. Module Checklists
 
@@ -69,9 +69,9 @@ Unit Test Checklist | [Link](Checklist_Unit_Test.xls)
 
 [Unit Test Output](../test/ut/output/test.txt)
 
-[Coverage Summary](../test/ut/output/{{cookiecutter.component_namespace}}{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}_gcov.txt)
+[Coverage Summary](../test/ut/output/{{cookiecutter.component_namespace}}{{cookiecutter.component_slug}}ComponentImpl_gcov.txt)
 
-[Coverage Output - `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}.cpp`](../test/ut/output/{{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}{{cookiecutter.component_impl_suffix}}.cpp.gcov)
+[Coverage Output - `{{cookiecutter.component_namespace}}::{{cookiecutter.component_slug}}ComponentImpl.cpp`](../test/ut/output/{{cookiecutter.component_slug}}ComponentImpl.cpp.gcov)
 
 [Coverage Output - `{{cookiecutter.component_slug}}ComponentAc.cpp`](../test/ut/output/{{cookiecutter.component_slug}}ComponentAc.cpp.gcov)
 

@@ -1,5 +1,5 @@
 // ======================================================================
-// \title  {{cookiecutter.component_slug}}{{cookiecutter.component_explicit_component_suffix}}VxWorks{{cookiecutter.component_impl_suffix}}.cpp
+// \title  {{cookiecutter.component_slug}}ComponentArduinoImpl.cpp
 // \author {{cookiecutter.full_name}} <{{cookiecutter.email}}>
 // \brief  {{cookiecutter.component_short_description}}
 // ======================================================================
