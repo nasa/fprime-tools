@@ -29,7 +29,7 @@ if __name__ == "__main__":
     replace_contents(join('docs', 'sdd.md'), '<TODAY>', today.strftime("%m/%d/%Y"))
 
 {% if cookiecutter.component_multiplatform_support == "no" %}
-    # {{cookiecutter.component_dir_name}}/
+    # {{cookiecutter.component_slug}}/
     mp_str = '{{cookiecutter.component_slug}}Component{}Impl.cpp'
     rm_list = ['Arduino', 'AVR', 'CygWin', 'Linux', 'Darwin', 'RPi', 'VxWorks']
     for i in rm_list:
@@ -44,8 +44,37 @@ if __name__ == "__main__":
 #     os.unlink(join('src', '/{/{ cookiecutter.package_name }}', '__main__.py'))
 #     os.unlink(join('src', '/{/{ cookiecutter.package_name }}', 'cli.py'))
 # /{/% endif %}
+print("****************************************************************")
+print(os.getcwd() + "\n")
+with open("../CMakeLists.txt", "r") as f:
+    lines = f.readlines()
+    index = 0
+    while "add_fprime_subdirectory" not in lines[index]:
+        index += 1
+    while "add_fprime_subdirectory" in lines[index]:
+        index += 1
 
-    print("""
+addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}/")\n'
+lines.insert(index, addition)
+with open("../CMakeLists.txt", "w") as f:
+    f.write("".join(lines))
+
+os.system("fprime-util purge")
+print("DONE!!!")
+os.system("fprime-util generate")
+print("DONE2!!!")
+os.system("cd {{cookiecutter.component_slug}}")
+os.system("fprime-util impl --ut")
+os.rename("Tester.hpp", "test/ut/Tester.hpp")
+os.rename("Tester.cpp", "test/ut/Tester.cpp")
+os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
+os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
+os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
+os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
+os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
+
+
+print("""
 ################################################################################
 ################################################################################
 
@@ -67,7 +96,7 @@ if __name__ == "__main__":
     can be done by adding a line like this, near the bottom of the
     deployment's CMakeLists.txt file:
 
-        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../{{ cookiecutter.component_path }}/{{ cookiecutter.component_dir_name }}")
+        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../{{ cookiecutter.component_path }}/{{ cookiecutter.component_slug }}")
 
     Then you need to (possibly purge) and generate the new cmake config
     in that deployment:
@@ -78,7 +107,7 @@ if __name__ == "__main__":
     define the component to your liking, and generate the implementation
     boilerplate:
 
-        cd {{ cookiecutter.component_dir_name }}
+        cd {{ cookiecutter.component_slug }}
         fprime-util impl -b {path/to/your/deployment}/build-fprime-automatic-default
 
     Next, copy the `-template` code contents into your .hpp and .cpp files.

@@ -76,3 +76,11 @@ if(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "avr")
     add_avr_dependency("${MODULE_NAME}")
 endif()
 {% endif %}
+
+set(UT_SOURCE_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/test/ut/main.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/test/ut/Tester.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/test/ut/TesterBase.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/test/ut/GTestBase.cpp"
+)
+register_fprime_ut()
