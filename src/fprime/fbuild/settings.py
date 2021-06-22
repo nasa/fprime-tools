@@ -78,7 +78,7 @@ class IniSettings:
         """
         settings_file = (
             settings_file if settings_file is not None else Path(IniSettings.DEF_FILE)
-        )
+        ).resolve()
 
         dfl_install_dest = Path(settings_file.resolve().parent, "build-artifacts")
 
