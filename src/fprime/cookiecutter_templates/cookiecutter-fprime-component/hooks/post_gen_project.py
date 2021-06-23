@@ -28,14 +28,6 @@ if __name__ == "__main__":
     # replace_contents('CHANGELOG.rst', '<TODAY>', today.strftime("%Y-%m-%d"))
     replace_contents(join('docs', 'sdd.md'), '<TODAY>', today.strftime("%m/%d/%Y"))
 
-{% if cookiecutter.component_multiplatform_support == "no" %}
-    # {{cookiecutter.component_name}}/
-    mp_str = '{{cookiecutter.component_name}}Component{}Impl.cpp'
-    rm_list = ['Arduino', 'AVR', 'CygWin', 'Linux', 'Darwin', 'RPi', 'VxWorks']
-    for i in rm_list:
-        os.unlink(mp_str.format(i))
-{% endif %}
-
 # /{/% if cookiecutter.sphinx_docs == "no" %}
 #     shutil.rmtree('docs')
 # /{/% endif %}

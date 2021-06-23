@@ -5,7 +5,6 @@
     "component_path_to_fprime_root": "../..",
     "component_namespace": "{{ cookiecutter.component_path|replace('/','::')|replace('\\\\','::') }}",
     "component_kind": ["active", "passive", "queued"],
-    "component_multiplatform_support": ["no", "yes"],
     "ports": ["yes","no"],
     "commands": ["yes","no"],
     "parameters": ["yes","no"],
