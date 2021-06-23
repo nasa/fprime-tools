@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <?xml-model href="{{cookiecutter.component_path_to_fprime_root}}/../Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
-<component name="{{cookiecutter.component_slug}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
+<component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
     <!-- Example of importing a port type -->
 {% if cookiecutter.ports == "yes" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>

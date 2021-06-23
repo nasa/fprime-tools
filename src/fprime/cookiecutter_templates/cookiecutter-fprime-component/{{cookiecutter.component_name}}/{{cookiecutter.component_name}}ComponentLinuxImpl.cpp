@@ -1,4 +1,4 @@
 // ======================================================================
-// \title  {{cookiecutter.component_slug}}ComponentCygWinImpl.cpp
+// \title  {{cookiecutter.component_name}}ComponentLinuxImpl.cpp
 // \brief  {{cookiecutter.component_short_description}}
 // ======================================================================

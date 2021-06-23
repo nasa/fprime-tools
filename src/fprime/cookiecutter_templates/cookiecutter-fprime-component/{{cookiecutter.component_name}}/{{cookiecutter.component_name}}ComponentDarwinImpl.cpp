@@ -1,4 +1,4 @@
 // ======================================================================
-// \title  {{cookiecutter.component_slug}}ComponentImpl.cpp
+// \title  {{cookiecutter.component_name}}ComponentDarwinImpl.cpp
 // \brief  {{cookiecutter.component_short_description}}
 // ======================================================================

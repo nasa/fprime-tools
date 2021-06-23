@@ -5,14 +5,14 @@
 # automatically for any template). To use it:
 #
 #    pip install cookiepatcher
-#    cookiepatcher gh:sterlingpeet/cookiecutter-fprime-component {{cookiecutter.component_slug}}
+#    cookiepatcher gh:sterlingpeet/cookiecutter-fprime-component {{cookiecutter.component_name}}
 #
 # See:
 #    https://pypi.org/project/cookiepatcher
 #
 # Alternatively, you can run:
 #
-#    cookiecutter --overwrite-if-exists --config-file={{cookiecutter.component_slug}}/.cookiecutterrc gh:sterlingpeet/cookiecutter-fprime-component
+#    cookiecutter --overwrite-if-exists --config-file={{cookiecutter.component_name}}/.cookiecutterrc gh:sterlingpeet/cookiecutter-fprime-component
 
 default_context:
 {% for key, value in cookiecutter.items()|sort %}

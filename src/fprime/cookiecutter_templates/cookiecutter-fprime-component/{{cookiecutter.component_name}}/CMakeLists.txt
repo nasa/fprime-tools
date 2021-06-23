@@ -6,8 +6,8 @@
 #
 ####
 set(SOURCE_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentAi.xml"
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentImpl.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAi.xml"
+    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentImpl.cpp"
 )
 {% if cookiecutter.component_multiplatform_support == "yes" %}
 # Determine the platform specific source files to append:
@@ -15,25 +15,25 @@ string(TOLOWER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_LOWER)
 
 # Arduino additions
 if(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "arduino")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentArduinoImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentArduinoImpl.cpp")
 # AVR platform additions
 elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "avr")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentAVRImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAVRImpl.cpp")
 # CygWin platform additions
 elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "cygwin")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentCygWinImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentCygWinImpl.cpp")
 # Darwin platform additions
 elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "darwin")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentDarwinImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentDarwinImpl.cpp")
 # Raspberry Pi platform additions
 elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "arm-linux-gnueabihf")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentRPiImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentRPiImpl.cpp")
 # VxWorks platform additions
 elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "vxworks")
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentVxWorksImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentVxWorksImpl.cpp")
 # Otherwise, assume Linux-compatible build
 else()
-    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentLinuxImpl.cpp")
+    list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentLinuxImpl.cpp")
 endif()
 {%- else %}
 # # Determine the platform specific source files to append:
@@ -41,16 +41,16 @@ endif()
 
 # # CygWin platform additions
 # if(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "cygwin")
-#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentCygWinImpl.cpp")
+#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentCygWinImpl.cpp")
 # # Darwin platform additions
 # elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "darwin")
-#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentDarwinImpl.cpp")
+#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentDarwinImpl.cpp")
 # # VxWorks platform additions
 # elseif(${CMAKE_SYSTEM_NAME_LOWER} STREQUAL "vxworks")
-#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentVxWorksImpl.cpp")
+#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentVxWorksImpl.cpp")
 # # Otherwise, assume Linux-compatible build
 # else()
-#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}ComponentLinuxImpl.cpp")
+#     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentLinuxImpl.cpp")
 # endif()
 {% endif %}
 

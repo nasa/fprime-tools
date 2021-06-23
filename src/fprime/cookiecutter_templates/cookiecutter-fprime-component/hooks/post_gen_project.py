@@ -29,8 +29,8 @@ if __name__ == "__main__":
     replace_contents(join('docs', 'sdd.md'), '<TODAY>', today.strftime("%m/%d/%Y"))
 
 {% if cookiecutter.component_multiplatform_support == "no" %}
-    # {{cookiecutter.component_slug}}/
-    mp_str = '{{cookiecutter.component_slug}}Component{}Impl.cpp'
+    # {{cookiecutter.component_name}}/
+    mp_str = '{{cookiecutter.component_name}}Component{}Impl.cpp'
     rm_list = ['Arduino', 'AVR', 'CygWin', 'Linux', 'Darwin', 'RPi', 'VxWorks']
     for i in rm_list:
         os.unlink(mp_str.format(i))
@@ -54,7 +54,7 @@ with open("../CMakeLists.txt", "r") as f:
     while "add_fprime_subdirectory" in lines[index]:
         index += 1
 
-addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_slug}}/")\n'
+addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}/")\n'
 lines.insert(index, addition)
 with open("../CMakeLists.txt", "w") as f:
     f.write("".join(lines))
@@ -63,7 +63,7 @@ os.system("fprime-util purge")
 print("DONE!!!")
 os.system("fprime-util generate")
 print("DONE2!!!")
-os.system("cd {{cookiecutter.component_slug}}")
+os.system("cd {{cookiecutter.component_name}}")
 os.system("fprime-util impl --ut")
 os.rename("Tester.hpp", "test/ut/Tester.hpp")
 os.rename("Tester.cpp", "test/ut/Tester.cpp")
@@ -78,7 +78,7 @@ print("""
 ################################################################################
 ################################################################################
 
-    You have successfully created the `{{ cookiecutter.component_slug }}` component.
+    You have successfully created the `{{ cookiecutter.component_name }}` component.
 
 ################################################################################
 
@@ -96,18 +96,18 @@ print("""
     can be done by adding a line like this, near the bottom of the
     deployment's CMakeLists.txt file:
 
-        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../{{ cookiecutter.component_path }}/{{ cookiecutter.component_slug }}")
+        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../{{ cookiecutter.component_path }}/{{ cookiecutter.component_name }}")
 
     Then you need to (possibly purge) and generate the new cmake config
     in that deployment:
 
         fprime-util generate
 
-    Now you can edit your {{ cookiecutter.component_slug }}Ai.xml file
+    Now you can edit your {{ cookiecutter.component_name }}Ai.xml file
     define the component to your liking, and generate the implementation
     boilerplate:
 
-        cd {{ cookiecutter.component_slug }}
+        cd {{ cookiecutter.component_name }}
         fprime-util impl -b {path/to/your/deployment}/build-fprime-automatic-default
 
     Next, copy the `-template` code contents into your .hpp and .cpp files.

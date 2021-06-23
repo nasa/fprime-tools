@@ -1,4 +1,4 @@
 // ======================================================================
-// \title  {{cookiecutter.component_slug}}ComponentAVRImpl
+// \title  {{cookiecutter.component_name}}ComponentAVRImpl
 // \brief  {{cookiecutter.component_short_description}}
 // ======================================================================

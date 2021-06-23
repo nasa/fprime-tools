@@ -1,7 +1,6 @@
 {
-    "component_name": "My Example",
+    "component_name": "MyExample",
     "component_short_description": "Example Component for F Prime FSW framework.",
-    "component_slug": "{{ cookiecutter.component_name|slugify(separator='', lowercase=False) }}",,
     "component_path": "Prjct/Grp",
     "component_path_to_fprime_root": "../..",
     "component_namespace": "{{ cookiecutter.component_path|replace('/','::')|replace('\\\\','::') }}",
