@@ -45,14 +45,17 @@ os.chdir("..")
 print("****************************************************************")
 print(os.getcwd() + "\n")
 
-cwd = os.getcwd()
-settings = IniSettings.load(Path("settings.ini"), cwd)
+cwd = Path(os.getcwd())
 
 #Use fprime root to get schema for Component.xml file
-if settings.get("framework_path") is not None and settings["framework_path"] != "native":
-    path_to_fprime = settings["framework_path"]
-else:
-    raise Exception("No framework_path specified in settings.ini or no settings.ini file exists")
+try:
+    settings = IniSettings.load(Path("settings.ini"), cwd)
+    if (settings.get("framework_path") is not None and settings["framework_path"] != "native"):
+        path_to_fprime = settings["framework_path"]
+    else:
+        path_to_fprime = IniSettings.find_fprime(cwd)
+except:
+    path_to_fprime = IniSettings.find_fprime(cwd)
 
 
 with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
