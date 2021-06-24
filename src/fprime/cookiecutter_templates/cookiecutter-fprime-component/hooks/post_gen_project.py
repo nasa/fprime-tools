@@ -6,6 +6,8 @@ import os
 # import subprocess
 # import sys
 from os.path import join
+from fprime.fbuild.settings import IniSettings
+from pathlib import Path
 
 try:
     from click.termui import secho
@@ -38,7 +40,32 @@ if __name__ == "__main__":
 # /{/% endif %}
 print("****************************************************************")
 print(os.getcwd() + "\n")
-with open("../CMakeLists.txt", "r") as f:
+
+os.chdir("..")
+print("****************************************************************")
+print(os.getcwd() + "\n")
+
+cwd = os.getcwd()
+settings = IniSettings.load(Path("settings.ini"), cwd)
+
+#Use fprime root to get schema for Component.xml file
+if settings.get("framework_path") is not None and settings["framework_path"] != "native":
+    path_to_fprime = settings["framework_path"]
+else:
+    raise Exception("No framework_path specified in settings.ini or no settings.ini file exists")
+
+
+with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
+    lines = s.readlines()
+    print(type(path_to_fprime))
+    s.close()
+
+with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
+    lines.insert(1, '<?xml-model href="' + str(path_to_fprime) + '/Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>')
+    s.write("".join(lines))
+    s.close()
+
+with open("CMakeLists.txt", "r") as f:
     lines = f.readlines()
     index = 0
     while "add_fprime_subdirectory" not in lines[index]:
@@ -48,14 +75,14 @@ with open("../CMakeLists.txt", "r") as f:
 
 addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}/")\n'
 lines.insert(index, addition)
-with open("../CMakeLists.txt", "w") as f:
+with open("CMakeLists.txt", "w") as f:
     f.write("".join(lines))
 
 os.system("fprime-util purge")
 print("DONE!!!")
 os.system("fprime-util generate")
 print("DONE2!!!")
-os.system("cd {{cookiecutter.component_name}}")
+os.chdir("{{cookiecutter.component_name}}")
 os.system("fprime-util impl --ut")
 os.rename("Tester.hpp", "test/ut/Tester.hpp")
 os.rename("Tester.cpp", "test/ut/Tester.cpp")
@@ -88,7 +115,7 @@ print("""
     can be done by adding a line like this, near the bottom of the
     deployment's CMakeLists.txt file:
 
-        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../{{ cookiecutter.component_path }}/{{ cookiecutter.component_name }}")
+        add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{ cookiecutter.component_name }}")
 
     Then you need to (possibly purge) and generate the new cmake config
     in that deployment:

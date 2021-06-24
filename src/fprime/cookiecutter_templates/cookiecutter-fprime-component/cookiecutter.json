@@ -1,9 +1,8 @@
 {
     "component_name": "MyExample",
     "component_short_description": "Example Component for F Prime FSW framework.",
-    "component_path": "Prjct/Grp",
     "component_path_to_fprime_root": "../..",
-    "component_namespace": "{{ cookiecutter.component_path|replace('/','::')|replace('\\\\','::') }}",
+    "component_namespace": "Ref",
     "component_kind": ["active", "passive", "queued"],
     "ports": ["yes","no"],
     "commands": ["yes","no"],
