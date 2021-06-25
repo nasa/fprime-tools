@@ -102,13 +102,15 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         f.write("".join(lines))
     return True
 
-def add_unit_tests(comp_path):
-    print("HERE!!!!!!!!")
-    print(os.getcwd())
+def add_unit_tests(cmake_list_file, comp_path):
+    currentDir = os.getcwd()
+    buildDir = (str(cmake_list_file).split("/"))[:-1]
+    print(currentDir)
+    print(buildDir)
+    os.chdir("/".join(buildDir))
     os.system("fprime-util purge")
-    print("DONE!!!")
     os.system("fprime-util generate")
-    print("DONE2!!!")
+    os.chdir(currentDir)
     os.chdir(str(comp_path))
     os.system("fprime-util impl --ut")
     os.rename("Tester.hpp", "test/ut/Tester.hpp")
@@ -253,7 +255,7 @@ def new_component(
                 "" if platform is None else " " + platform, final_component_dir
             )
         )
-        add_unit_tests(final_component_dir)
+        add_unit_tests(cmake_lists_file, final_component_dir)
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
