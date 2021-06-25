@@ -97,6 +97,9 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         return False
 
     addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    if addition in lines:
+        print("Component already added to CMakeLists.txt")
+        return True
     lines.insert(index, addition)
     with open(list_file, "w") as f:
         f.write("".join(lines))
