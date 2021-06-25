@@ -7,6 +7,7 @@ import os
 # import sys
 from os.path import join
 from fprime.fbuild.settings import IniSettings
+from fprime.fbuild.builder import Build
 from pathlib import Path
 
 try:
@@ -68,19 +69,7 @@ with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}Co
     s.write("".join(lines))
     s.close()
 
-with open("CMakeLists.txt", "r") as f:
-    lines = f.readlines()
-    index = 0
-    while "add_fprime_subdirectory" not in lines[index]:
-        index += 1
-    while "add_fprime_subdirectory" in lines[index]:
-        index += 1
-
-addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}/")\n'
-lines.insert(index, addition)
-with open("CMakeLists.txt", "w") as f:
-    f.write("".join(lines))
-
+'''
 os.system("fprime-util purge")
 print("DONE!!!")
 os.system("fprime-util generate")
@@ -94,6 +83,9 @@ os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
 os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
 os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
 os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
+'''
+
+
 
 
 print("""

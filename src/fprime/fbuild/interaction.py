@@ -73,45 +73,51 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         lines = lines[11:]  # Remove old header
         with open(dest, "a") as file_handle:
             file_handle.write("".join(lines))
-    removals = [path / "mod.mk", path / "Makefile", Path(hpp_src), Path(cpp_src)]
-    for removal in removals:
-        os.remove(removal)
     return True
 
 
 def add_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new component to CMakeLists.txt"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
-    with open(list_file, "r") as file_handle:
-        lines = file_handle.readlines()
-    topology_lines = [
-        (line, text) for line, text in enumerate(lines) if "/Top/" in text
-    ]
-    line = len(topology_lines)
-    if topology_lines:
-        line, text = topology_lines[0]
-        print(
-            "[INFO] Topology inclusion '{}' found on line {}.".format(
-                text.strip(), line + 1
-            )
-        )
+    with open(list_file, "r") as f:
+        lines = f.readlines()
+        index = 0
+        while "add_fprime_subdirectory" not in lines[index]:
+            index += 1
+        while "add_fprime_subdirectory" in lines[index]:
+            index += 1
+
     if not confirm(
         "Add component {} to {} {}?".format(
             comp_path,
             list_file,
-            "at end of file" if not topology_lines else " before topology inclusion",
+            "at end of file before topology inclusion?",
         )
     ):
         return False
 
-    addition = 'add_fprime_subdirectory("${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(
-        comp_path
-    )
-    print(line)
-    lines.insert(line, addition)
-    with open(list_file, "w") as file_handle:
-        file_handle.write("".join(lines))
+    addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    lines.insert(index, addition)
+    with open(list_file, "w") as f:
+        f.write("".join(lines))
     return True
+
+def add_unit_tests(comp_path):
+    print("HERE!!!!!!!!")
+    print(os.getcwd())
+    os.system("fprime-util purge")
+    print("DONE!!!")
+    os.system("fprime-util generate")
+    print("DONE2!!!")
+    os.chdir(str(comp_path))
+    os.system("fprime-util impl --ut")
+    os.rename("Tester.hpp", "test/ut/Tester.hpp")
+    os.rename("Tester.cpp", "test/ut/Tester.cpp")
+    os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
+    os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
+    os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
+    os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
+    os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new component to CMakeLists.txt"""
@@ -223,6 +229,7 @@ def new_component(
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
+        print(str(cmake_lists_file))
         if cmake_lists_file is None or not add_to_cmake(
             cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
         ):
@@ -246,6 +253,7 @@ def new_component(
                 "" if platform is None else " " + platform, final_component_dir
             )
         )
+        add_unit_tests(final_component_dir)
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
