@@ -26,6 +26,18 @@ def replace_contents(filename, what, replacement):
     with open(filename, 'w') as fh:
         fh.write(changelog.replace(what, replacement))
 
+def make_namespace(deployment, cwd):
+    namespace_path = cwd.relative_to(deployment)
+    deployment_list = str(deployment).split("/")
+    deployment_dir = deployment_list[-1]
+    whole_path = deployment_dir + "/" + str(namespace_path)
+    print(whole_path)
+    namespace_list = whole_path.split("/")
+    namespace_list.pop()
+    namespace = "/".join(namespace_list)
+    namespace = str(namespace).replace("/", "::")
+    return namespace
+
 if __name__ == "__main__":
     today = datetime.date.today()
     # replace_contents('CHANGELOG.rst', '<TODAY>', today.strftime("%Y-%m-%d"))
@@ -39,15 +51,10 @@ if __name__ == "__main__":
 #     os.unlink(join('src', '/{/{ cookiecutter.package_name }}', '__main__.py'))
 #     os.unlink(join('src', '/{/{ cookiecutter.package_name }}', 'cli.py'))
 # /{/% endif %}
-print("****************************************************************")
-print(os.getcwd() + "\n")
-
-os.chdir("..")
-print("****************************************************************")
-print(os.getcwd() + "\n")
 
 cwd = Path(os.getcwd())
-
+deployment = Build.find_nearest_deployment(cwd)
+namespace = make_namespace(deployment, cwd)
 #Use fprime root to get schema for Component.xml file
 try:
     settings = IniSettings.load(Path("settings.ini"), cwd)
@@ -59,31 +66,18 @@ except:
     path_to_fprime = IniSettings.find_fprime(cwd)
 
 
-with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
+with open("{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
     lines = s.readlines()
     print(type(path_to_fprime))
     s.close()
 
-with open("{{ cookiecutter.component_name }}/{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
+with open("{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
     lines.insert(1, '<?xml-model href="' + str(path_to_fprime) + '/Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>')
+    lines[2] = lines[2].replace("TEMP_NAMESPACE", namespace)
+    print(lines[2])
+    print(lines[3])
     s.write("".join(lines))
     s.close()
-
-'''
-os.system("fprime-util purge")
-print("DONE!!!")
-os.system("fprime-util generate")
-print("DONE2!!!")
-os.chdir("{{cookiecutter.component_name}}")
-os.system("fprime-util impl --ut")
-os.rename("Tester.hpp", "test/ut/Tester.hpp")
-os.rename("Tester.cpp", "test/ut/Tester.cpp")
-os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
-os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
-os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
-os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
-os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
-'''
 
 
 
