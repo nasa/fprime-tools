@@ -3,6 +3,7 @@
 #
 # SOURCE_FILES: combined list of source and autocoding files
 # MOD_DEPS: (optional) module dependencies
+# UT_SOURCE_FILES: list of source files for unit tests
 #
 ####
 set(SOURCE_FILES
@@ -14,7 +15,7 @@ set(SOURCE_FILES
 # they might not be available when cmake tries to build this component.
 
 # set(MOD_DEPS
-#     Fw/Logger
+#     Add your dependencies here
 # )
 
 register_fprime_module()

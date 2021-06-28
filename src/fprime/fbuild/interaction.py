@@ -105,15 +105,21 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         f.write("".join(lines))
     return True
 
-def add_unit_tests(cmake_list_file, comp_path):
+def regenerate(cmake_list_file):
     currentDir = os.getcwd()
     buildDir = (str(cmake_list_file).split("/"))[:-1]
     print(currentDir)
     print(buildDir)
     os.chdir("/".join(buildDir))
-    os.system("fprime-util purge")
-    os.system("fprime-util generate")
+    try:
+        os.system("fprime-util purge")
+        os.system("fprime-util generate")
+    except:
+        os.system("fprime-util generate")
     os.chdir(currentDir)
+
+
+def add_unit_tests(comp_path):
     os.chdir(str(comp_path))
     os.system("fprime-util impl --ut")
     os.rename("Tester.hpp", "test/ut/Tester.hpp")
@@ -190,20 +196,12 @@ def new_component(
     """ Uses cookiecutter for making new components """
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
-        calculated_defaults = {}
         proj_root = None
         try:
             proj_root = Path(settings.get("project_root", None))
-            print(proj_root)
-            comp_parent_path = path.relative_to(proj_root)
-            back_path = os.sep.join([".." for _ in str(comp_parent_path).split(os.sep)])
-            calculated_defaults["component_path"] = str(comp_parent_path).rstrip(os.sep)
-            calculated_defaults["component_path_to_fprime_root"] = str(
-                back_path
-            ).rstrip(os.sep)
         except (ValueError, TypeError): 
             print(
-                "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
+                "[WARNING] No found project root."
             )
 
         #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
@@ -221,7 +219,7 @@ def new_component(
         print("----------------")
         print()
         final_component_dir = Path(
-            cookiecutter(source, extra_context=calculated_defaults)
+            cookiecutter(source)
         ).resolve()
         if proj_root is None:
             print(
@@ -244,6 +242,7 @@ def new_component(
                 )
             )
             return 0
+        regenerate(cmake_lists_file)
         # Attempt implementation
         if not run_impl(deployment, final_component_dir, platform, verbose):
             print(
@@ -258,7 +257,7 @@ def new_component(
                 "" if platform is None else " " + platform, final_component_dir
             )
         )
-        add_unit_tests(cmake_lists_file, final_component_dir)
+        add_unit_tests(final_component_dir)
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)

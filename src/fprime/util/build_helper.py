@@ -349,6 +349,7 @@ def utility_entry(args):
             print_info(parsed, deployment)
         elif parsed.command == "new":
             settings = IniSettings.load(deployment / "settings.ini", cwd)
+            print(settings)
             if parsed.component and parsed.port:
                 print("[ERROR] Use --component or --port, not both.")
             elif parsed.component:
