@@ -15,6 +15,7 @@ from slugify import slugify
 
 from fprime.fbuild.builder import Build, Target
 from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.fbuild.settings import IniSettings
 
 
 def confirm(msg):
@@ -108,10 +109,9 @@ def add_to_cmake(list_file: Path, comp_path: Path):
 def regenerate(cmake_list_file):
     currentDir = os.getcwd()
     buildDir = (str(cmake_list_file).split("/"))[:-1]
-    print(currentDir)
-    print(buildDir)
     os.chdir("/".join(buildDir))
     try:
+        print("You may want to purge your project so you can regenerate:")
         os.system("fprime-util purge")
         os.system("fprime-util generate")
     except:
@@ -181,11 +181,13 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
         path to CMakeLists.txt or None
     """
     test_path = component_dir.parent
+    print("test_path" + str(test_path))
     # First iterate from where we are, then from the deployment to find the nearest CMakeList.txt nearby
     for test_path, end_path in [(test_path, proj_root), (deployment, proj_root.parent)]:
         while proj_root is not None and test_path != proj_root.parent:
             cmake_list_file = test_path / "CMakeLists.txt"
             if cmake_list_file.is_file():
+                print("CMakefile = ", cmake_list_file)
                 return cmake_list_file
             test_path = test_path.parent
     return None
@@ -232,7 +234,8 @@ def new_component(
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
-        print(str(cmake_lists_file))
+        print("CWD = " + os.getcwd())
+        print(cmake_lists_file)
         if cmake_lists_file is None or not add_to_cmake(
             cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
         ):
@@ -269,36 +272,23 @@ def new_component(
 
 def get_port_input():
     defaults = {
-        "username" : "Default Name",
-        "email" : "noreply@nospam.com",
         "port_name": "Example Port",
         "short_description" : "Example usage of port",
-        "slug" : "",
         "dir_name" : "example_directory",
-        "suffix" : "Port",
-        "path_to_port" : os.path.split(os.getcwd())[-1],
-        "path_to_fprime_root" : "../..",
-        "namespace" : "",
         "arg_number" : 1,
-        "license" : "None"
     }
-
-    user_name = input("Full Name [{}]: ".format(defaults["username"]))
-    email = input("Email [{}]: ".format(defaults["email"]))
-    port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
-
-    defaults["slug"] = slugify(defaults["port_name"])
-
+    valid_name = False
+    invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
+                        " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
+    while not valid_name:
+        port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
+        valid_name = True
+        for char in invalid_characters:
+            if char in port_name:
+                valid_name = False
+                print(char + " is not a valid character. Enter a new name:")
     short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
-    slug = input("Slug [{}]: ".format(defaults["slug"]))
     dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
-    suffix = input("Explicit Port Suffix [{}]: ".format(defaults["suffix"]))
-    path_to_port = input("Path to Port [{}]: ".format(defaults["path_to_port"]))
-
-    defaults["namespace"] = defaults["path_to_port"]
-
-    path_to_fprime_root = input("Path to Fprime Root [{}]: ".format(defaults["path_to_fprime_root"]))
-    namespace = input("Namespace [{}]: ".format(defaults["namespace"]))
     string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
     if string_arg_number == "":
             arg_number = 1
@@ -306,20 +296,11 @@ def get_port_input():
         print("[ERROR] You have not entered a valid number")
     else:
         arg_number = int(string_arg_number)
-    license = input("License[{}]: ".format(defaults["license"]))
     values = {
-        "username" : user_name,
-        "email" : email,
         "port_name": port_name,
         "short_description" : short_description,
-        "slug" : slug,
         "dir_name" : dir_name,
-        "suffix" : suffix,
-        "path_to_port" : path_to_port,
-        "path_to_fprime_root" : path_to_fprime_root,
-        "namespace" : namespace,
         "arg_number" : arg_number,
-        "license" : license
     }
 
     for key in values:
@@ -327,67 +308,86 @@ def get_port_input():
             values[key] = defaults[key]
     return values
 
+def make_namespace(deployment, cwd):
+    namespace_path = cwd.relative_to(deployment)
+    deployment_list = str(deployment).split("/")
+    deployment_dir = deployment_list[-1]
+    whole_path = deployment_dir + "/" + str(namespace_path)
+    namespace_list = whole_path.split("/")
+    namespace_list.pop()
+    namespace = "/".join(namespace_list)
+    namespace = str(namespace).replace("/", "::")
+    return namespace
+
 def new_port(
-    path: Path, settings: Dict[str, str]
+    cwd: Path, deployment: Path, settings: Dict[str, str]
 ):
     """ Uses cookiecutter for making new components """
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
-        calculated_defaults = {}
         proj_root = None
         try:
             proj_root = Path(settings.get("project_root", None))
-            print(proj_root)
-            port_parent_path = path.relative_to(proj_root)
-            back_path = os.sep.join([".." for _ in str(port_parent_path).split(os.sep)])
-            calculated_defaults["port_path"] = str(port_parent_path).rstrip(os.sep)
-            calculated_defaults["port_path_to_fprime_root"] = str(
-                back_path
-            ).rstrip(os.sep)
         except (ValueError, TypeError): 
             print(
                 "[WARNING] No found project root. Set 'port_path' and 'port_path_to_fprime_root' carefully"
             )
-
-        #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
-        if settings.get("port_template") is not None and settings["port_template"] != "native":
-            source = settings['port_template']
-        else:
-            source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-port'
-        
+      
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
             loader=FileSystemLoader(os.path.join(PATH, '../cookiecutter_templates')),
             trim_blocks=False)
         params = get_port_input()
+        if (settings.get("framework_path") is not None and settings["framework_path"] != "native"):
+            path_to_fprime = settings["framework_path"]
+        else:
+            path_to_fprime = IniSettings.find_fprime(cwd)
+
+        namespace = make_namespace(deployment, Path(cwd))
+
         context = {
-            "user_name" : params["username"],
-            "email" : params["email"],
             "port_name" : params["port_name"],
             "short_description" : params["short_description"],
-            "slug" : params["slug"],
             "dir_name" : params["dir_name"],
-            "suffix" : params["suffix"],
-            "path_to_port" : params["path_to_port"],
-            "path_to_fprime_root" : params["path_to_fprime_root"],
-            "namespace" : params["namespace"],
+            "path_to_fprime_root" : path_to_fprime,
+            "namespace" : namespace,
             "arg_number" : params["arg_number"],
-            "license" : params["license"],
         }
-        fname = context["slug"] + context["suffix"] + "Ai.xml"
+        fname = context["port_name"] + "Port" + "Ai.xml"
         with open(fname, 'w') as f:
             xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(context)
             f.write(xml_file)
         if not os.path.isdir(context["dir_name"]):
             os.mkdir(context["dir_name"])
+
+
         os.rename(fname, context["dir_name"] + "/" + fname)
         if not os.path.isfile(context["dir_name"] + "/CMakeLists.txt"):
             with open(context["dir_name"] + "/CMakeLists.txt", 'w') as f:
                 CMake_file = TEMPLATE_ENVIRONMENT.get_template("CMakeLists_template.txt").render(context)
                 f.write(CMake_file)
         else:
+            print(fname)
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
+
+        if proj_root is None:
+            print(
+                "[INFO] Created port directory without adding to build system nor generating implementation."
+            )
+            return 0
+        cmake_lists_file = find_nearest_cmake_lists(Path(context["dir_name"]).resolve(), deployment, proj_root)
+        print("CWD = " + os.getcwd())
+        print(cmake_lists_file)
+        if cmake_lists_file is None or not add_to_cmake(
+            cmake_lists_file, (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent)
+        ):
+            print(
+                "[INFO] Could not register {} with build system. Please add it and generate implementations manually.".format(
+                    Path(context["dir_name"]).resolve()
+                )
+            )
+            return 0
         print("")
         print("################################################################################")
         print("")

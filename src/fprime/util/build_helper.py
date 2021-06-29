@@ -356,7 +356,7 @@ def utility_entry(args):
                 status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
                 sys.exit(status)
             elif parsed.port:
-                status = new_port(cwd, settings)
+                status = new_port(cwd,deployment, settings)
                 sys.exit(status)
             else:
                 print("[ERROR] Specify whether you would like to generate a component or a port.")
