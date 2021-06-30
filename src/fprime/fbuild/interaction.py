@@ -330,7 +330,7 @@ def new_port(
             proj_root = Path(settings.get("project_root", None))
         except (ValueError, TypeError): 
             print(
-                "[WARNING] No found project root. Set 'port_path' and 'port_path_to_fprime_root' carefully"
+                "[WARNING] No found project root."
             )
       
         PATH = os.path.dirname(os.path.abspath(__file__))
@@ -344,7 +344,7 @@ def new_port(
         else:
             path_to_fprime = IniSettings.find_fprime(cwd)
 
-        namespace = make_namespace(deployment, Path(cwd))
+        namespace = make_namespace(deployment, Path(str(cwd) + "/" + params["dir_name"]))
 
         context = {
             "port_name" : params["port_name"],
@@ -373,7 +373,7 @@ def new_port(
 
         if proj_root is None:
             print(
-                "[INFO] Created port directory without adding to build system nor generating implementation."
+                "[INFO] No project root found. Created port without adding to build system nor generating implementation."
             )
             return 0
         cmake_lists_file = find_nearest_cmake_lists(Path(context["dir_name"]).resolve(), deployment, proj_root)
@@ -388,6 +388,7 @@ def new_port(
                 )
             )
             return 0
+        regenerate(cmake_lists_file)
         print("")
         print("################################################################################")
         print("")
