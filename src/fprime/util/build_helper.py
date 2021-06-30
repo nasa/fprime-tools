@@ -353,7 +353,7 @@ def utility_entry(args):
             if parsed.component and parsed.port:
                 print("[ERROR] Use --component or --port, not both.")
             elif parsed.component:
-                status = new_component(cwd, deployment, parsed.platform, parsed.verbose, settings)
+                status = new_component(deployment, parsed.platform, parsed.verbose, settings)
                 sys.exit(status)
             elif parsed.port:
                 status = new_port(cwd,deployment, settings)

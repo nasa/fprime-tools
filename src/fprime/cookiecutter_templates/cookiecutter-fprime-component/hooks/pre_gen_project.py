@@ -4,4 +4,5 @@ invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
                         " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
 
 for char in invalid_characters:
-    assert(char not in "{{ cookiecutter.component_name }}")
+    if (char in "{{ cookiecutter.component_name }}"):
+        raise ValueError("Unacceptable component name. Do not use spaces or special characters")

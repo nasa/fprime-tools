@@ -5,6 +5,7 @@ import os
 from os.path import join
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.builder import Build
+from fprime.fbuild.interaction import make_namespace
 from pathlib import Path
 
 try:
@@ -17,22 +18,11 @@ else:
             secho(line, fg="white", bg="red", bold=True)
 
 
-def replace_contents(filename, what, replacement):
+def replace_contents(filename, what, replacement, count = 1):
     with open(filename) as fh:
         changelog = fh.read()
     with open(filename, 'w') as fh:
-        fh.write(changelog.replace(what, replacement))
-
-def make_namespace(deployment, cwd):
-    namespace_path = cwd.relative_to(deployment)
-    deployment_list = str(deployment).split("/")
-    deployment_dir = deployment_list[-1]
-    whole_path = deployment_dir + "/" + str(namespace_path)
-    namespace_list = whole_path.split("/")
-    namespace_list.pop()
-    namespace = "/".join(namespace_list)
-    namespace = str(namespace).replace("/", "::")
-    return namespace
+        fh.write(changelog.replace(what, replacement, count))
 
 if __name__ == "__main__":
     today = datetime.date.today()
@@ -49,7 +39,6 @@ try:
     else:
         path_to_fprime = IniSettings.find_fprime(cwd)
 except:
-    print("settings not found!!!!!!!!!!!!!!!!!")
     path_to_fprime = IniSettings.find_fprime(cwd)
 
 
@@ -58,6 +47,7 @@ with open("{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
     print(type(path_to_fprime))
     s.close()
 
+#Write schema location and namespace to .xml file
 with open("{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
     lines.insert(1, '<?xml-model href="' + str(path_to_fprime) + '/Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n')
     lines[2] = lines[2].replace("TEMP_NAMESPACE", namespace)
@@ -65,6 +55,7 @@ with open("{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
     print(lines[3])
     s.write("".join(lines))
     s.close()
+
 
 replace_contents("docs/sdd.md", "TEMP_NAMESPACE", namespace)
 
@@ -90,6 +81,11 @@ print("""
 
     In addition, a sdd.md file has been created in the docs directory 
     for you to document your component
+
+    If the project root was not found, you will need to add this component to 
+    your build system and then possibly purge and generate your project.
+
+    In addition, if no project root was found, the unit test files were not generated.
 
 """)
 

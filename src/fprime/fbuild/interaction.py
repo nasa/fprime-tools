@@ -193,7 +193,7 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
     return None
 
 def new_component(
-    path: Path, deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
+    deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
 ):
     """ Uses cookiecutter for making new components """
     try:
@@ -234,8 +234,6 @@ def new_component(
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
-        print("CWD = " + os.getcwd())
-        print(cmake_lists_file)
         if cmake_lists_file is None or not add_to_cmake(
             cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
         ):
@@ -255,12 +253,12 @@ def new_component(
             )
             return 0
         print("[INFO] Created new component and created initial implementations.")
+        add_unit_tests(final_component_dir)
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir
             )
         )
-        add_unit_tests(final_component_dir)
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)
@@ -272,7 +270,7 @@ def new_component(
 
 def get_port_input():
     defaults = {
-        "port_name": "Example Port",
+        "port_name": "ExamplePort",
         "short_description" : "Example usage of port",
         "dir_name" : "example_directory",
         "arg_number" : 1,
@@ -286,7 +284,7 @@ def get_port_input():
         for char in invalid_characters:
             if char in port_name:
                 valid_name = False
-                print(char + " is not a valid character. Enter a new name:")
+                print("'" + char + "' is not a valid character. Enter a new name:")
     short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
     dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
     string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
@@ -303,6 +301,7 @@ def get_port_input():
         "arg_number" : arg_number,
     }
 
+    #Fill in blank values with defaults
     for key in values:
         if values[key] == "":
             values[key] = defaults[key]
@@ -322,7 +321,7 @@ def make_namespace(deployment, cwd):
 def new_port(
     cwd: Path, deployment: Path, settings: Dict[str, str]
 ):
-    """ Uses cookiecutter for making new components """
+    """ Uses cookiecutter for making new ports """
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = None
@@ -368,7 +367,6 @@ def new_port(
                 CMake_file = TEMPLATE_ENVIRONMENT.get_template("CMakeLists_template.txt").render(context)
                 f.write(CMake_file)
         else:
-            print(fname)
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
 
         if proj_root is None:
@@ -377,8 +375,6 @@ def new_port(
             )
             return 0
         cmake_lists_file = find_nearest_cmake_lists(Path(context["dir_name"]).resolve(), deployment, proj_root)
-        print("CWD = " + os.getcwd())
-        print(cmake_lists_file)
         if cmake_lists_file is None or not add_to_cmake(
             cmake_lists_file, (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent)
         ):
