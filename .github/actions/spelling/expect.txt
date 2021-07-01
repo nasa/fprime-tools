@@ -274,3 +274,10 @@ gatech
 itle
 multiplatform
 RASPIAN
+autocoding
+autoescape
+chdir
+fh
+isdir
+isnumeric
+params

@@ -400,7 +400,7 @@ def new_port(
         print("")
         print("################################################################################")
         print("")
-        print("You have succesfully created the port " + context["port_name"] + " located in " + context["dir_name"])
+        print("You have successfully created the port " + context["port_name"] + " located in " + context["dir_name"])
         print("")
         print("################################################################################")
         return 0

@@ -15,7 +15,7 @@
 |---|---|
 |---|---|
 
-## Port Handler Functional Behaiviors
+## Port Handler Functional Behaviors
 | Name | Description |
 |---|---|
 |---|---|
