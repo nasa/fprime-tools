@@ -78,7 +78,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
 
 
 def add_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new component to CMakeLists.txt"""
+    """ Adds new component or port to CMakeLists.txt"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as f:
         lines = f.readlines()
@@ -107,6 +107,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     return True
 
 def regenerate(cmake_list_file):
+    #Purges and generates project for the user
     currentDir = os.getcwd()
     buildDir = (str(cmake_list_file).split("/"))[:-1]
     os.chdir("/".join(buildDir))
@@ -120,18 +121,22 @@ def regenerate(cmake_list_file):
 
 
 def add_unit_tests(comp_path):
+    #Creates unit tests and moves them into test/ut directory
     os.chdir(str(comp_path))
-    os.system("fprime-util impl --ut")
-    os.rename("Tester.hpp", "test/ut/Tester.hpp")
-    os.rename("Tester.cpp", "test/ut/Tester.cpp")
-    os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
-    os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
-    os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
-    os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
-    os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
+    if confirm("Would you like to generate unit tests?: "):
+        os.system("fprime-util impl --ut")
+        os.rename("Tester.hpp", "test/ut/Tester.hpp")
+        os.rename("Tester.cpp", "test/ut/Tester.cpp")
+        os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
+        os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
+        os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
+        os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
+        os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
+    else:
+        os.system("rm -r test")
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new component to CMakeLists.txt"""
+    """ Adds new port to CMakeLists.txt in port directory"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
@@ -269,6 +274,7 @@ def new_component(
     return 1
 
 def get_port_input():
+    # Gather inputs to use as context for the port template
     defaults = {
         "port_name": "ExamplePort",
         "short_description" : "Example usage of port",
@@ -308,6 +314,7 @@ def get_port_input():
     return values
 
 def make_namespace(deployment, cwd):
+    # Form the namespace from the path to the deployment
     namespace_path = cwd.relative_to(deployment)
     deployment_list = str(deployment).split("/")
     deployment_dir = deployment_list[-1]
