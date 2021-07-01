@@ -44,15 +44,12 @@ except:
 
 with open("{{ cookiecutter.component_name }}ComponentAi.xml", "r") as s:
     lines = s.readlines()
-    print(type(path_to_fprime))
     s.close()
 
 #Write schema location and namespace to .xml file
 with open("{{ cookiecutter.component_name }}ComponentAi.xml", "w") as s:
     lines.insert(1, '<?xml-model href="' + str(path_to_fprime) + '/Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n')
     lines[2] = lines[2].replace("TEMP_NAMESPACE", namespace)
-    print(lines[2])
-    print(lines[3])
     s.write("".join(lines))
     s.close()
 

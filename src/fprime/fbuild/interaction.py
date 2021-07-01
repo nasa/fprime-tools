@@ -186,13 +186,11 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
         path to CMakeLists.txt or None
     """
     test_path = component_dir.parent
-    print("test_path" + str(test_path))
     # First iterate from where we are, then from the deployment to find the nearest CMakeList.txt nearby
     for test_path, end_path in [(test_path, proj_root), (deployment, proj_root.parent)]:
         while proj_root is not None and test_path != proj_root.parent:
             cmake_list_file = test_path / "CMakeLists.txt"
             if cmake_list_file.is_file():
-                print("CMakefile = ", cmake_list_file)
                 return cmake_list_file
             test_path = test_path.parent
     return None
@@ -282,6 +280,7 @@ def get_port_input():
         "arg_number" : 1,
     }
     valid_name = False
+    valid_dir  = False
     invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
                         " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
     while not valid_name:
@@ -292,7 +291,13 @@ def get_port_input():
                 valid_name = False
                 print("'" + char + "' is not a valid character. Enter a new name:")
     short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
-    dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
+    while not valid_dir:
+        dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
+        valid_dir = True
+        for char in invalid_characters:
+            if char in dir_name:
+                valid_name = False
+                print("'" + char + "' is not a valid character. Enter a new directory name:")
     string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
     if string_arg_number == "":
             arg_number = 1
