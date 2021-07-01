@@ -78,7 +78,7 @@ class IniSettings:
         """
         settings_file = (
             settings_file if settings_file is not None else Path(IniSettings.DEF_FILE)
-        )
+        ).resolve()
 
         dfl_install_dest = Path(settings_file.resolve().parent, "build-artifacts")
 
@@ -184,8 +184,8 @@ class IniSettings:
 
 
 class FprimeLocationUnknownException(Exception):
-    """ Fprime location could not be determined """
+    """Fprime location could not be determined"""
 
 
 class FprimeSettingsException(Exception):
-    """ An exception for handling F prime settings misconfiguration """
+    """An exception for handling F prime settings misconfiguration"""

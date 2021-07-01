@@ -59,7 +59,7 @@ PYTHON_TESTABLE_TYPES = [
 
 
 def valid_values_test(type_input, valid_values, sizes, extras=None):
-    """ Tests to be run on all types """
+    """Tests to be run on all types"""
     if not isinstance(sizes, Iterable):
         sizes = [sizes] * len(valid_values)
     # Should be able to instantiate a blank type, but not serialize it until a value has been supplied
@@ -96,7 +96,7 @@ def valid_values_test(type_input, valid_values, sizes, extras=None):
 def invalid_values_test(
     type_input, invalid_values, exception_class=TypeMismatchException
 ):
-    """ Check invalid values for all types """
+    """Check invalid values for all types"""
     for item in invalid_values:
         # Constructor initialization
         with pytest.raises(exception_class):
@@ -144,26 +144,26 @@ def ser_deser_time_test(t_base, t_context, secs, usecs):
 
 
 def test_boolean_nominal():
-    """ Tests the nominal cases of a BoolType """
+    """Tests the nominal cases of a BoolType"""
     valid_values_test(BoolType, [True, False], 1)
 
 
 def test_boolean_off_nominal():
-    """ Tests the nominal cases of a BoolType """
+    """Tests the nominal cases of a BoolType"""
     invalid_values_test(
         BoolType, filter(lambda item: not isinstance(item, bool), PYTHON_TESTABLE_TYPES)
     )
 
 
 def test_int_types_nominal():
-    """ Tests the integer types """
+    """Tests the integer types"""
     for type_input, size in [(I8Type, 1), (I16Type, 2), (I32Type, 4), (I64Type, 8)]:
         total = pow(2, (size * 8) - 1)
         valid_values_test(type_input, [0, -1, 1, -total, total - 1], size)
 
 
 def test_int_types_off_nominal():
-    """ Tests the integer off nominal types """
+    """Tests the integer off nominal types"""
     for type_input, size in [(I8Type, 1), (I16Type, 2), (I32Type, 4), (I64Type, 8)]:
         total = pow(2, (size * 8) - 1)
         invalid_values_test(
@@ -176,14 +176,14 @@ def test_int_types_off_nominal():
 
 
 def test_uint_types_nominal():
-    """ Tests the integer types """
+    """Tests the integer types"""
     for type_input, size in [(U8Type, 1), (U16Type, 2), (U32Type, 4), (U64Type, 8)]:
         max_int = pow(2, (size * 8)) - 1
         valid_values_test(type_input, [0, 1, max_int - 1, max_int], size)
 
 
 def test_uint_types_off_nominal():
-    """ Tests the integer off nominal types """
+    """Tests the integer off nominal types"""
     for type_input, size in [(U8Type, 1), (U16Type, 2), (U32Type, 4), (U64Type, 8)]:
         max_int = pow(2, (size * 8)) - 1
         invalid_values_test(
@@ -198,13 +198,13 @@ def test_uint_types_off_nominal():
 
 
 def test_float_types_nominal():
-    """ Tests the integer types """
+    """Tests the integer types"""
     valid_values_test(F32Type, [0.31415000557899475, 0.0, -3.141590118408203], 4)
     valid_values_test(F64Type, [0.31415000557899475, 0.0, -3.141590118408203], 8)
 
 
 def test_float_types_off_nominal():
-    """ Tests the integer off nominal types """
+    """Tests the integer off nominal types"""
     invalid_values_test(
         F32Type, filter(lambda item: not isinstance(item, float), PYTHON_TESTABLE_TYPES)
     )
@@ -226,7 +226,7 @@ def test_enum_type():
 
 
 def check_cloned_member_list(members1, members2):
-    """ Check member list knowing direct compares don't work"""
+    """Check member list knowing direct compares don't work"""
     for tuple1, tuple2 in zip(members1, members2):
         assert tuple1[0] == tuple2[0], "Names do not match"
         assert tuple1[2] == tuple2[2], "Format strings do not match"
@@ -339,7 +339,7 @@ class Dummy(BaseType):
         return 0
 
     def to_jsonable(self):
-        return {'name': 'dummy'}
+        return {"name": "dummy"}
 
 
 def test_base_type():

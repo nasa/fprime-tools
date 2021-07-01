@@ -27,7 +27,7 @@ class BuildType(Enum):
     BUILD_TESTING = 1
 
     def get_suffix(self):
-        """ Get the suffix of a directory supporting this build """
+        """Get the suffix of a directory supporting this build"""
         if self == BuildType.BUILD_NORMAL:
             return ""
         if self == BuildType.BUILD_TESTING:
@@ -37,7 +37,7 @@ class BuildType(Enum):
         )
 
     def get_cmake_build_type(self):
-        """ Get the suffix of a directory supporting this build """
+        """Get the suffix of a directory supporting this build"""
         if self == BuildType.BUILD_NORMAL:
             return "Release"
         if self == BuildType.BUILD_TESTING:
@@ -88,7 +88,7 @@ class Target(ABC):
         self.cmake_target = cmake if cmake is not None else mnemonic
 
     def __str__(self):
-        """ Makes this target into a string """
+        """Makes this target into a string"""
         return self.config_string(self.mnemonic, self.flags)
 
     @staticmethod
@@ -478,16 +478,16 @@ class Build:
             raise GenerateException(str(cexc)) from cexc
 
     def purge(self):
-        """ Purge a build cache directory """
+        """Purge a build cache directory"""
         self.cmake.purge(self.build_dir)
 
     def purge_install(self):
-        """ Purge the install directory """
+        """Purge the install directory"""
         assert "install_dest" in self.settings, "install_dest not present in settings"
         self.cmake.purge(self.settings["install_dest"])
 
     def install_dest_exists(self) -> Path:
-        """ Check if the install destination exists and returns the path if it does """
+        """Check if the install destination exists and returns the path if it does"""
         assert "install_dest" in self.settings, "install_dest not present in settings"
         path = Path(self.settings["install_dest"])
         return path if path.exists() else None
@@ -551,31 +551,31 @@ class Build:
 
 
 class GenerateException(FprimeException):
-    """ An exception indicating generate has failed and the user may need to respond """
+    """An exception indicating generate has failed and the user may need to respond"""
 
 
 class InvalidBuildTypeException(FprimeException):
-    """ An exception indicating a build type do not exit """
+    """An exception indicating a build type do not exit"""
 
 
 class InvalidBuildCacheException(FprimeException):
-    """ An exception indicating a build cache """
+    """An exception indicating a build cache"""
 
 
 class UnableToDetectDeploymentException(FprimeException):
-    """ An exception indicating a build cache """
+    """An exception indicating a build cache"""
 
 
 class NoSuchTargetException(FprimeException):
-    """ Could not find a matching build target """
+    """Could not find a matching build target"""
 
 
 class NoSuchToolchainException(FprimeException):
-    """ Could not find a matching build target """
+    """Could not find a matching build target"""
 
 
 class AmbiguousToolchainException(FprimeException):
-    """ Could not find a matching build target """
+    """Could not find a matching build target"""
 
 
 """ Defined set of build targets available to the system"""  # pylint: disable=W0105

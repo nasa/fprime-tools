@@ -19,7 +19,7 @@ from fprime.fbuild.settings import IniSettings
 
 
 def confirm(msg):
-    """ Confirms the removal of the file with a yes or no input """
+    """Confirms the removal of the file with a yes or no input"""
     # Loop "forever" intended
     while True:
         confirm_input = input(msg)
@@ -31,7 +31,7 @@ def confirm(msg):
 
 
 def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
-    """ Run implementation of files one time """
+    """Run implementation of files one time"""
     target = Target.get_target("impl", set())
     build = Build(target.build_type, deployment, verbose=verbose)
     build.load(path, platform)
@@ -200,7 +200,7 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
 def new_component(
     deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
 ):
-    """ Uses cookiecutter for making new components """
+    """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = None

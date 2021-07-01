@@ -10,33 +10,33 @@ from fprime.common.error import FprimeException
 
 
 class TypeException(FprimeException):
-    """ An exception in our python types"""
+    """An exception in our python types"""
 
     def __init__(self, val):
         super().__init__(val)
         self.except_msg = val
 
     def getMsg(self):
-        """ Gets the exception message"""
+        """Gets the exception message"""
         return self.except_msg
 
 
 class AbstractMethodException(TypeException):
-    """ Not implemented exception under another name """
+    """Not implemented exception under another name"""
 
     def __init__(self, val):
         super().__init__("%s must be implemented since it is abstract!" % str(val))
 
 
 class TypeRangeException(TypeException):
-    """ Value is out of range """
+    """Value is out of range"""
 
     def __init__(self, val):
         super().__init__("Value %s out of range!" % str(val))
 
 
 class StringSizeException(TypeException):
-    """ String size is to large for defined type """
+    """String size is to large for defined type"""
 
     def __init__(self, size, max_size):
         super().__init__(
@@ -45,7 +45,7 @@ class StringSizeException(TypeException):
 
 
 class TypeMismatchException(TypeException):
-    """ Wrong type found exception """
+    """Wrong type found exception"""
 
     def __init__(self, expected_type, actual_type):
         super().__init__(
@@ -54,7 +54,7 @@ class TypeMismatchException(TypeException):
 
 
 class ArrayLengthException(TypeException):
-    """ Array length mismatched """
+    """Array length mismatched"""
 
     def __init__(self, arr_type, expected_len, actual_len):
         super().__init__(
@@ -64,7 +64,7 @@ class ArrayLengthException(TypeException):
 
 
 class EnumMismatchException(TypeException):
-    """ Enum member not defined """
+    """Enum member not defined"""
 
     def __init__(self, enum, bad_member):
         super().__init__(
@@ -73,27 +73,27 @@ class EnumMismatchException(TypeException):
 
 
 class DeserializeException(TypeException):
-    """ Exception during deserialization """
+    """Exception during deserialization"""
 
     pass
 
 
 class ArgNotFoundException(TypeException):
-    """ Argument not found exception """
+    """Argument not found exception"""
 
     def __init__(self, message):
         super().__init__("Arg %s not found!" % message)
 
 
 class NotInitializedException(TypeException):
-    """ Did not initialize types """
+    """Did not initialize types"""
 
     def __init__(self, message):
         super().__init__("Instance %s not initialized!" % message)
 
 
 class NotOverriddenException(TypeException):
-    """ Not implemented exception by another name """
+    """Not implemented exception by another name"""
 
     def __init__(self, message):
         super().__init__(
@@ -102,7 +102,7 @@ class NotOverriddenException(TypeException):
 
 
 class ArgLengthMismatchException(TypeException):
-    """ Mismatch in args lengths vs definition of args """
+    """Mismatch in args lengths vs definition of args"""
 
     def __init__(self, arg_length_actual, arg_length_given):
         super().__init__(
@@ -112,7 +112,7 @@ class ArgLengthMismatchException(TypeException):
 
 
 class CompoundTypeLengthMismatchException(TypeException):
-    """ Compound type fields mismatch """
+    """Compound type fields mismatch"""
 
     def __init__(self, field_length_actual, field_length_given):
         super().__init__(

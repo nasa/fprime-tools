@@ -61,7 +61,9 @@ def test_settings():
         {
             "file": "settings-custom-toolchain.ini",
             "expected": {
-                "settings_file": full_path("settings-data/settings-custom-toolchain.ini"),
+                "settings_file": full_path(
+                    "settings-data/settings-custom-toolchain.ini"
+                ),
                 "default_toolchain": "custom1",
                 "default_ut_toolchain": "custom2",
                 "framework_path": full_path("../../../../.."),
