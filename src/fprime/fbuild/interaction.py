@@ -6,12 +6,10 @@ import sys
 from pathlib import Path
 from typing import Dict
 import shutil
-import time
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
-from slugify import slugify
 
 from fprime.fbuild.builder import Build, Target
 from fprime.fbuild.cmake import (

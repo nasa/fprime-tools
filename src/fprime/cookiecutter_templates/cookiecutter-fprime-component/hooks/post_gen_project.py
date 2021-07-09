@@ -3,7 +3,6 @@ from __future__ import print_function
 import datetime
 import os
 from os.path import join
-from typing import no_type_check_decorator
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.builder import Build
 from fprime.fbuild.interaction import make_namespace
@@ -21,13 +20,15 @@ def main():
     cwd = Path(os.getcwd())
     deployment = Build.find_nearest_deployment(cwd)
     namespace = make_namespace(deployment, cwd)
-    try:
+    if os.path.isfile("../settings.ini"):
         settings = IniSettings.load(Path("../settings.ini"), cwd)
         if settings.get("project_root") is None:
+            print("[ERROR] Unable to find project root specified in settings.ini")
             proj_root_found = False
         else:
             proj_root_found = True
-    except:
+    else:
+        print("[ERROR] Unable to find settings.ini file")
         proj_root_found = False
 
     replace_contents(
@@ -66,15 +67,15 @@ def main():
     if not proj_root_found:
         print(
             """
-                No project root was specified in your settings.ini file. This means
-                you will need to add this component to 
-                your build system and then possibly purge and generate your project.
+        No project root was specified in your settings.ini file. This means
+        you will need to add this component to 
+        your build system and then possibly purge and generate your project.
 
-                In addition, the unit test files were not generated.
-                
-                To fix this issue, ensure you have a settings.ini file that 
-                specifies your project_root
-                """
+        In addition, the unit test files were not generated.
+            
+        To fix this issue, ensure you have a settings.ini file that 
+        specifies your project_root
+            """
         )
 
 
