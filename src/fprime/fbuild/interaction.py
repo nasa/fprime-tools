@@ -111,12 +111,12 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     return True
 
 def regenerate(cmake_list_file):
-    #Ensures build directory exists, then refrefreshes build cahce
+    #Ensures build directory exists, then refreshes build cache
     build_dir = Path(cmake_list_file.parent, "build-fprime-automatic-native")
     if not os.path.isdir(build_dir):
         raise CMakeInvalidBuildException(build_dir)
     handler = CMakeHandler()
-    print("Refreshing cache to incluide new addition")
+    print("Refreshing cache to include new addition")
     handler._cmake_refresh_cache(build_dir)
 
 def add_unit_tests(deployment, comp_path, platform, verbose):
