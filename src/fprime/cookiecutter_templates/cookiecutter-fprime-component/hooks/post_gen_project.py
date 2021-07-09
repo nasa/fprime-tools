@@ -9,11 +9,13 @@ from fprime.fbuild.builder import Build
 from fprime.fbuild.interaction import make_namespace
 from pathlib import Path
 
-def replace_contents(filename, what, replacement, count = 1):
+
+def replace_contents(filename, what, replacement, count=1):
     with open(filename) as fh:
         changelog = fh.read()
-    with open(filename, 'w') as fh:
+    with open(filename, "w") as fh:
         fh.write(changelog.replace(what, replacement, count))
+
 
 def main():
     cwd = Path(os.getcwd())
@@ -28,14 +30,17 @@ def main():
     except:
         proj_root_found = False
 
-    replace_contents("{{ cookiecutter.component_name }}ComponentAi.xml", "TEMP_NAMESPACE", namespace)
+    replace_contents(
+        "{{ cookiecutter.component_name }}ComponentAi.xml", "TEMP_NAMESPACE", namespace
+    )
 
     replace_contents("docs/sdd.md", "TEMP_NAMESPACE", namespace)
 
     today = datetime.date.today()
-    replace_contents(join('docs', 'sdd.md'), '<TODAY>', today.strftime("%m/%d/%Y"))
+    replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
 
-    print("""
+    print(
+        """
     ################################################################################
     ################################################################################
 
@@ -55,10 +60,12 @@ def main():
 
         In addition, a sdd.md file has been created in the docs directory 
         for you to document your component
-    """)
+    """
+    )
 
     if not proj_root_found:
-        print("""
+        print(
+            """
                 No project root was specified in your settings.ini file. This means
                 you will need to add this component to 
                 your build system and then possibly purge and generate your project.
@@ -68,6 +75,8 @@ def main():
                 To fix this issue, ensure you have a settings.ini file that 
                 specifies your project_root
                 """
-            )
+        )
+
+
 if __name__ == "__main__":
     main()

@@ -465,10 +465,7 @@ class CMakeHandler:
         os.close(pty_out_w)
         os.close(pty_err_w)
         ret, stdout, stderr = self._communicate(
-            proc,
-            open(pty_out_r, mode="rb"),
-            open(pty_err_r, mode="rb"),
-            print_output,
+            proc, open(pty_out_r, mode="rb"), open(pty_err_r, mode="rb"), print_output
         )
         # Raising an exception when the return code is non-zero allows us to handle the exception internally if it is
         # needed. Thus we do not just exit.

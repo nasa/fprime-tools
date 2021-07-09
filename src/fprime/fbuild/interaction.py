@@ -14,7 +14,11 @@ from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
 
 from fprime.fbuild.builder import Build, Target
-from fprime.fbuild.cmake import CMakeExecutionException, CMakeHandler, CMakeInvalidBuildException
+from fprime.fbuild.cmake import (
+    CMakeExecutionException,
+    CMakeHandler,
+    CMakeInvalidBuildException,
+)
 from fprime.fbuild.settings import IniSettings
 
 
@@ -94,14 +98,14 @@ def add_to_cmake(list_file: Path, comp_path: Path):
 
     if not confirm(
         "Add component {} to {} {}?".format(
-            comp_path,
-            list_file,
-            "at end of file before topology inclusion?",
+            comp_path, list_file, "at end of file before topology inclusion?"
         )
     ):
         return False
 
-    addition = 'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    addition = (
+        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    )
     if addition in lines:
         print("Component already added to CMakeLists.txt")
         return True
@@ -110,8 +114,9 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         f.write("".join(lines))
     return True
 
+
 def regenerate(cmake_list_file):
-    #Ensures build directory exists, then refreshes build cache
+    # Ensures build directory exists, then refreshes build cache
     build_dir = Path(cmake_list_file.parent, "build-fprime-automatic-native")
     if not os.path.isdir(build_dir):
         raise CMakeInvalidBuildException(build_dir)
@@ -119,22 +124,31 @@ def regenerate(cmake_list_file):
     print("Refreshing cache to include new addition")
     handler._cmake_refresh_cache(build_dir)
 
+
 def add_unit_tests(deployment, comp_path, platform, verbose):
-    #Creates unit tests and moves them into test/ut directory
+    # Creates unit tests and moves them into test/ut directory
     os.chdir(str(comp_path))
     if confirm("Would you like to generate unit tests?: "):
         target = Target.get_target("impl", {"ut"})
         build = Build(target.build_type, deployment, verbose=verbose)
         build.load(comp_path, platform)
         build.execute(target, context=comp_path, make_args={})
-        test_files = ["Tester.hpp", "Tester.cpp", "TesterBase.hpp", "TesterBase.cpp",
-                        "GTestBase.hpp", "GTestBase.cpp", "TestMain.cpp"]
+        test_files = [
+            "Tester.hpp",
+            "Tester.cpp",
+            "TesterBase.hpp",
+            "TesterBase.cpp",
+            "GTestBase.hpp",
+            "GTestBase.cpp",
+            "TestMain.cpp",
+        ]
         for file in test_files:
             if os.path.isfile(file):
                 new_name = Path("test", "ut", file)
                 os.rename(file, str(new_name))
     else:
         shutil.rmtree("test")
+
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new port to CMakeLists.txt in port directory"""
@@ -149,16 +163,12 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     index += 1
     if not confirm(
         "Add component {} to {} {}?".format(
-            comp_path,
-            list_file,
-            "ports in CMakeLists.txt"
+            comp_path, list_file, "ports in CMakeLists.txt"
         )
     ):
         return False
 
-    addition = '"${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(
-        comp_path
-    )
+    addition = '"${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(comp_path)
     lines.insert(index, addition)
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
@@ -196,6 +206,7 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
             test_path = test_path.parent
     return None
 
+
 def new_component(
     deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
 ):
@@ -205,17 +216,21 @@ def new_component(
         proj_root = None
         try:
             proj_root = Path(settings.get("project_root", None))
-        except (ValueError, TypeError): 
-            print(
-                "[WARNING] No found project root."
+        except (ValueError, TypeError):
+            print("[WARNING] No found project root.")
+
+        # Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
+        if (
+            settings.get("cookiecutter") is not None
+            and settings["cookiecutter"] != "default"
+        ):
+            source = settings["cookiecutter"]
+        else:
+            source = (
+                os.path.dirname(__file__)
+                + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
 
-        #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
-        if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "default":
-            source = settings['cookiecutter']
-        else:
-            source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-component'
-        
         print("[INFO] Cookiecutter source: {}".format(source))
         print()
         print("----------------")
@@ -224,9 +239,7 @@ def new_component(
         )
         print("----------------")
         print()
-        final_component_dir = Path(
-            cookiecutter(source)
-        ).resolve()
+        final_component_dir = Path(cookiecutter(source)).resolve()
         if proj_root is None:
             print(
                 "[INFO] Created component directory without adding to build system nor generating implementation {}".format(
@@ -272,24 +285,48 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
+
 def is_valid_name(word):
-    invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
-                        " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
+    invalid_characters = [
+        "#",
+        "%",
+        "&",
+        "{",
+        "}",
+        "/",
+        "\\",
+        "<",
+        ">",
+        "*",
+        "?",
+        " ",
+        "$",
+        "!",
+        "'",
+        '"',
+        ":",
+        "@",
+        "+",
+        "`",
+        "|",
+        "=",
+    ]
     for char in invalid_characters:
-            if char in word:
-                return char
+        if char in word:
+            return char
     return "valid"
+
 
 def get_port_input():
     # Gather inputs to use as context for the port template
     defaults = {
         "port_name": "ExamplePort",
-        "short_description" : "Example usage of port",
-        "dir_name" : "example_directory",
-        "arg_number" : 1,
+        "short_description": "Example usage of port",
+        "dir_name": "example_directory",
+        "arg_number": 1,
     }
     valid_name = False
-    valid_dir  = False
+    valid_dir = False
     while not valid_name:
         port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
         char = is_valid_name(port_name)
@@ -297,90 +334,103 @@ def get_port_input():
             print("'" + char + "' is not a valid character. Enter a new port name:")
         else:
             valid_name = True
-    short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
+    short_description = input(
+        "Short Description [{}]: ".format(defaults["short_description"])
+    )
     while not valid_dir:
         dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
         char = is_valid_name(dir_name)
         if char != "valid":
-            print("'" + char + "' is not a valid character. Enter a new directory name:")
+            print(
+                "'" + char + "' is not a valid character. Enter a new directory name:"
+            )
         else:
             valid_dir = True
-    string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
+    string_arg_number = input(
+        "Number of arguments [{}]: ".format(defaults["arg_number"])
+    )
     if string_arg_number == "":
-            arg_number = 1
+        arg_number = 1
     elif not string_arg_number.isnumeric():
         print("[ERROR] You have not entered a valid number")
     else:
         arg_number = int(string_arg_number)
     values = {
         "port_name": port_name,
-        "short_description" : short_description,
-        "dir_name" : dir_name,
-        "arg_number" : arg_number,
+        "short_description": short_description,
+        "dir_name": dir_name,
+        "arg_number": arg_number,
     }
 
-    #Fill in blank values with defaults
+    # Fill in blank values with defaults
     for key in values:
         if values[key] == "":
             values[key] = defaults[key]
     return values
 
+
 def make_namespace(deployment, cwd):
     # Form the namespace from the path to the deployment
     namespace_path = cwd.relative_to(deployment)
     deployment_dir = deployment.name
-    whole_path = Path(deployment_dir,namespace_path)
+    whole_path = Path(deployment_dir, namespace_path)
     namespace = whole_path.parent
     namespace_formatted = str(namespace).replace(os.path.sep, "::")
     return namespace_formatted
 
-def new_port(
-    cwd: Path, deployment: Path, settings: Dict[str, str]
-):
+
+def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
     """ Uses cookiecutter for making new ports """
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = None
         try:
             proj_root = Path(settings.get("project_root", None))
-        except (ValueError, TypeError): 
-            print(
-                "[WARNING] No found project root."
-            )
-      
+        except (ValueError, TypeError):
+            print("[WARNING] No found project root.")
+
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
-            loader=FileSystemLoader(os.path.join(PATH, '../cookiecutter_templates')),
-            trim_blocks=False)
+            loader=FileSystemLoader(os.path.join(PATH, "../cookiecutter_templates")),
+            trim_blocks=False,
+        )
         params = get_port_input()
-        if (settings.get("framework_path") is not None and settings["framework_path"] != "native"):
+        if (
+            settings.get("framework_path") is not None
+            and settings["framework_path"] != "native"
+        ):
             path_to_fprime = settings["framework_path"]
         else:
             path_to_fprime = IniSettings.find_fprime(cwd)
 
-        namespace = make_namespace(deployment, Path(str(cwd) + "/" + params["dir_name"]))
+        namespace = make_namespace(
+            deployment, Path(str(cwd) + "/" + params["dir_name"])
+        )
 
         context = {
-            "port_name" : params["port_name"],
-            "short_description" : params["short_description"],
-            "dir_name" : params["dir_name"],
-            "path_to_fprime_root" : path_to_fprime,
-            "namespace" : namespace,
-            "arg_number" : params["arg_number"],
+            "port_name": params["port_name"],
+            "short_description": params["short_description"],
+            "dir_name": params["dir_name"],
+            "path_to_fprime_root": path_to_fprime,
+            "namespace": namespace,
+            "arg_number": params["arg_number"],
         }
         fname = context["port_name"] + "Port" + "Ai.xml"
-        with open(fname, 'w') as f:
-            xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(context)
+        with open(fname, "w") as f:
+            xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(
+                context
+            )
             f.write(xml_file)
         if not os.path.isdir(context["dir_name"]):
             os.mkdir(context["dir_name"])
 
-
         os.rename(fname, context["dir_name"] + "/" + fname)
         if not os.path.isfile(context["dir_name"] + "/CMakeLists.txt"):
-            with open(context["dir_name"] + "/CMakeLists.txt", 'w') as f:
-                CMake_file = TEMPLATE_ENVIRONMENT.get_template("CMakeLists_template.txt").render(context)
+            with open(context["dir_name"] + "/CMakeLists.txt", "w") as f:
+                CMake_file = TEMPLATE_ENVIRONMENT.get_template(
+                    "CMakeLists_template.txt"
+                ).render(context)
                 f.write(CMake_file)
         else:
             add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
@@ -390,9 +440,12 @@ def new_port(
                 "[INFO] No project root found. Created port without adding to build system nor generating implementation."
             )
             return 0
-        cmake_lists_file = find_nearest_cmake_lists(Path(context["dir_name"]).resolve(), deployment, proj_root)
+        cmake_lists_file = find_nearest_cmake_lists(
+            Path(context["dir_name"]).resolve(), deployment, proj_root
+        )
         if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file, (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent)
+            cmake_lists_file,
+            (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent),
         ):
             print(
                 "[INFO] Could not register {} with build system. Please add it and generate implementations manually.".format(
@@ -402,11 +455,20 @@ def new_port(
             return 0
         regenerate(cmake_lists_file)
         print("")
-        print("################################################################################")
+        print(
+            "################################################################################"
+        )
         print("")
-        print("You have successfully created the port " + context["port_name"] + " located in " + context["dir_name"])
+        print(
+            "You have successfully created the port "
+            + context["port_name"]
+            + " located in "
+            + context["dir_name"]
+        )
         print("")
-        print("################################################################################")
+        print(
+            "################################################################################"
+        )
         return 0
     except OutputDirExistsException as out_directory_error:
         print("{}".format(out_directory_error), file=sys.stderr)

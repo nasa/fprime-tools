@@ -160,9 +160,7 @@ def parse_args(args):
         help="Turn on verbose output.",
     )
     common_parser.add_argument(
-        "--ut",
-        action="store_true",
-        help="Run command against unit testing build type",
+        "--ut", action="store_true", help="Run command against unit testing build type"
     )
 
     # Main parser for the whole application
@@ -222,10 +220,7 @@ def parse_args(args):
     )
     # New functionality
     new_parser = subparsers.add_parser(
-        "new",
-        help="Generate a new component",
-        parents=[common_parser],
-        add_help=False,
+        "new", help="Generate a new component", parents=[common_parser], add_help=False
     )
     new_parser.add_argument(
         "--component",
@@ -352,13 +347,17 @@ def utility_entry(args):
             if parsed.component and parsed.port:
                 print("[ERROR] Use --component or --port, not both.")
             elif parsed.component:
-                status = new_component(deployment, parsed.platform, parsed.verbose, settings)
+                status = new_component(
+                    deployment, parsed.platform, parsed.verbose, settings
+                )
                 sys.exit(status)
             elif parsed.port:
-                status = new_port(cwd,deployment, settings)
+                status = new_port(cwd, deployment, settings)
                 sys.exit(status)
             else:
-                print("[ERROR] Specify whether you would like to generate a component or a port.")
+                print(
+                    "[ERROR] Specify whether you would like to generate a component or a port."
+                )
                 print("Use --component or --port.")
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)
