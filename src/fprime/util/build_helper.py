@@ -71,7 +71,7 @@ def validate(parsed, unknown):
         }
         cmake_args.update(d_args)
     # Build type only for generate, jobs only for non-generate
-    elif parsed.command not in ["info", "purge", "hash-to-file", "new", "new-port"]:
+    elif parsed.command not in ["info", "purge", "hash-to-file", "new"]:
         parsed.settings = None  # Force to load from cache if possible
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
     return cmake_args, make_args

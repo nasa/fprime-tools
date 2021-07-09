@@ -149,7 +149,7 @@ class IniSettings:
             "environment_file": env_file,
             "environment": environment,
             "cookiecutter": confparse.get(
-                "fprime", "cookiecutter", fallback="native"
+                "fprime", "cookiecutter", fallback="default"
             ),
         }
         # Set the project root

@@ -30,55 +30,40 @@
 {% if cookiecutter.commands == "yes" %}
     <commands>
 {%- if cookiecutter.component_kind == 'passive' %}
-        <command kind="sync" opcode="0" mnemonic="PR_StopPings">
+        <command kind="sync" opcode="0" mnemonic="ExampleCommand">
 {%- else %}
-        <command kind="async" opcode="0" mnemonic="PR_StopPings">
+        <command kind="async" opcode="0" mnemonic="ExampleCommand">
 {%- endif %}
             <comment>
-            Command to disable ping response
+            Description of command
             </comment>
         </command>
     </commands>
 {% endif %}
 {% if cookiecutter.parameters == "yes" %}
     <parameters>
-        <parameter id="5" set_opcode="6" save_opcode="1" name="parameter1" data_type="U32" default="10">
+        <parameter id="0" set_opcode="1" save_opcode="2" name="ExampleParameter" data_type="U32" default="10">
             <comment>
-            A test parameter
-            </comment>
-        </parameter>
-        <parameter id="7" set_opcode="8" save_opcode="3" name="parameter2" data_type="I16" default="11">
-            <comment>
-            A test parameter
+            An example parameter
             </comment>
         </parameter>
     </parameters>
 {% endif %}
 {% if cookiecutter.telemetry == "yes" %}
     <telemetry>
-        <channel id="0" name="PR_NumPings" data_type="U32">
+        <channel id="0" name="ExampleChannel" data_type="U32">
             <comment>
-            Number of pings received
+            Channel Description
             </comment>
         </channel>
     </telemetry>
 {% endif %}
 {% if cookiecutter.events == "yes" %}
     <events>
-        <event id="0" name="PR_PingsDisabled" severity="ACTIVITY_HI" format_string = "PingReceiver ping responses disabled" >
+        <event id="0" name="EX_ExampleEvent1" severity="ACTIVITY_HI" format_string = "Example Event 1 has been triggered" >
             <comment>
-            Disabled ping responses
+            Example event 1 description
             </comment>
-        </event>
-        <event id="1" name="PR_PingReceived" severity="DIAGNOSTIC" format_string = "PingReceiver pinged with code %d" >
-            <comment>
-            Got ping
-            </comment>
-            <args>
-                <arg name="code" type="U32">
-                    <comment>Ping code</comment>
-                </arg>
-            </args>
         </event>
     </events>
     {% endif %}

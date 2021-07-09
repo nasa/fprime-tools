@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
 
 from fprime.fbuild.builder import Build, Target
-from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.fbuild.cmake import CMakeExecutionException, CMakeHandler, CMakeInvalidBuildException
 from fprime.fbuild.settings import IniSettings
 
 
@@ -74,6 +74,10 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         lines = lines[11:]  # Remove old header
         with open(dest, "a") as file_handle:
             file_handle.write("".join(lines))
+
+    removals = [Path(hpp_src), Path(cpp_src)]
+    for removal in removals:
+        os.remove(removal)
     return True
 
 
@@ -107,33 +111,30 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     return True
 
 def regenerate(cmake_list_file):
-    #Purges and generates project for the user
-    currentDir = os.getcwd()
-    buildDir = (str(cmake_list_file).split("/"))[:-1]
-    os.chdir("/".join(buildDir))
-    try:
-        print("You may want to purge your project so you can regenerate:")
-        os.system("fprime-util purge")
-        os.system("fprime-util generate")
-    except:
-        os.system("fprime-util generate")
-    os.chdir(currentDir)
+    #Ensures build directory exists, then refrefreshes build cahce
+    build_dir = Path(cmake_list_file.parent, "build-fprime-automatic-native")
+    if not os.path.isdir(build_dir):
+        raise CMakeInvalidBuildException(build_dir)
+    handler = CMakeHandler()
+    print("Refreshing cache to incluide new addition")
+    handler._cmake_refresh_cache(build_dir)
 
-
-def add_unit_tests(comp_path):
+def add_unit_tests(deployment, comp_path, platform, verbose):
     #Creates unit tests and moves them into test/ut directory
     os.chdir(str(comp_path))
     if confirm("Would you like to generate unit tests?: "):
-        os.system("fprime-util impl --ut")
-        os.rename("Tester.hpp", "test/ut/Tester.hpp")
-        os.rename("Tester.cpp", "test/ut/Tester.cpp")
-        os.rename("TesterBase.hpp", "test/ut/TesterBase.hpp")
-        os.rename("TesterBase.cpp", "test/ut/TesterBase.cpp")
-        os.rename("GTestBase.hpp", "test/ut/GTestBase.hpp")
-        os.rename("GTestBase.cpp", "test/ut/GTestBase.cpp")
-        os.rename("TestMain.cpp", "test/ut/TestMain.cpp")
+        target = Target.get_target("impl", {"ut"})
+        build = Build(target.build_type, deployment, verbose=verbose)
+        build.load(comp_path, platform)
+        build.execute(target, context=comp_path, make_args={})
+        test_files = ["Tester.hpp", "Tester.cpp", "TesterBase.hpp", "TesterBase.cpp",
+                        "GTestBase.hpp", "GTestBase.cpp", "TestMain.cpp"]
+        for file in test_files:
+            if os.path.isfile(file):
+                new_name = Path("test", "ut", file)
+                os.rename(file, str(new_name))
     else:
-        os.system("rm -r test")
+        shutil.rmtree("test")
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new port to CMakeLists.txt in port directory"""
@@ -210,7 +211,7 @@ def new_component(
             )
 
         #Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
-        if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "native":
+        if settings.get("cookiecutter") is not None and settings["cookiecutter"] != "default":
             source = settings['cookiecutter']
         else:
             source = os.path.dirname(__file__) + '/../cookiecutter_templates/cookiecutter-fprime-component'
@@ -256,7 +257,7 @@ def new_component(
             )
             return 0
         print("[INFO] Created new component and created initial implementations.")
-        add_unit_tests(final_component_dir)
+        add_unit_tests(deployment, final_component_dir, platform, verbose)
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir
@@ -271,6 +272,14 @@ def new_component(
         print("[ERROR] {}".format(ose))
     return 1
 
+def is_valid_name(word):
+    invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
+                        " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
+    for char in invalid_characters:
+            if char in word:
+                return char
+    return "valid"
+
 def get_port_input():
     # Gather inputs to use as context for the port template
     defaults = {
@@ -281,23 +290,21 @@ def get_port_input():
     }
     valid_name = False
     valid_dir  = False
-    invalid_characters = ["#", "%", "&", "{", "}", "/", "\\", "<", ">", "*", "?",
-                        " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="]
     while not valid_name:
         port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
-        valid_name = True
-        for char in invalid_characters:
-            if char in port_name:
-                valid_name = False
-                print("'" + char + "' is not a valid character. Enter a new name:")
+        char = is_valid_name(port_name)
+        if char != "valid":
+            print("'" + char + "' is not a valid character. Enter a new port name:")
+        else:
+            valid_name = True
     short_description = input("Short Description [{}]: ".format(defaults["short_description"]))
     while not valid_dir:
         dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
-        valid_dir = True
-        for char in invalid_characters:
-            if char in dir_name:
-                valid_name = False
-                print("'" + char + "' is not a valid character. Enter a new directory name:")
+        char = is_valid_name(dir_name)
+        if char != "valid":
+            print("'" + char + "' is not a valid character. Enter a new directory name:")
+        else:
+            valid_dir = True
     string_arg_number = input("Number of arguments [{}]: ".format(defaults["arg_number"]))
     if string_arg_number == "":
             arg_number = 1
@@ -321,14 +328,11 @@ def get_port_input():
 def make_namespace(deployment, cwd):
     # Form the namespace from the path to the deployment
     namespace_path = cwd.relative_to(deployment)
-    deployment_list = str(deployment).split("/")
-    deployment_dir = deployment_list[-1]
-    whole_path = deployment_dir + "/" + str(namespace_path)
-    namespace_list = whole_path.split("/")
-    namespace_list.pop()
-    namespace = "/".join(namespace_list)
-    namespace = str(namespace).replace("/", "::")
-    return namespace
+    deployment_dir = deployment.name
+    whole_path = Path(deployment_dir,namespace_path)
+    namespace = whole_path.parent
+    namespace_formatted = str(namespace).replace(os.path.sep, "::")
+    return namespace_formatted
 
 def new_port(
     cwd: Path, deployment: Path, settings: Dict[str, str]
