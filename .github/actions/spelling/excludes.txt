@@ -1,13 +1,10 @@
-ignore$
-/html/
 (?:^|/)(?i)COPYRIGHT
 (?:^|/)(?i)LICEN[CS]E
 (?:^|/)vendor/
-^\.github/
-^Autocoders/Python/test/.*\.xml$
 /doc/xml/
+/html/
 /third-party/
-\.min\.
+ignore$
 \.bak$
 \.bin$
 \.dat$
@@ -23,6 +20,7 @@ ignore$
 \.md5$
 \.mdxml$
 \.mdzip$
+\.min\.
 \.otf$
 \.pdf$
 \.png$
@@ -39,4 +37,7 @@ ignore$
 \.xls$
 \.xlsx$
 \.xsd$
-\.zip$
+^Autocoders/Python/test/.*\.xml$
+^test/fprime/fbuild/cmake-data/testbuild/CMakeLists\.txt$
+^test/fprime/fbuild/settings-data/settings-empty\.ini$
+^\.github/

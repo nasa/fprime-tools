@@ -145,7 +145,9 @@ class IniSettings:
             "install_dest": install_dest,
             "environment_file": env_file,
             "environment": environment,
-            "component_cookiecutter": confparse.get("fprime", "component_cookiecutter", fallback="default"),
+            "component_cookiecutter": confparse.get(
+                "fprime", "component_cookiecutter", fallback="default"
+            ),
         }
         # Set the project root
         if proj_root is not None:

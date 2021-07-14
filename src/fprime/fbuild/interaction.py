@@ -91,9 +91,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         lines = f.readlines()
 
     if not confirm(
-        "Add component {} to {} {}?".format(
-            comp_path, list_file, "at end of file?"
-        )
+        "Add component {} to {} {}?".format(comp_path, list_file, "at end of file?")
     ):
         return False
 
@@ -146,15 +144,13 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
     index = 0
-    while re.search('set\(\s*SOURCE_FILES',lines[index]) == None:
+    while re.search("set\(\s*SOURCE_FILES", lines[index]) == None:
         index += 1
     index += 1
     while re.search("CMAKE_CURRENT_LIST_DIR", lines[index]):
         index += 1
     if not confirm(
-        "Add port {} to {} {}?".format(
-            comp_path, list_file, "ports in CMakeLists.txt"
-        )
+        "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
     ):
         return False
 
@@ -197,9 +193,7 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
     return None
 
 
-def new_component(
-    deployment: Path, platform: str, verbose: bool, build: Build
-):
+def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
     """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
@@ -377,7 +371,6 @@ def new_port(cwd: Path, deployment: Path, build: Build):
         else:
             proj_root_found = False
 
-
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
@@ -399,7 +392,12 @@ def new_port(cwd: Path, deployment: Path, build: Build):
         }
         fname = context["port_name"] + "Port" + "Ai.xml"
         if os.path.isfile(Path(context["dir_name"], fname)):
-            print("[ERROR] Port", context["port_name"], "already exists in directory", context["dir_name"])
+            print(
+                "[ERROR] Port",
+                context["port_name"],
+                "already exists in directory",
+                context["dir_name"],
+            )
             return 0
         with open(fname, "w") as f:
             xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(
@@ -409,8 +407,8 @@ def new_port(cwd: Path, deployment: Path, build: Build):
         if not os.path.isdir(context["dir_name"]):
             os.mkdir(context["dir_name"])
 
-        os.rename(fname, str(Path(context["dir_name"],fname)))
-        path_to_cmakelists = Path(context["dir_name"],"CMakeLists.txt")
+        os.rename(fname, str(Path(context["dir_name"], fname)))
+        path_to_cmakelists = Path(context["dir_name"], "CMakeLists.txt")
         if not os.path.isfile(str(path_to_cmakelists)):
             with open(str(path_to_cmakelists), "w") as f:
                 CMake_file = TEMPLATE_ENVIRONMENT.get_template(

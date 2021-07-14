@@ -79,7 +79,9 @@ def test_settings():
         {
             "file": "settings-outside-cookiecutter.ini",
             "expected": {
-                "settings_file": full_path("settings-data/settings-outside-cookiecutter.ini"),
+                "settings_file": full_path(
+                    "settings-data/settings-outside-cookiecutter.ini"
+                ),
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
                 "framework_path": full_path("../../../../.."),

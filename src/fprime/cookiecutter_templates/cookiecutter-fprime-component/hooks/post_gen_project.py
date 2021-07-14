@@ -20,7 +20,7 @@ def main():
     cwd = Path(os.getcwd())
     deployment = Build.find_nearest_deployment(cwd)
     namespace = make_namespace(deployment, cwd)
-    settings = IniSettings.load(Path(deployment,"settings.ini"), cwd)
+    settings = IniSettings.load(Path(deployment, "settings.ini"), cwd)
     if settings.get("project_root") is None:
         proj_root_found = False
     else:
