@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Dict
 import shutil
+import re
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -88,15 +89,10 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as f:
         lines = f.readlines()
-        index = 0
-        while "add_fprime_subdirectory" not in lines[index]:
-            index += 1
-        while "add_fprime_subdirectory" in lines[index]:
-            index += 1
 
     if not confirm(
         "Add component {} to {} {}?".format(
-            comp_path, list_file, "at end of file before topology inclusion?"
+            comp_path, list_file, "at end of file?"
         )
     ):
         return False
@@ -107,20 +103,16 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     if addition in lines:
         print("Component already added to CMakeLists.txt")
         return True
-    lines.insert(index, addition)
+    lines.append(addition)
     with open(list_file, "w") as f:
         f.write("".join(lines))
     return True
 
 
-def regenerate(cmake_list_file):
-    # Ensures build directory exists, then refreshes build cache
-    build_dir = Path(cmake_list_file.parent, "build-fprime-automatic-native")
-    if not os.path.isdir(build_dir):
-        raise CMakeInvalidBuildException(build_dir)
+def regenerate(build: Build):
     handler = CMakeHandler()
     print("Refreshing cache to include new addition")
-    handler._cmake_refresh_cache(build_dir)
+    handler.cmake_refresh_cache(build.get_build_cache())
 
 
 def add_unit_tests(deployment, comp_path, platform, verbose):
@@ -154,19 +146,19 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
     index = 0
-    line = lines[index]
-    while line != "set(SOURCE_FILES\n":
+    while re.search('set\(\s*SOURCE_FILES',lines[index]) == None:
         index += 1
-        line = lines[index]
     index += 1
+    while re.search("CMAKE_CURRENT_LIST_DIR", lines[index]):
+        index += 1
     if not confirm(
-        "Add component {} to {} {}?".format(
+        "Add port {} to {} {}?".format(
             comp_path, list_file, "ports in CMakeLists.txt"
         )
     ):
         return False
 
-    addition = '"${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(comp_path)
+    addition = '    "${{CMAKE_CURRENT_LIST_DIR}}/{}/"\n'.format(comp_path)
     lines.insert(index, addition)
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
@@ -206,23 +198,19 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
 
 
 def new_component(
-    deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
+    deployment: Path, platform: str, verbose: bool, build: Build
 ):
     """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
-        proj_root = None
-        try:
-            proj_root = Path(settings.get("project_root", None))
-        except (ValueError, TypeError):
-            print("[WARNING] No found project root.")
+        proj_root = build.get_settings("project_root", None)
 
-        # Checks if cookiecutter is set in settings.ini file, else uses local cookiecutter template as default
+        # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
         if (
-            settings.get("cookiecutter") is not None
-            and settings["cookiecutter"] != "default"
+            build.get_settings("component_cookiecutter", None) is not None
+            and build.get_settings("component_cookiecutter", None) != "default"
         ):
-            source = settings["cookiecutter"]
+            source = build.get_settings("component_cookiecutter", None)
         else:
             source = (
                 os.path.dirname(__file__)
@@ -246,6 +234,7 @@ def new_component(
             )
             return 0
         # Attempt to register to CMakeLists.txt
+        proj_root = Path(proj_root)
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
@@ -258,7 +247,7 @@ def new_component(
                 )
             )
             return 0
-        regenerate(cmake_lists_file)
+        regenerate(build)
         # Attempt implementation
         if not run_impl(deployment, final_component_dir, platform, verbose):
             print(
@@ -377,15 +366,17 @@ def make_namespace(deployment, cwd):
     return namespace_formatted
 
 
-def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
+def new_port(cwd: Path, deployment: Path, build: Build):
     """ Uses cookiecutter for making new ports """
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
-        proj_root = None
-        try:
-            proj_root = Path(settings.get("project_root", None))
-        except (ValueError, TypeError):
-            print("[WARNING] No found project root.")
+        proj_root = build.get_settings("project_root", None)
+        if proj_root is not None:
+            proj_root = Path(proj_root)
+            proj_root_found = True
+        else:
+            proj_root_found = False
+
 
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
@@ -394,13 +385,6 @@ def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
             trim_blocks=False,
         )
         params = get_port_input()
-        if (
-            settings.get("framework_path") is not None
-            and settings["framework_path"] != "native"
-        ):
-            path_to_fprime = settings["framework_path"]
-        else:
-            path_to_fprime = IniSettings.find_fprime(cwd)
 
         namespace = make_namespace(
             deployment, Path(str(cwd) + "/" + params["dir_name"])
@@ -410,11 +394,13 @@ def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
             "port_name": params["port_name"],
             "short_description": params["short_description"],
             "dir_name": params["dir_name"],
-            "path_to_fprime_root": path_to_fprime,
             "namespace": namespace,
             "arg_number": params["arg_number"],
         }
         fname = context["port_name"] + "Port" + "Ai.xml"
+        if os.path.isfile(Path(context["dir_name"], fname)):
+            print("[ERROR] Port", context["port_name"], "already exists in directory", context["dir_name"])
+            return 0
         with open(fname, "w") as f:
             xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(
                 context
@@ -423,17 +409,18 @@ def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
         if not os.path.isdir(context["dir_name"]):
             os.mkdir(context["dir_name"])
 
-        os.rename(fname, context["dir_name"] + "/" + fname)
-        if not os.path.isfile(context["dir_name"] + "/CMakeLists.txt"):
-            with open(context["dir_name"] + "/CMakeLists.txt", "w") as f:
+        os.rename(fname, str(Path(context["dir_name"],fname)))
+        path_to_cmakelists = Path(context["dir_name"],"CMakeLists.txt")
+        if not os.path.isfile(str(path_to_cmakelists)):
+            with open(str(path_to_cmakelists), "w") as f:
                 CMake_file = TEMPLATE_ENVIRONMENT.get_template(
                     "CMakeLists_template.txt"
                 ).render(context)
                 f.write(CMake_file)
         else:
-            add_port_to_cmake(context["dir_name"] + "/CMakeLists.txt", fname)
+            add_port_to_cmake(str(path_to_cmakelists), fname)
 
-        if proj_root is None:
+        if proj_root_found is False:
             print(
                 "[INFO] No project root found. Created port without adding to build system nor generating implementation."
             )
@@ -451,7 +438,7 @@ def new_port(cwd: Path, deployment: Path, settings: Dict[str, str]):
                 )
             )
             return 0
-        regenerate(cmake_lists_file)
+        regenerate(build)
         print("")
         print(
             "################################################################################"

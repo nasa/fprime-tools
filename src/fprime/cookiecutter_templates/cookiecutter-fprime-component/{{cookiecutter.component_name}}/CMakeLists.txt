@@ -8,7 +8,7 @@
 ####
 set(SOURCE_FILES
     "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAi.xml"
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentImpl.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.cpp"
 )
 
 # Uncomment and add any modules that this component depends on, else

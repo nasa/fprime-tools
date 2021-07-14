@@ -1,4 +1,4 @@
 // ======================================================================
-// \title  {{cookiecutter.component_name}}ComponentImpl.hpp
+// \title  {{cookiecutter.component_name}}.hpp
 // \brief  {{cookiecutter.component_short_description}}
 // ======================================================================

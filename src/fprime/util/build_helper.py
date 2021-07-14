@@ -343,16 +343,17 @@ def utility_entry(args):
         elif parsed.command == "info":
             print_info(parsed, deployment)
         elif parsed.command == "new":
-            settings = IniSettings.load(deployment / "settings.ini", cwd)
+            build = Build(build_type, deployment, verbose=parsed.verbose)
+            build.load(cwd)
             if parsed.component and parsed.port:
                 print("[ERROR] Use --component or --port, not both.")
             elif parsed.component:
                 status = new_component(
-                    deployment, parsed.platform, parsed.verbose, settings
+                    deployment, parsed.platform, parsed.verbose, build
                 )
                 sys.exit(status)
             elif parsed.port:
-                status = new_port(cwd, deployment, settings)
+                status = new_port(cwd, deployment, build)
                 sys.exit(status)
             else:
                 print(

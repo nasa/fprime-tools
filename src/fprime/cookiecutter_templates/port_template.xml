@@ -1,5 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<?xml-model href="{{path_to_fprime_root}}/../Autocoders/Python/schema/default/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <interface name="{{port_name}}" namespace="{{namespace}}">
     <comment>
     {{short_description}}

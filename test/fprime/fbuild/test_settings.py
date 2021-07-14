@@ -39,7 +39,7 @@ def test_settings():
                 "library_locations": [],
                 "environment_file": full_path("settings-data/settings-empty.ini"),
                 "environment": {},
-                "cookiecutter": "native",
+                "component_cookiecutter": "default",
             },
         },
         {
@@ -55,7 +55,7 @@ def test_settings():
                     "settings-data/settings-custom-install.ini"
                 ),
                 "environment": {},
-                "cookiecutter": "native",
+                "component_cookiecutter": "default",
             },
         },
         {
@@ -73,7 +73,21 @@ def test_settings():
                     "settings-data/settings-custom-toolchain.ini"
                 ),
                 "environment": {},
-                "cookiecutter": "native",
+                "component_cookiecutter": "default",
+            },
+        },
+        {
+            "file": "settings-outside-cookiecutter.ini",
+            "expected": {
+                "settings_file": full_path("settings-data/settings-outside-cookiecutter.ini"),
+                "default_toolchain": "native",
+                "default_ut_toolchain": "native",
+                "framework_path": full_path("../../../../.."),
+                "install_dest": full_path("settings-data/build-artifacts"),
+                "library_locations": [],
+                "environment_file": full_path("settings-data/settings-empty.ini"),
+                "environment": {},
+                "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
             },
         },
     ]
