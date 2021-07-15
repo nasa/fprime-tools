@@ -113,6 +113,8 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
     # Creates unit tests and moves them into test/ut directory
     os.chdir(str(comp_path))
     if confirm("Would you like to generate unit tests?: "):
+        test_path = Path("test", "ut")
+        test_path.mkdir(parents = True, exist_ok = True)
         target = Target.get_target("impl", {"ut"})
         build = Build(target.build_type, deployment, verbose=verbose)
         build.load(comp_path, platform)
@@ -128,11 +130,8 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
         ]
         for file in test_files:
             if os.path.isfile(file):
-                new_name = Path("test", "ut", file)
+                new_name = test_path / file
                 os.rename(file, str(new_name))
-    else:
-        shutil.rmtree("test")
-
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new port to CMakeLists.txt in port directory"""
