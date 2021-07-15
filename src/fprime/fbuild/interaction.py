@@ -13,12 +13,7 @@ from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
 from fprime.fbuild.builder import Build, Target
-from fprime.fbuild.cmake import (
-    CMakeExecutionException,
-    CMakeHandler,
-    CMakeInvalidBuildException,
-)
-from fprime.fbuild.settings import IniSettings
+from fprime.fbuild.cmake import CMakeExecutionException, CMakeHandler
 
 
 def confirm(msg):
@@ -144,7 +139,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
     index = 0
-    while re.search("set\(\s*SOURCE_FILES", lines[index]) == None:
+    while re.search("set\(\s*SOURCE_FILES", lines[index]) is None:
         index += 1
     index += 1
     while re.search("CMAKE_CURRENT_LIST_DIR", lines[index]):

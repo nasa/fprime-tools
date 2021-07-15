@@ -30,7 +30,6 @@ from fprime.fbuild.builder import (
     UnableToDetectDeploymentException,
 )
 from fprime.fbuild.interaction import confirm, new_component, new_port
-from fprime.fbuild.settings import IniSettings
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
 
