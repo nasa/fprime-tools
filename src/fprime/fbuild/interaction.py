@@ -85,17 +85,18 @@ def add_to_cmake(list_file: Path, comp_path: Path):
     with open(list_file, "r") as f:
         lines = f.readlines()
 
+    addition = (
+        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    )
+    if addition in lines:
+        print("Port directory already added to CMakeLists.txt")
+        return True
+
     if not confirm(
         "Add component {} to {} {}?".format(comp_path, list_file, "at end of file?")
     ):
         return False
 
-    addition = (
-        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
-    )
-    if addition in lines:
-        print("Component already added to CMakeLists.txt")
-        return True
     lines.append(addition)
     with open(list_file, "w") as f:
         f.write("".join(lines))

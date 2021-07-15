@@ -60,9 +60,9 @@
 {% endif %}
 {% if cookiecutter.events == "yes" %}
     <events>
-        <event id="0" name="EX_ExampleEvent1" severity="ACTIVITY_HI" format_string = "Example Event 1 has been triggered" >
+        <event id="0" name="EX_ExampleEvent" severity="ACTIVITY_HI" format_string = "Example Event has been triggered" >
             <comment>
-            Example event 1 description
+            Example event description
             </comment>
         </event>
     </events>
