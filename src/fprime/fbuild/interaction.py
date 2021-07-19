@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict
 import shutil
 import re
+from contextlib import contextmanager 
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -53,7 +54,8 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         "Generate implementations and merge into {} and {}?".format(hpp_dest, cpp_dest)
     ):
         return False
-    build.execute(target, context=path, make_args={})
+    with suppress_stdout():
+        build.execute(target, context=path, make_args={})
 
     hpp_files_template = glob.glob("{}/*.hpp-template".format(path), recursive=False)
     cpp_files_template = glob.glob("{}/*.cpp-template".format(path), recursive=False)
@@ -102,11 +104,22 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         f.write("".join(lines))
     return True
 
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
+
 
 def regenerate(build: Build):
     handler = CMakeHandler()
     print("Refreshing cache to include new addition")
-    handler.cmake_refresh_cache(build.get_build_cache())
+    with suppress_stdout():
+        handler.cmake_refresh_cache(build.get_build_cache())
 
 
 def add_unit_tests(deployment, comp_path, platform, verbose):
@@ -118,7 +131,8 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
         target = Target.get_target("impl", {"ut"})
         build = Build(target.build_type, deployment, verbose=verbose)
         build.load(comp_path, platform)
-        build.execute(target, context=comp_path, make_args={})
+        with suppress_stdout():
+            build.execute(target, context=comp_path, make_args={})
         test_files = [
             "Tester.hpp",
             "Tester.cpp",
