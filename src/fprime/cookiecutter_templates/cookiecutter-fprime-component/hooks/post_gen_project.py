@@ -5,8 +5,8 @@ import os
 from os.path import join
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.builder import Build
-from fprime.fbuild.interaction import make_namespace
 from pathlib import Path
+import textwrap
 
 
 def replace_contents(filename, what, replacement, count=1):
@@ -15,25 +15,79 @@ def replace_contents(filename, what, replacement, count=1):
     with open(filename, "w") as fh:
         fh.write(changelog.replace(what, replacement, count))
 
+def remove_line(filename, removal):
+    with open(filename, "r") as f:
+        lines = f.readlines()
+        f.close()
+    lines.remove(removal)
+    with open(filename, "w") as f:
+        for line in lines:
+            f.write(line)
+        f.close()
+
+def update_sdd():
+    if "{{cookiecutter.ports}}" == "yes":
+        replace_contents("docs/sdd.md", "## Port Descriptions",
+        textwrap.dedent('''\
+        ## Port Descriptions
+        | Name | Description |
+        |---|---|
+        |---|---|'''))
+    else:
+        remove_line("docs/sdd.md", "## Port Descriptions\n")
+
+    if "{{cookiecutter.commands}}" == "yes":
+        replace_contents("docs/sdd.md", "## Commands",
+        textwrap.dedent('''\
+        ## Commands
+        | Name | Description |
+        |---|---|
+        |---|---|'''))
+    else:
+        remove_line("docs/sdd.md", "## Commands\n")
+
+    if "{{cookiecutter.parameters}}" == "yes":
+        replace_contents("docs/sdd.md", "## Parameters",
+        textwrap.dedent('''\
+        ## Parameters
+        | Name | Description |
+        |---|---|
+        |---|---|'''))
+    else:
+        remove_line("docs/sdd.md", "## Parameters\n")
+
+    if "{{cookiecutter.events}}" == "yes":
+        replace_contents("docs/sdd.md", "## Events",
+        textwrap.dedent('''\
+        ## Events
+        | Name | Description |
+        |---|---|
+        |---|---|'''))
+    else:
+        remove_line("docs/sdd.md", "## Events\n")
+
+    if "{{cookiecutter.telemetry}}" == "yes":
+        replace_contents("docs/sdd.md", "## Telemetry",
+        textwrap.dedent('''\
+        ## Telemetry
+        | Name | Description |
+        |---|---|
+        |---|---|'''))
+    else:
+        remove_line("docs/sdd.md", "## Telemetry\n")
+
 
 def main():
     cwd = Path(os.getcwd())
     deployment = Build.find_nearest_deployment(cwd)
-    namespace = make_namespace(deployment, cwd)
     settings = IniSettings.load(Path(deployment, "settings.ini"), cwd)
     if settings.get("project_root") is None:
         proj_root_found = False
     else:
         proj_root_found = True
-
-    replace_contents(
-        "{{ cookiecutter.component_name }}ComponentAi.xml", "TEMP_NAMESPACE", namespace
-    )
-
-    replace_contents("docs/sdd.md", "TEMP_NAMESPACE", namespace)
-
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
+    update_sdd()
 
     print(
         """

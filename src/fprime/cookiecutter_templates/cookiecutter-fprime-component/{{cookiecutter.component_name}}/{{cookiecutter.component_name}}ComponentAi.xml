@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="TEMP_NAMESPACE">
+<component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
     <!-- Example of importing a port type -->
 {% if cookiecutter.ports == "yes" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>

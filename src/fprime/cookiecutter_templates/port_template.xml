@@ -7,7 +7,7 @@
     {% for i in range(arg_number) %}
         <arg name="arg {{ i }}" type="U32">
             <comment>Argument {{ i }}</comment>
-		</arg>
+        </arg>
     {% endfor %}
     </args>
 </interface>

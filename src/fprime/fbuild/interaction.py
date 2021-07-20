@@ -54,6 +54,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         "Generate implementations and merge into {} and {}?".format(hpp_dest, cpp_dest)
     ):
         return False
+    print("Generating implemntation files and merging...")
     with suppress_stdout():
         build.execute(target, context=path, make_args={})
 
@@ -131,6 +132,7 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
         target = Target.get_target("impl", {"ut"})
         build = Build(target.build_type, deployment, verbose=verbose)
         build.load(comp_path, platform)
+        print("Generaing unit tests...")
         with suppress_stdout():
             build.execute(target, context=comp_path, make_args={})
         test_files = [
@@ -228,7 +230,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         )
         print("----------------")
         print()
-        final_component_dir = Path(cookiecutter(source)).resolve()
+        final_component_dir = Path(cookiecutter(source, extra_context ={"component_namespace": deployment.name})).resolve()
         if proj_root is None:
             print(
                 "[INFO] Created component directory without adding to build system nor generating implementation {}".format(
@@ -307,16 +309,18 @@ def is_valid_name(word):
     return "valid"
 
 
-def get_port_input():
+def get_port_input(namespace):
     # Gather inputs to use as context for the port template
     defaults = {
         "port_name": "ExamplePort",
         "short_description": "Example usage of port",
         "dir_name": "example_directory",
+        "namespace": namespace,
         "arg_number": 1,
     }
     valid_name = False
     valid_dir = False
+    valid_namespace = False
     while not valid_name:
         port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
         char = is_valid_name(port_name)
@@ -336,6 +340,17 @@ def get_port_input():
             )
         else:
             valid_dir = True
+
+    while not valid_namespace:
+        dir_name = input("Port Namespace [{}]: ".format(defaults["namespace"]))
+        char = is_valid_name(dir_name)
+        if char != "valid":
+            print(
+                "'" + char + "' is not a valid character. Enter a new directory name:"
+            )
+        else:
+            valid_namespace = True
+    
     string_arg_number = input(
         "Number of arguments [{}]: ".format(defaults["arg_number"])
     )
@@ -349,6 +364,7 @@ def get_port_input():
         "port_name": port_name,
         "short_description": short_description,
         "dir_name": dir_name,
+        "namespace": namespace,
         "arg_number": arg_number,
     }
 
@@ -386,17 +402,13 @@ def new_port(cwd: Path, deployment: Path, build: Build):
             loader=FileSystemLoader(os.path.join(PATH, "../cookiecutter_templates")),
             trim_blocks=False,
         )
-        params = get_port_input()
-
-        namespace = make_namespace(
-            deployment, Path(str(cwd) + "/" + params["dir_name"])
-        )
+        params = get_port_input(deployment.name)
 
         context = {
             "port_name": params["port_name"],
             "short_description": params["short_description"],
             "dir_name": params["dir_name"],
-            "namespace": namespace,
+            "namespace": params["namespace"],
             "arg_number": params["arg_number"],
         }
         fname = context["port_name"] + "Port" + "Ai.xml"

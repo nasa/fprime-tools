@@ -1,4 +1,4 @@
-# TEMP_NAMESPACE::{{cookiecutter.component_name}}
+# {{cookiecutter.component_namespace}}::{{cookiecutter.component_name}}
 
 {{cookiecutter.component_short_description}}
 
@@ -11,10 +11,6 @@
 ## Class Diagram
 
 ## Port Descriptions
-| Name | Description |
-|---|---|
-|---|---|
-
 ## Port Handler Functional Behaviors
 | Name | Description |
 |---|---|
@@ -27,20 +23,10 @@
 
 ## Sequence Diagrams
 
+## Parameters
 ## Commands
-| Name | Description |
-|---|---|
-|---|---|
-
 ## Events
-| Name | Description |
-|---|---|
-|---|---|
-
 ## Telemetry
-| Name | Description |
-|---|---|
-|---|---|
 
 ## Unit Tests
 | Name | Description | Output | Coverage |
@@ -48,7 +34,6 @@
 |---|---|---|---|
 
 ## Requirements
-
 | Name | Description | Validation |
 |---|---|---|
 |---|---|---|
