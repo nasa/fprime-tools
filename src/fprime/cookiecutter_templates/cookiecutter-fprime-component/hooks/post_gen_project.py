@@ -8,7 +8,6 @@ from fprime.fbuild.builder import Build
 from pathlib import Path
 import textwrap
 
-
 def replace_contents(filename, what, replacement, count=1):
     with open(filename) as fh:
         changelog = fh.read()
@@ -19,10 +18,10 @@ def remove_line(filename, removal):
     with open(filename, "r") as f:
         lines = f.readlines()
         f.close()
-    lines.remove(removal)
     with open(filename, "w") as f:
         for line in lines:
-            f.write(line)
+            if line != removal:
+                f.write(line)
         f.close()
 
 def update_sdd():
@@ -31,8 +30,8 @@ def update_sdd():
         textwrap.dedent('''\
         ## Port Descriptions
         | Name | Description |
-        |---|---|
-        |---|---|'''))
+        | PingIn | Used for pinging other components |
+        | PingOut | Used to recieve ping signal |'''))
     else:
         remove_line("docs/sdd.md", "## Port Descriptions\n")
 
@@ -41,7 +40,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Commands
         | Name | Description |
-        |---|---|
+        | ExampleCommand | Example of how a command is implemented |
         |---|---|'''))
     else:
         remove_line("docs/sdd.md", "## Commands\n")
@@ -51,7 +50,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Parameters
         | Name | Description |
-        |---|---|
+        | ExampleParameter | Example of how a parameter is implemented |
         |---|---|'''))
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
@@ -61,7 +60,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Events
         | Name | Description |
-        |---|---|
+        | EX_ExampleEvent | Example of how an event is implemented |
         |---|---|'''))
     else:
         remove_line("docs/sdd.md", "## Events\n")
@@ -71,7 +70,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Telemetry
         | Name | Description |
-        |---|---|
+        | ExampleChannel | Example of how a telemetry channel is implemented |
         |---|---|'''))
     else:
         remove_line("docs/sdd.md", "## Telemetry\n")
@@ -88,6 +87,7 @@ def main():
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
     update_sdd()
+    remove_line("{{cookiecutter.component_name}}ComponentAi.xml", "\n")
 
     print(
         """
