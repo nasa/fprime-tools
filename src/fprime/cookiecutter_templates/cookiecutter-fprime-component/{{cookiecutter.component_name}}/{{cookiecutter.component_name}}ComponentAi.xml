@@ -4,11 +4,62 @@
 {% if cookiecutter.ports == "yes" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
 {% endif %}
+{% if cookiecutter.commands == "yes" %}
+    <!-- Import command ports -->
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
+    <!-- Import event ports -->
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
+    <!-- Import telemetry ports -->
+    <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
+    <!-- Import parameter ports -->
+    <import_port_type>Fw/Prm/PrmGetPortAi.xml</import_port_type>
+    <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
+{% endif %}
+
     <comment>{{cookiecutter.component_short_description}}</comment>
+
 {% if cookiecutter.ports == "yes" %}
     <ports>
         <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
         <!-- Input ping port -->
+{% if cookiecutter.commands == "yes" %}
+        <!-- Command port definitions: command input receives commands, command reg out, and response out are
+        ports used to register with the command dispatcher, and return responses to it -->
+        <port name="cmdIn" data_type="Fw::Cmd"  kind="input" role="Cmd"    max_number="1">
+        </port>
+        <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+        </port>
+        <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
+        <!-- Event ports: send events, and text formatted events -->
+        <port name="eventOut" data_type="Fw::Log"  kind="output" role="LogEvent"  max_number="1">
+        </port>
+        <port name="textEventOut" data_type="Fw::LogText" kind="output" role="LogTextEvent" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
+        <!-- Telemetry ports -->
+        <port name="tlmOut" data_type="Fw::Tlm"  kind="output" role="Telemetry" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
+        <!-- Event ports: send events, and text formatted events -->
+        <port name="PrmGet" data_type="Fw::PrmGet"  kind="input" role="GetParameter"  max_number="1">
+        </port>
+        <port name="PrmSet" data_type="Fw::PrmSet" kind="output" role="SetParameter" max_number="1">
+        </port>
+{% endif %}
 {%- if cookiecutter.component_kind == 'passive' %}
         <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1">
 {%- else %}
