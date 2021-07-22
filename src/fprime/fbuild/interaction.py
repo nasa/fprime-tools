@@ -165,7 +165,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     ):
         return False
 
-    addition = '    "${{CMAKE_CURRENT_LIST_DIR}}/{}/"\n'.format(comp_path)
+    addition = '    "${{CMAKE_CURRENT_LIST_DIR}}/{}"\n'.format(comp_path)
     lines.insert(index, addition)
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
@@ -314,7 +314,7 @@ def get_port_input(namespace):
     defaults = {
         "port_name": "ExamplePort",
         "short_description": "Example usage of port",
-        "dir_name": "example_directory",
+        "dir_name": ".",
         "namespace": namespace,
         "arg_list": [],
     }
@@ -363,7 +363,6 @@ def get_port_input(namespace):
             arg_description = input("Short description of argument: ")
             arg_list.append((arg_name, arg_type, arg_description))
         else:
-            print("HERE")
             args_done = True
     values = {
         "port_name": port_name,
@@ -416,6 +415,9 @@ def new_port(cwd: Path, deployment: Path, build: Build):
             "namespace": params["namespace"],
             "arg_list": params["arg_list"],
         }
+        if Path(context["dir_name"]).resolve() == deployment.resolve():
+            print("[ERROR] cannot create port in deployment directory")
+            return 0
         fname = context["port_name"] + "Port" + "Ai.xml"
         if os.path.isfile(Path(context["dir_name"], fname)):
             print(
