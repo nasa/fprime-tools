@@ -316,11 +316,13 @@ def get_port_input(namespace):
         "short_description": "Example usage of port",
         "dir_name": "example_directory",
         "namespace": namespace,
-        "arg_number": 1,
+        "arg_list": [],
     }
     valid_name = False
     valid_dir = False
     valid_namespace = False
+    args_done = False
+    arg_list = []
     while not valid_name:
         port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
         char = is_valid_name(port_name)
@@ -350,22 +352,25 @@ def get_port_input(namespace):
             )
         else:
             valid_namespace = True
-    
-    string_arg_number = input(
-        "Number of arguments [{}]: ".format(defaults["arg_number"])
-    )
-    if string_arg_number == "":
-        arg_number = 1
-    elif not string_arg_number.isnumeric():
-        print("[ERROR] You have not entered a valid number")
-    else:
-        arg_number = int(string_arg_number)
+    while not args_done:
+        if arg_list == []:
+            add_arg = confirm("Would you like to add an argument?: ")
+        else:
+            add_arg = confirm("Would you like to add another argument?: ")
+        if add_arg:
+            arg_name = input("Argument name: ")
+            arg_type = input("Argumet type: ")
+            arg_description = input("Short description of argument: ")
+            arg_list.append((arg_name, arg_type, arg_description))
+        else:
+            print("HERE")
+            args_done = True
     values = {
         "port_name": port_name,
         "short_description": short_description,
         "dir_name": dir_name,
         "namespace": namespace,
-        "arg_number": arg_number,
+        "arg_list": arg_list,
     }
 
     # Fill in blank values with defaults
@@ -409,7 +414,7 @@ def new_port(cwd: Path, deployment: Path, build: Build):
             "short_description": params["short_description"],
             "dir_name": params["dir_name"],
             "namespace": params["namespace"],
-            "arg_number": params["arg_number"],
+            "arg_list": params["arg_list"],
         }
         fname = context["port_name"] + "Port" + "Ai.xml"
         if os.path.isfile(Path(context["dir_name"], fname)):

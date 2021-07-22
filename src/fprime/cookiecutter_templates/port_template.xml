@@ -4,9 +4,9 @@
     {{short_description}}
     </comment>
     <args>
-    {% for i in range(arg_number) %}
-        <arg name="arg {{ i }}" type="U32">
-            <comment>Argument {{ i }}</comment>
+    {% for arg in arg_list %}
+        <arg name="{{ arg[0] }}" type="{{ arg[1] }}">
+            <comment>{{ arg[2] }}</comment>
         </arg>
     {% endfor %}
     </args>
