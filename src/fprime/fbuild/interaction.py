@@ -118,7 +118,7 @@ def suppress_stdout():
 
 def regenerate(build: Build):
     handler = CMakeHandler()
-    print("Refreshing cache to include new addition")
+    print("Refreshing cache to include new addition...")
     with suppress_stdout():
         handler.cmake_refresh_cache(build.get_build_cache())
 

@@ -25,13 +25,11 @@ def remove_line(filename, removal):
         f.close()
 
 def update_sdd():
-    if "{{cookiecutter.ports}}" == "yes":
-        replace_contents("docs/sdd.md", "## Port Descriptions",
-        textwrap.dedent('''\
-        ## Port Descriptions
-        | Name | Description |
+    ports = "## Port Descriptions\n| Name | Description |\n"
+    if "{{cookiecutter.health}}" == "yes":
+        ports = ports + textwrap.dedent('''\
         | PingIn | Used for pinging other components |
-        | PingOut | Used to recieve ping signal |'''))
+        | PingOut | Used to recieve ping signal |\n''')
     else:
         remove_line("docs/sdd.md", "## Port Descriptions\n")
 
@@ -41,7 +39,11 @@ def update_sdd():
         ## Commands
         | Name | Description |
         | ExampleCommand | Example of how a command is implemented |
-        |---|---|'''))
+        |---|---|\n'''))
+        ports = ports + textwrap.dedent('''\
+            | cmdIn | Used to recieve commands |
+            | cmdRegOut | Used to register with the command dispatcher |
+            | cmdResponseOut | Used to return responses to command dispatcher |\n''')
     else:
         remove_line("docs/sdd.md", "## Commands\n")
 
@@ -51,7 +53,10 @@ def update_sdd():
         ## Parameters
         | Name | Description |
         | ExampleParameter | Example of how a parameter is implemented |
-        |---|---|'''))
+        |---|---|\n'''))
+        ports = ports + textwrap.dedent('''\
+            | PrmGetIn | Used to get parameter value |
+            | PrmSetIn | Used to set parameter value |\n''')
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
 
@@ -61,7 +66,10 @@ def update_sdd():
         ## Events
         | Name | Description |
         | EX_ExampleEvent | Example of how an event is implemented |
-        |---|---|'''))
+        |---|---|\n'''))
+        ports = ports + textwrap.dedent('''\
+            | eventOut | Used to send events |
+            | textEventOut | Used to send text formatted events |\n''')
     else:
         remove_line("docs/sdd.md", "## Events\n")
 
@@ -71,9 +79,12 @@ def update_sdd():
         ## Telemetry
         | Name | Description |
         | ExampleChannel | Example of how a telemetry channel is implemented |
-        |---|---|'''))
+        |---|---|\n'''))
+        ports = ports + textwrap.dedent('''\
+            | tlmOut | Used to send telemetry data |\n''')
     else:
         remove_line("docs/sdd.md", "## Telemetry\n")
+    replace_contents("docs/sdd.md", "## Port Descriptions", ports)
 
 
 def main():

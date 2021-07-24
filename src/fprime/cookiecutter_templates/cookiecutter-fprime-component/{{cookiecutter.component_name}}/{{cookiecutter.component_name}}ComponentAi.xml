@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
     <!-- Example of importing a port type -->
-{% if cookiecutter.ports == "yes" %}
+{% if cookiecutter.health == "yes" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
 {% endif %}
 {% if cookiecutter.commands == "yes" %}
@@ -27,7 +27,6 @@
 
     <comment>{{cookiecutter.component_short_description}}</comment>
 
-{% if cookiecutter.ports == "yes" %}
     <ports>
         <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
         <!-- Input ping port -->
@@ -54,12 +53,13 @@
         </port>
 {% endif %}
 {% if cookiecutter.parameters == "yes" %}
-        <!-- Event ports: send events, and text formatted events -->
-        <port name="PrmGetPort" data_type="Fw::PrmGet"  kind="sync_input" role="GetParameter"  max_number="1">
+        <!-- Parameter ports: set and get parameters -->
+        <port name="PrmGetIn" data_type="Fw::PrmGet"  kind="sync_input" max_number="1">
         </port>
-        <port name="PrmSetPort" data_type="Fw::PrmSet" kind="sync_input" role="SetParameter" max_number="1">
+        <port name="PrmSetIn" data_type="Fw::PrmSet" kind="sync_input" max_number="1">
         </port>
 {% endif %}
+{% if cookiecutter.health == "yes" %}
 {%- if cookiecutter.component_kind == 'active' %}
         <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
 {%- else %}
@@ -76,8 +76,8 @@
             The ping output port
             </comment>
         </port>
-    </ports>
 {% endif %}
+    </ports>
 {% if cookiecutter.commands == "yes" %}
     <commands>
 {%- if cookiecutter.component_kind == 'passive' %}
