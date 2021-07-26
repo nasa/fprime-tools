@@ -1,9 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
     <!-- Example of importing a port type -->
-{% if cookiecutter.health == "yes" %}
-    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
-{% endif %}
 {% if cookiecutter.commands == "yes" %}
     <!-- Import command ports -->
     <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
@@ -23,6 +20,9 @@
     <!-- Import parameter ports -->
     <import_port_type>Fw/Prm/PrmGetPortAi.xml</import_port_type>
     <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.health == "yes" %}
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
 {% endif %}
 
     <comment>{{cookiecutter.component_short_description}}</comment>
@@ -58,6 +58,12 @@
         </port>
         <port name="PrmSetIn" data_type="Fw::PrmSet" kind="sync_input" max_number="1">
         </port>
+{% endif %}
+{%- if cookiecutter.component_kind == 'active' %}
+        <port name="ExampleAsyncInput" data_type="int" kind="async_input" max_number="1">
+            <comment>
+                Every active component needs async_input port
+        </port> 
 {% endif %}
 {% if cookiecutter.health == "yes" %}
 {%- if cookiecutter.component_kind == 'active' %}
