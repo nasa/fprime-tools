@@ -37,7 +37,7 @@ class StringType(type_base.ValueType):
         if not isinstance(val, str):
             raise TypeMismatchException(str, type(val))
         elif self.__max_string_len is not None and len(val) > self.__max_string_len:
-            raise StringSizeException(len(self.val), self.__max_string_len)
+            raise StringSizeException(len(val), self.__max_string_len)
 
     def serialize(self):
         """
