@@ -26,12 +26,13 @@ def remove_line(filename, removal):
 
 def update_sdd():
     ports = "## Port Descriptions\n| Name | Description |\n"
-    if "{{cookiecutter.health}}" == "yes":
+    if "{{cookiecutter.component_kind}}" == "active":
         ports = ports + textwrap.dedent('''\
         | PingIn | Used for pinging other components |
         | PingOut | Used to recieve ping signal |\n''')
-    else:
-        remove_line("docs/sdd.md", "## Port Descriptions\n")
+    elif "{{cookiecutter.component_kind}}" == "active":
+        ports = ports + textwrap.dedent(
+        "| SchedIn | Used as a schedular for queued components |\n")
 
     if "{{cookiecutter.commands}}" == "yes":
         replace_contents("docs/sdd.md", "## Commands",

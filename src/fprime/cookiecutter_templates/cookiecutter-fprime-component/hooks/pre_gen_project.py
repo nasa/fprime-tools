@@ -10,10 +10,7 @@ if is_valid_name("{{ cookiecutter.component_name }}") != "valid":
 if ("{{cookiecutter.commands}}" != "yes"
     and "{{cookiecutter.events}}" != "yes"
     and "{{cookiecutter.telemetry}}" != "yes"
-    and "{{cookiecutter.parameters}}" != "yes"
-    and "{{cookiecutter.health}}" != "yes"):
+    and "{{cookiecutter.parameters}}" != "yes"):
     raise ValueError(
-        textwrap.dedent('''\
-        [ERROR] You must select at least one of the following options to have in your component: 
-        commands, events, telemetry, parameters, health ports''')
+        "[ERROR] You must select at least one of the following options to have in your component: commands, events, telemetry, parameters"
     )

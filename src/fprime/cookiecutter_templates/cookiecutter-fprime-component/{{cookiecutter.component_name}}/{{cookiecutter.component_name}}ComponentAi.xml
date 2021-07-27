@@ -21,8 +21,11 @@
     <import_port_type>Fw/Prm/PrmGetPortAi.xml</import_port_type>
     <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
 {% endif %}
-{% if cookiecutter.health == "yes" %}
+{% if cookiecutter.component_kind == "active" %}
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.component_kind == "queued" %}
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
 {% endif %}
 
     <comment>{{cookiecutter.component_short_description}}</comment>
@@ -60,17 +63,7 @@
         </port>
 {% endif %}
 {%- if cookiecutter.component_kind == 'active' %}
-        <port name="ExampleAsyncInput" data_type="int" kind="async_input" max_number="1">
-            <comment>
-                Every active component needs async_input port
-        </port> 
-{% endif %}
-{% if cookiecutter.health == "yes" %}
-{%- if cookiecutter.component_kind == 'active' %}
         <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
-{%- else %}
-        <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1">
-{%- endif %}
             <comment>
             The ping input port
             </comment>
@@ -80,6 +73,14 @@
         <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
             <comment>
             The ping output port
+            </comment>
+        </port>
+{% endif %}
+{%- if cookiecutter.component_kind == 'queued' %}
+<!-- Rate group schedular port for queued components-->
+        <port name="SchedIn" data_type="Sched" kind="sync_input">
+            <comment>
+            The rate group scheduler input
             </comment>
         </port>
 {% endif %}

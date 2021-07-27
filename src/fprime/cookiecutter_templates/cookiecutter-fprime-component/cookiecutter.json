@@ -3,7 +3,6 @@
     "component_short_description": "Example Component for F Prime FSW framework.",
     "component_namespace": "Component namespace",
     "component_kind": ["active", "passive", "queued"],
-    "health": ["yes","no"],
     "commands": ["yes","no"],
     "parameters": ["yes","no"],
     "events": ["yes","no"],

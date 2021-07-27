@@ -27,7 +27,6 @@
 ## Commands
 ## Events
 ## Telemetry
-
 ## Unit Tests
 | Name | Description | Output | Coverage |
 |---|---|---|---|
@@ -41,5 +40,5 @@
 ## Change Log
 
 | Date | Description |
-|---|---|
 | <TODAY> | Initial Draft |
+|---|---|

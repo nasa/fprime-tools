@@ -92,7 +92,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
     )
     if addition in lines:
-        print("Port directory already added to CMakeLists.txt")
+        print("Already added to CMakeLists.txt")
         return True
 
     if not confirm(
@@ -344,8 +344,8 @@ def get_port_input(namespace):
             valid_dir = True
 
     while not valid_namespace:
-        dir_name = input("Port Namespace [{}]: ".format(defaults["namespace"]))
-        char = is_valid_name(dir_name)
+        namespace = input("Port Namespace [{}]: ".format(defaults["namespace"]))
+        char = is_valid_name(namespace)
         if char != "valid":
             print(
                 "'" + char + "' is not a valid character. Enter a new directory name:"
