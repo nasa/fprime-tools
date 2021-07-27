@@ -30,7 +30,7 @@ def update_sdd():
         ports = ports + textwrap.dedent('''\
         | PingIn | Used for pinging other components |
         | PingOut | Used to recieve ping signal |\n''')
-    elif "{{cookiecutter.component_kind}}" == "active":
+    elif "{{cookiecutter.component_kind}}" == "queued":
         ports = ports + textwrap.dedent(
         "| SchedIn | Used as a schedular for queued components |\n")
 
@@ -39,8 +39,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Commands
         | Name | Description |
-        | ExampleCommand | Example of how a command is implemented |
-        |---|---|\n'''))
+        | ExampleCommand | Example of how a command is implemented |\n'''))
         ports = ports + textwrap.dedent('''\
             | cmdIn | Used to recieve commands |
             | cmdRegOut | Used to register with the command dispatcher |
@@ -53,8 +52,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Parameters
         | Name | Description |
-        | ExampleParameter | Example of how a parameter is implemented |
-        |---|---|\n'''))
+        | ExampleParameter | Example of how a parameter is implemented |\n'''))
         ports = ports + textwrap.dedent('''\
             | PrmGetIn | Used to get parameter value |
             | PrmSetIn | Used to set parameter value |\n''')
@@ -66,8 +64,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Events
         | Name | Description |
-        | EX_ExampleEvent | Example of how an event is implemented |
-        |---|---|\n'''))
+        | EX_ExampleEvent | Example of how an event is implemented |\n'''))
         ports = ports + textwrap.dedent('''\
             | eventOut | Used to send events |
             | textEventOut | Used to send text formatted events |\n''')
@@ -79,8 +76,7 @@ def update_sdd():
         textwrap.dedent('''\
         ## Telemetry
         | Name | Description |
-        | ExampleChannel | Example of how a telemetry channel is implemented |
-        |---|---|\n'''))
+        | ExampleChannel | Example of how a telemetry channel is implemented |\n'''))
         ports = ports + textwrap.dedent('''\
             | tlmOut | Used to send telemetry data |\n''')
     else:
