@@ -8,11 +8,13 @@ from fprime.fbuild.builder import Build
 from pathlib import Path
 import textwrap
 
+
 def replace_contents(filename, what, replacement, count=1):
     with open(filename) as fh:
         changelog = fh.read()
     with open(filename, "w") as fh:
         fh.write(changelog.replace(what, replacement, count))
+
 
 def remove_line(filename, removal):
     with open(filename, "r") as f:
@@ -24,61 +26,93 @@ def remove_line(filename, removal):
                 f.write(line)
         f.close()
 
+
 def update_sdd():
     ports = "## Port Descriptions\n| Name | Description |\n"
     if "{{cookiecutter.component_kind}}" == "active":
-        ports = ports + textwrap.dedent('''\
+        ports = ports + textwrap.dedent(
+            """\
         | PingIn | Used for pinging other components |
-        | PingOut | Used to recieve ping signal |\n''')
+        | PingOut | Used to receive ping signal |\n"""
+        )
     elif "{{cookiecutter.component_kind}}" == "queued":
         ports = ports + textwrap.dedent(
-        "| SchedIn | Used as a schedular for queued components |\n")
+            "| SchedIn | Used as a schedular for queued components |\n"
+        )
 
     if "{{cookiecutter.commands}}" == "yes":
-        replace_contents("docs/sdd.md", "## Commands",
-        textwrap.dedent('''\
+        replace_contents(
+            "docs/sdd.md",
+            "## Commands",
+            textwrap.dedent(
+                """\
         ## Commands
         | Name | Description |
-        | ExampleCommand | Example of how a command is implemented |\n'''))
-        ports = ports + textwrap.dedent('''\
-            | cmdIn | Used to recieve commands |
+        | ExampleCommand | Example of how a command is implemented |\n"""
+            ),
+        )
+        ports = ports + textwrap.dedent(
+            """\
+            | cmdIn | Used to receive commands |
             | cmdRegOut | Used to register with the command dispatcher |
-            | cmdResponseOut | Used to return responses to command dispatcher |\n''')
+            | cmdResponseOut | Used to return responses to command dispatcher |\n"""
+        )
     else:
         remove_line("docs/sdd.md", "## Commands\n")
 
     if "{{cookiecutter.parameters}}" == "yes":
-        replace_contents("docs/sdd.md", "## Parameters",
-        textwrap.dedent('''\
+        replace_contents(
+            "docs/sdd.md",
+            "## Parameters",
+            textwrap.dedent(
+                """\
         ## Parameters
         | Name | Description |
-        | ExampleParameter | Example of how a parameter is implemented |\n'''))
-        ports = ports + textwrap.dedent('''\
+        | ExampleParameter | Example of how a parameter is implemented |\n"""
+            ),
+        )
+        ports = ports + textwrap.dedent(
+            """\
             | PrmGetIn | Used to get parameter value |
-            | PrmSetIn | Used to set parameter value |\n''')
+            | PrmSetIn | Used to set parameter value |\n"""
+        )
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
 
     if "{{cookiecutter.events}}" == "yes":
-        replace_contents("docs/sdd.md", "## Events",
-        textwrap.dedent('''\
+        replace_contents(
+            "docs/sdd.md",
+            "## Events",
+            textwrap.dedent(
+                """\
         ## Events
         | Name | Description |
-        | EX_ExampleEvent | Example of how an event is implemented |\n'''))
-        ports = ports + textwrap.dedent('''\
+        | EX_ExampleEvent | Example of how an event is implemented |\n"""
+            ),
+        )
+        ports = ports + textwrap.dedent(
+            """\
             | eventOut | Used to send events |
-            | textEventOut | Used to send text formatted events |\n''')
+            | textEventOut | Used to send text formatted events |\n"""
+        )
     else:
         remove_line("docs/sdd.md", "## Events\n")
 
     if "{{cookiecutter.telemetry}}" == "yes":
-        replace_contents("docs/sdd.md", "## Telemetry",
-        textwrap.dedent('''\
+        replace_contents(
+            "docs/sdd.md",
+            "## Telemetry",
+            textwrap.dedent(
+                """\
         ## Telemetry
         | Name | Description |
-        | ExampleChannel | Example of how a telemetry channel is implemented |\n'''))
-        ports = ports + textwrap.dedent('''\
-            | tlmOut | Used to send telemetry data |\n''')
+        | ExampleChannel | Example of how a telemetry channel is implemented |\n"""
+            ),
+        )
+        ports = ports + textwrap.dedent(
+            """\
+            | tlmOut | Used to send telemetry data |\n"""
+        )
     else:
         remove_line("docs/sdd.md", "## Telemetry\n")
     replace_contents("docs/sdd.md", "## Port Descriptions", ports)

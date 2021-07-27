@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict
 import shutil
 import re
-from contextlib import contextmanager 
+from contextlib import contextmanager
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -54,7 +54,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         "Generate implementations and merge into {} and {}?".format(hpp_dest, cpp_dest)
     ):
         return False
-    print("Generating implemntation files and merging...")
+    print("Generating implementation files and merging...")
     with suppress_stdout():
         build.execute(target, context=path, make_args={})
 
@@ -105,12 +105,13 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         f.write("".join(lines))
     return True
 
+
 @contextmanager
 def suppress_stdout():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stdout = old_stdout
@@ -128,11 +129,11 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
     os.chdir(str(comp_path))
     if confirm("Would you like to generate unit tests?: "):
         test_path = Path("test", "ut")
-        test_path.mkdir(parents = True, exist_ok = True)
+        test_path.mkdir(parents=True, exist_ok=True)
         target = Target.get_target("impl", {"ut"})
         build = Build(target.build_type, deployment, verbose=verbose)
         build.load(comp_path, platform)
-        print("Generaing unit tests...")
+        print("Generating unit tests...")
         with suppress_stdout():
             build.execute(target, context=comp_path, make_args={})
         test_files = [
@@ -148,6 +149,7 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
             if os.path.isfile(file):
                 new_name = test_path / file
                 os.rename(file, str(new_name))
+
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """ Adds new port to CMakeLists.txt in port directory"""
@@ -230,7 +232,9 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         )
         print("----------------")
         print()
-        final_component_dir = Path(cookiecutter(source, extra_context ={"component_namespace": deployment.name})).resolve()
+        final_component_dir = Path(
+            cookiecutter(source, extra_context={"component_namespace": deployment.name})
+        ).resolve()
         if proj_root is None:
             print(
                 "[INFO] Created component directory without adding to build system nor generating implementation {}".format(
@@ -359,7 +363,7 @@ def get_port_input(namespace):
             add_arg = confirm("Would you like to add another argument?: ")
         if add_arg:
             arg_name = input("Argument name: ")
-            arg_type = input("Argumet type: ")
+            arg_type = input("Argument type: ")
             arg_description = input("Short description of argument: ")
             arg_list.append((arg_name, arg_type, arg_description))
         else:

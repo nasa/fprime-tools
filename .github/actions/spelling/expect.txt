@@ -34,6 +34,8 @@ config
 configparser
 confparse
 consts
+contextmanager
+contextlib
 cookiecutter
 cpp
 CPython
@@ -42,6 +44,7 @@ ctor
 cwd
 CXX
 datetime
+dedent
 deduplicated
 deepcopy
 DEPS
@@ -51,6 +54,7 @@ deserialize
 deserialized
 deserializer
 dest
+devnull
 dfl
 dinkel
 dirname
@@ -141,6 +145,7 @@ pathlib
 Peet
 pexpect
 Popen
+Prm
 proj
 ptf
 py
@@ -173,6 +178,7 @@ rstrip
 rsub
 rtd
 rtruediv
+Sched
 SCLK
 scm
 sdd
@@ -201,8 +207,10 @@ tempdir
 tempfile
 testbuild
 testimpl
+textwrap
 timebase
 timezone
+Tlm
 toctree
 todo
 toolchain
