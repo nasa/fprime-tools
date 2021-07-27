@@ -13,7 +13,7 @@
     <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
 {% endif %}
 {% if cookiecutter.telemetry == "yes" %}
-    <!-- Import telemetry ports -->
+    <!-- Import telemetry port -->
     <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>
 {% endif %}
 {% if cookiecutter.parameters == "yes" %}
@@ -22,9 +22,11 @@
     <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
 {% endif %}
 {% if cookiecutter.component_kind == "active" %}
+    <!-- Import ping port -->
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
 {% endif %}
 {% if cookiecutter.component_kind == "queued" %}
+    <!-- Import schedular ports -->
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
 {% endif %}
 
