@@ -5,7 +5,6 @@ import glob
 import sys
 from pathlib import Path
 from typing import Dict
-import shutil
 import re
 from contextlib import contextmanager
 
