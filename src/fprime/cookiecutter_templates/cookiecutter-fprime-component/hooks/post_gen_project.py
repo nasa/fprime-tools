@@ -29,22 +29,16 @@ def remove_line(filename, removal):
 
 def update_sdd():
     ports = "## Port Descriptions\n| Name | Description |\n"
-    if (
-        "{{cookiecutter.component_kind}}" == "active"
-    ):  # lgtm [py/comparison-of-constants]
+    if "{{cookiecutter.component_kind}}" == "active": # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
         ports = ports + textwrap.dedent(
             """\
         | PingIn | Used for pinging other components |
         | PingOut | Used to receive ping signal |\n"""
         )
-    elif (
-        "{{cookiecutter.component_kind}}" == "queued"
-    ):  # lgtm [py/comparison-of-constants]
-        ports = ports + textwrap.dedent(
-            "| SchedIn | Used as a schedular for queued components |\n"
-        )
+    elif "{{cookiecutter.component_kind}}" == "queued": # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        ports = ports + "| SchedIn | Used as a schedular for queued components |\n"
 
-    if "{{cookiecutter.commands}}" == "yes":  # lgtm [py/comparison-of-constants]
+    if "{{cookiecutter.commands}}" == "yes":  # lgtm [py/comparison-of-constants]lgtm [py/constant-conditional-expression]
         replace_contents(
             "docs/sdd.md",
             "## Commands",
@@ -64,7 +58,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Commands\n")
 
-    if "{{cookiecutter.parameters}}" == "yes":  # lgtm [py/comparison-of-constants]
+    if "{{cookiecutter.parameters}}" == "yes":  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
         replace_contents(
             "docs/sdd.md",
             "## Parameters",
@@ -83,7 +77,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
 
-    if "{{cookiecutter.events}}" == "yes":  # lgtm [py/comparison-of-constants]
+    if "{{cookiecutter.events}}" == "yes":  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
         replace_contents(
             "docs/sdd.md",
             "## Events",
@@ -102,7 +96,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Events\n")
 
-    if "{{cookiecutter.telemetry}}" == "yes":  # lgtm [py/comparison-of-constants]
+    if "{{cookiecutter.telemetry}}" == "yes":  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
         replace_contents(
             "docs/sdd.md",
             "## Telemetry",
