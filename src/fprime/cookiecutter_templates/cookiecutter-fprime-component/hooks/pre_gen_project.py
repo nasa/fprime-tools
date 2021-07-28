@@ -7,11 +7,15 @@ if is_valid_name("{{ cookiecutter.component_name }}") != "valid":
         "Unacceptable component name. Do not use spaces or special characters"
     )
 if (
-    "{{cookiecutter.commands}}" != "yes"  # lgtm [py/comparison-of-constants]
-    and "{{cookiecutter.events}}" != "yes"  # lgtm [py/comparison-of-constants]
-    and "{{cookiecutter.telemetry}}" != "yes"  # lgtm [py/comparison-of-constants]
-    and "{{cookiecutter.parameters}}" != "yes"  # lgtm [py/comparison-of-constants]
-):  # lgtm [py/constant-conditional-expression]
+    "{{cookiecutter.commands}}"  # lgtm [py/comparison-of-constants]
+    != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
+    and "{{cookiecutter.events}}"  # lgtm [py/comparison-of-constants]
+    != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
+    and "{{cookiecutter.telemetry}}"  # lgtm [py/comparison-of-constants]
+    != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
+    and "{{cookiecutter.parameters}}"  # lgtm [py/comparison-of-constants]
+    != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
+):
     raise ValueError(
         "[ERROR] You must select at least one of the following options to have in your component: commands, events, telemetry, parameters"
     )
