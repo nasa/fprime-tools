@@ -120,6 +120,7 @@ jsonable
 kevin
 len
 LGTM
+lgtm
 Linux
 lstrip
 lxml
