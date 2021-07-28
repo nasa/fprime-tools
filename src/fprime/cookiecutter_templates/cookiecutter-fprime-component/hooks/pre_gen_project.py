@@ -11,7 +11,7 @@ if (
     and "{{cookiecutter.events}}" != "yes"  # lgtm [py/comparison-of-constants]
     and "{{cookiecutter.telemetry}}" != "yes"  # lgtm [py/comparison-of-constants]
     and "{{cookiecutter.parameters}}" != "yes"  # lgtm [py/comparison-of-constants]
-): # lgtm [py/constant-conditional-expression]
+):  # lgtm [py/constant-conditional-expression]
     raise ValueError(
         "[ERROR] You must select at least one of the following options to have in your component: commands, events, telemetry, parameters"
     )
