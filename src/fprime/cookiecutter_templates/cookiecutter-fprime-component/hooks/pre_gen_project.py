@@ -7,13 +7,13 @@ if is_valid_name("{{ cookiecutter.component_name }}") != "valid":
         "Unacceptable component name. Do not use spaces or special characters"
     )
 if (
-    "{{cookiecutter.commands}}"  # lgtm [py/comparison-of-constants]
+    "{{cookiecutter.commands}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
     != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-    and "{{cookiecutter.events}}"  # lgtm [py/comparison-of-constants]
+    and "{{cookiecutter.events}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
     != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-    and "{{cookiecutter.telemetry}}"  # lgtm [py/comparison-of-constants]
+    and "{{cookiecutter.telemetry}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
     != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-    and "{{cookiecutter.parameters}}"  # lgtm [py/comparison-of-constants]
+    and "{{cookiecutter.parameters}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
     != "yes"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
 ):
     raise ValueError(
