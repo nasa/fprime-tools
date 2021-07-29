@@ -1,27 +1,16 @@
 name: Component Cookiecutter Test
-on:
-  push:
-    branches:
-      - "**"
-    tags-ignore:
-      - "**"
-  pull_request_target:
-    branches:
-      - "**"
-    tags-ignore:
-      - "**"
-    types: ['opened', 'reopened', 'synchronize']
+on: [push]
 
 jobs:
-  build:
-    name: Checking Component Cookiecutter
-    runs-on: ubuntu-20.04
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: A job test an example
     steps:
-    - name: Setup fprime
-      run: git clone https://github.com/nasa/fprime.git
-    - name: Create component
-      if: "!contains(github.event_name, 'pull_request')"
-      run: fprime-util new --component
-    - name: Create component
-      if: "!contains(github.event_name, 'pull_request')"
-      run: fprime-util new --component
+      - name: test example step
+        id: start test
+        uses: actions/github-ci-actions@v1
+        with:
+          test: one
+      # Use the output from the `hello` step
+      - name: Get the completion status
+        run: echo "The completion status was ${{ steps.hello.outputs.completed }}"
