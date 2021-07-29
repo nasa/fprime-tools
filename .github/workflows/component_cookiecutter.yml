@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     name: A job test an example
     steps:
+    - uses: actions/checkout@v2
       - name: test example step
         uses: ./.github/actions/
         id: github-ci-action
