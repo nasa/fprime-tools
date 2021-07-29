@@ -7,11 +7,11 @@ jobs:
     name: A job test an example
     steps:
     - uses: actions/checkout@v2
-      - name: test example step
-        uses: ./.github/actions/
-        id: github-ci-action
-        with:
-          test: one
+    - name: test example step
+      uses: ./.github/actions/
+      id: github-ci-action
+      with:
+        test: one
       # Use the output from the `hello` step
-      - name: Get the completion status
-        run: echo "The completion status was ${{ steps.hello.outputs.completed }}"
+    - name: Get the completion status
+      run: echo "The completion status was ${{ steps.hello.outputs.completed }}"
