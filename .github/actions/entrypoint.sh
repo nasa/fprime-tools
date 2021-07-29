@@ -1,5 +1,5 @@
 #!/bin/sh -l
 
 echo "Test: $1"
-time=$(date)
-echo "::set-output completed=True"
+completed = $(True)
+echo "::set-output name=completed::$completed"
