@@ -7,7 +7,7 @@ jobs:
     name: A job test an example
     steps:
       - name: test example step
-        id: start test
+        id: start-test
         uses: actions/github-ci-actions@v1
         with:
           test: one
