@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: test example step
         id: start-test
-        uses: actions/github-ci-actions@v1
+        uses: actions/github-ci-actions
         with:
           test: one
       # Use the output from the `hello` step
