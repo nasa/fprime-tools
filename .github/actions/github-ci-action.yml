@@ -1,0 +1,15 @@
+name: 'CI for Fprime-tools'
+description: 'Runs continuous integration testing on Fprime-tools'
+inputs:
+  test:
+    description: Test number to run
+    required: true
+    default: ''
+outputs:
+  completed:
+    description: "If the test was completed"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.test }}
