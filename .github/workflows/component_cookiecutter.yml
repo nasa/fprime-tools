@@ -11,7 +11,7 @@ jobs:
       uses: ./.github/actions/
       id: github-ci-action
       with:
-        test: one
+        test: 'one'
       # Use the output from the `hello` step
     - name: Get the completion status
       run: echo "The completion status was ${{ steps.hello.outputs.completed }}"
