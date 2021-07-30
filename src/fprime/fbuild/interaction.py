@@ -159,7 +159,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     while re.search("set\(\s*SOURCE_FILES", lines[index]) is None:
         index += 1
     index += 1
-    while re.search("CMAKE_CURRENT_LIST_DIR", lines[index]):
+    while "CMAKE_CURRENT_LIST_DIR"in lines[index]:
         index += 1
     if not confirm(
         "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
@@ -311,6 +311,17 @@ def is_valid_name(word):
             return char
     return "valid"
 
+def get_valid_input(prompt):
+    valid_name = False
+    while not valid_name:
+        name = input(prompt)
+        char = is_valid_name(name)
+        if char != "valid":
+            print("'" + char + "' is not a valid character. Enter a new port name:")
+        else:
+            valid_name = True
+    return name
+
 
 def get_port_input(namespace):
     # Gather inputs to use as context for the port template
@@ -321,40 +332,14 @@ def get_port_input(namespace):
         "namespace": namespace,
         "arg_list": [],
     }
-    valid_name = False
-    valid_dir = False
-    valid_namespace = False
     args_done = False
     arg_list = []
-    while not valid_name:
-        port_name = input("Port Name [{}]: ".format(defaults["port_name"]))
-        char = is_valid_name(port_name)
-        if char != "valid":
-            print("'" + char + "' is not a valid character. Enter a new port name:")
-        else:
-            valid_name = True
+    port_name = get_valid_input("Port Name [{}]: ".format(defaults["port_name"]))
     short_description = input(
         "Short Description [{}]: ".format(defaults["short_description"])
     )
-    while not valid_dir:
-        dir_name = input("Directory Name [{}]: ".format(defaults["dir_name"]))
-        char = is_valid_name(dir_name)
-        if char != "valid":
-            print(
-                "'" + char + "' is not a valid character. Enter a new directory name:"
-            )
-        else:
-            valid_dir = True
-
-    while not valid_namespace:
-        namespace = input("Port Namespace [{}]: ".format(defaults["namespace"]))
-        char = is_valid_name(namespace)
-        if char != "valid":
-            print(
-                "'" + char + "' is not a valid character. Enter a new directory name:"
-            )
-        else:
-            valid_namespace = True
+    dir_name = get_valid_input("Directory Name [{}]: ".format(defaults["dir_name"]))
+    namespace = get_valid_input("Port Namespace [{}]: ".format(defaults["namespace"]))
     while not args_done:
         if arg_list == []:
             add_arg = confirm("Would you like to add an argument?: ")
@@ -409,15 +394,8 @@ def new_port(cwd: Path, deployment: Path, build: Build):
             loader=FileSystemLoader(os.path.join(PATH, "../cookiecutter_templates")),
             trim_blocks=False,
         )
-        params = get_port_input(deployment.name)
+        context = get_port_input(deployment.name)
 
-        context = {
-            "port_name": params["port_name"],
-            "short_description": params["short_description"],
-            "dir_name": params["dir_name"],
-            "namespace": params["namespace"],
-            "arg_list": params["arg_list"],
-        }
         if Path(context["dir_name"]).resolve() == deployment.resolve():
             print("[ERROR] cannot create port in deployment directory")
             return 0
