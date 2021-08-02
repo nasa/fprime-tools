@@ -14,4 +14,4 @@ jobs:
         test: 'one'
       # Use the output from the `hello` step
     - name: Get the completion status
-      run: echo "The completion status was ${{ steps.hello.outputs.completed }}"
+      run: echo "The completion time was ${{ steps.hello.outputs.time }}"

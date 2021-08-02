@@ -6,8 +6,8 @@ inputs:
     required: true
     default: ''
 outputs:
-  completed:
-    description: "If the test was completed"
+  time:
+    description: 'The time the test was run'
 runs:
   using: 'docker'
   image: 'Dockerfile'
