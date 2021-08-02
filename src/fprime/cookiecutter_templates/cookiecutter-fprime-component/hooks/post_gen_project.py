@@ -83,8 +83,8 @@ def update_sdd():
         )
         ports = ports + textwrap.dedent(
             """\
-            | PrmGetIn | Used to get parameter value |
-            | PrmSetIn | Used to set parameter value |\n"""
+            | prmGetOut | Used to get parameter value |
+            | prmSetOut | Used to set parameter value |\n"""
         )
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
