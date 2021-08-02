@@ -13,5 +13,5 @@ jobs:
       with:
         test: 'one'
       # Use the output from the `hello` step
-    - name: Get the completion status
-      run: echo "The completion time was ${{ steps.hello.outputs.time }}"
+    - name: Get the completion time
+      run: echo "The completion time was ${{ steps.github-ci-action.outputs.time }}"
