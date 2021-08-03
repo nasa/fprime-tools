@@ -159,7 +159,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     while re.search("set\(\s*SOURCE_FILES", lines[index]) is None:
         index += 1
     index += 1
-    while "CMAKE_CURRENT_LIST_DIR"in lines[index]:
+    while "CMAKE_CURRENT_LIST_DIR" in lines[index]:
         index += 1
     if not confirm(
         "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
