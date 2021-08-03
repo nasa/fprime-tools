@@ -281,7 +281,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
     return 1
 
 
-def is_valid_name(word):
+def is_valid_name(word: str):
     invalid_characters = [
         "#",
         "%",
