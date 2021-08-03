@@ -307,8 +307,10 @@ def is_valid_name(word: str):
         "=",
     ]
     for char in invalid_characters:
-        if char in word:
+        if isinstance(word, str) and char in word:
             return char
+        else:
+            raise ValueError("Incorrect usage of is_valid_name")
     return "valid"
 
 
