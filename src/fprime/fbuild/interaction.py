@@ -311,6 +311,7 @@ def is_valid_name(word):
             return char
     return "valid"
 
+
 def get_valid_input(prompt):
     valid_name = False
     while not valid_name:
