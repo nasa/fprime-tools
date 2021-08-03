@@ -309,7 +309,7 @@ def is_valid_name(word: str):
     for char in invalid_characters:
         if isinstance(word, str) and char in word:
             return char
-        else:
+        elif not isinstance(word, str):
             raise ValueError("Incorrect usage of is_valid_name")
     return "valid"
 
@@ -320,7 +320,7 @@ def get_valid_input(prompt):
         name = input(prompt)
         char = is_valid_name(name)
         if char != "valid":
-            print("'" + char + "' is not a valid character. Enter a new port name:")
+            print("'" + char + "' is not a valid character")
         else:
             valid_name = True
     return name
@@ -349,8 +349,10 @@ def get_port_input(namespace):
         else:
             add_arg = confirm("Would you like to add another argument?: ")
         if add_arg:
-            arg_name = input("Argument name: ")
-            arg_type = input("Argument type: ")
+            arg_name = get_valid_input("Argument name: ")
+            arg_type = get_valid_input("Argument type (Valid primitive types are: BOOL, I8, I16, "
+            + "I32, U8, U16, U32, F32, F64, NATIVE_INT_TYPE, NATIVE_UNIT_TYPE, and POINTER_CAST. "
+            + "You may also use ENUM or your own user-defined types): ")
             arg_description = input("Short description of argument: ")
             arg_list.append((arg_name, arg_type, arg_description))
         else:
