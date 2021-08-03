@@ -29,22 +29,16 @@ def remove_line(filename, removal):
 
 def update_sdd(component_kind, commands, parameters, events, telemetry):
     ports = "## Port Descriptions\n| Name | Description |\n"
-    if (
-        component_kind  == "active" 
-    ):
+    if component_kind == "active":
         ports = ports + textwrap.dedent(
             """\
         | PingIn | Used for pinging other components |
         | PingOut | Used to receive ping signal |\n"""
         )
-    elif (
-        component_kind == "queued"
-    ):
+    elif component_kind == "queued":
         ports = ports + "| SchedIn | Used as a schedular for queued components |\n"
 
-    if (
-        commands == "yes"
-    ):
+    if commands == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Commands",
@@ -64,9 +58,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
     else:
         remove_line("docs/sdd.md", "## Commands\n")
 
-    if (
-        parameters == "yes"
-    ):
+    if parameters == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Parameters",
@@ -85,9 +77,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
 
-    if (
-        events == "yes"
-    ):
+    if events == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Events",
@@ -106,9 +96,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
     else:
         remove_line("docs/sdd.md", "## Events\n")
 
-    if (
-        telemetry == "yes"
-    ):
+    if telemetry == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Telemetry",
@@ -138,7 +126,13 @@ def main():
         proj_root_found = True
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
-    update_sdd(cookiecutter.component_kind, cookiecutter.commands, cookiecutter.parameters, cookiecutter.events, cookiecutter.telemetry)
+    update_sdd(
+        cookiecutter.component_kind,
+        cookiecutter.commands,
+        cookiecutter.parameters,
+        cookiecutter.events,
+        cookiecutter.telemetry,
+    )
     remove_line("{{cookiecutter.component_name}}ComponentAi.xml", "\n")
 
     print(

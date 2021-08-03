@@ -16,4 +16,11 @@ def verify_inputs(component_name, commands, events, telemetry, parameters):
             "[ERROR] You must select at least one of the following options to have in your component: commands, events, telemetry, parameters"
         )
 
-verify_inputs(cookiecutter.name, cookiecutter.commands, cookiecutter.events, cookiecutter.telemetry, cookiecutter.parameters)
+
+verify_inputs(
+    cookiecutter.name,
+    cookiecutter.commands,
+    cookiecutter.events,
+    cookiecutter.telemetry,
+    cookiecutter.parameters,
+)
