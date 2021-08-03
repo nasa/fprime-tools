@@ -27,11 +27,10 @@ def remove_line(filename, removal):
         f.close()
 
 
-def update_sdd():
+def update_sdd(component_kind, commands, parameters, events, telemetry):
     ports = "## Port Descriptions\n| Name | Description |\n"
     if (
-        "{{cookiecutter.component_kind}}"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-        == "active"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        component_kind  == "active" 
     ):
         ports = ports + textwrap.dedent(
             """\
@@ -39,14 +38,12 @@ def update_sdd():
         | PingOut | Used to receive ping signal |\n"""
         )
     elif (
-        "{{cookiecutter.component_kind}}"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-        == "queued"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        component_kind == "queued"
     ):
         ports = ports + "| SchedIn | Used as a schedular for queued components |\n"
 
     if (
-        "{{cookiecutter.commands}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        commands == "yes"
     ):
         replace_contents(
             "docs/sdd.md",
@@ -68,8 +65,7 @@ def update_sdd():
         remove_line("docs/sdd.md", "## Commands\n")
 
     if (
-        "{{cookiecutter.parameters}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        parameters == "yes"
     ):
         replace_contents(
             "docs/sdd.md",
@@ -90,8 +86,7 @@ def update_sdd():
         remove_line("docs/sdd.md", "## Parameters\n")
 
     if (
-        "{{cookiecutter.events}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        events == "yes"
     ):
         replace_contents(
             "docs/sdd.md",
@@ -112,8 +107,7 @@ def update_sdd():
         remove_line("docs/sdd.md", "## Events\n")
 
     if (
-        "{{cookiecutter.telemetry}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
+        telemetry == "yes"
     ):
         replace_contents(
             "docs/sdd.md",
@@ -144,7 +138,7 @@ def main():
         proj_root_found = True
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
-    update_sdd()
+    update_sdd(cookiecutter.component_kind, cookiecutter.commands, cookiecutter.parameters, cookiecutter.events, cookiecutter.telemetry)
     remove_line("{{cookiecutter.component_name}}ComponentAi.xml", "\n")
 
     print(
