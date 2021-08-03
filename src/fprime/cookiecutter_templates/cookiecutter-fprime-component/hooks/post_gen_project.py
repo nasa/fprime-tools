@@ -127,11 +127,11 @@ def main():
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
     update_sdd(
-        cookiecutter.component_kind,
-        cookiecutter.commands,
-        cookiecutter.parameters,
-        cookiecutter.events,
-        cookiecutter.telemetry,
+        "{{ cookiecutter.component_kind }}",
+        "{{ cookiecutter.commands }}",
+        "{{ cookiecutter.parameters }}",
+        "{{ cookiecutter.events }}",
+        "{{ cookiecutter.telemetry }}",
     )
     remove_line("{{cookiecutter.component_name}}ComponentAi.xml", "\n")
 
