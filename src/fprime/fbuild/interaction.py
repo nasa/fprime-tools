@@ -353,7 +353,7 @@ def get_port_input(namespace):
             arg_type = get_valid_input(
                 "Argument type (Valid primitive types are: BOOL, I8, I16, "
                 + "I32, U8, U16, U32, F32, F64, NATIVE_INT_TYPE, NATIVE_UNIT_TYPE, and POINTER_CAST. "
-                + "You may also use ENUM or your own user-defined types): "
+                + "You may also use your own user-defined types): "
             )
             arg_description = input("Short description of argument: ")
             arg_list.append((arg_name, arg_type, arg_description))
