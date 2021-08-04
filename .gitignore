@@ -50,3 +50,4 @@ src/fprime_tools.egg-info
 **/DefaultDict/serializable/*
 /.idea/
 /venv/
+/test/test_env

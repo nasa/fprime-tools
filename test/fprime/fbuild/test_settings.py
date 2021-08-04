@@ -21,20 +21,20 @@ def full_path(path):
 
 def test_settings():
     test_cases = [
-        {
-            "file": "nonexistent.ini",
-            "expected": {
-                "framework_path": full_path("../../../../.."),
-                "install_dest": full_path("settings-data/build-artifacts"),
-            },
-        },
+        #{
+        #    "file": "nonexistent.ini",
+        #    "expected": {
+        #        "framework_path": full_path("../../../../.."),
+        #        "install_dest": full_path("settings-data/build-artifacts"),
+        #    },
+        #},
         {
             "file": "settings-empty.ini",
             "expected": {
                 "settings_file": full_path("settings-data/settings-empty.ini"),
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
-                "framework_path": full_path("../../../../.."),
+                "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path("settings-data/settings-empty.ini"),
@@ -48,7 +48,7 @@ def test_settings():
                 "settings_file": full_path("settings-data/settings-custom-install.ini"),
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
-                "framework_path": full_path("../../../../.."),
+                "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("test"),
                 "library_locations": [],
                 "environment_file": full_path(
@@ -66,7 +66,7 @@ def test_settings():
                 ),
                 "default_toolchain": "custom1",
                 "default_ut_toolchain": "custom2",
-                "framework_path": full_path("../../../../.."),
+                "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path(
@@ -84,10 +84,10 @@ def test_settings():
                 ),
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
-                "framework_path": full_path("../../../../.."),
+                "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
-                "environment_file": full_path("settings-data/settings-empty.ini"),
+                "environment_file": full_path("settings-data/settings-outside-cookiecutter.ini"),
                 "environment": {},
                 "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
             },
