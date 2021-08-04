@@ -80,7 +80,7 @@ class FloatType(NumericalType, abc.ABC):
 
     def validate(self, val):
         """Validates the given integer."""
-        if not isinstance(val, float):
+        if not isinstance(val, (float, int)):
             raise TypeMismatchException(float, type(val))
 
 
