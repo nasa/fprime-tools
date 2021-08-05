@@ -28,6 +28,18 @@ def confirm(msg):
         print("{} is invalid.  Please use 'yes' or 'no'".format(confirm_input))
 
 
+def replace_contents(filename, what, replacement, count=1):
+    with open(filename) as fh:
+        changelog = fh.read()
+    with open(filename, "w") as fh:
+        new_file = changelog.replace(what, replacement, count)
+        fh.write(new_file)
+        if new_file != changelog:
+            return True
+        else:
+            return False
+
+
 def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     """Run implementation of files one time"""
     target = Target.get_target("impl", set())
@@ -264,8 +276,14 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 )
             )
             return 0
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
+            0
+        ]
         print("[INFO] Created new component and created initial implementations.")
+        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+            print("[INFO] Fixed hpp include in cpp file.")
         add_unit_tests(deployment, final_component_dir, platform, verbose)
+        print("[INFO] Unit tests were generated.")
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir

@@ -7,13 +7,7 @@ from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.builder import Build
 from pathlib import Path
 import textwrap
-
-
-def replace_contents(filename, what, replacement, count=1):
-    with open(filename) as fh:
-        changelog = fh.read()
-    with open(filename, "w") as fh:
-        fh.write(changelog.replace(what, replacement, count))
+from fprime.fbuild.interaction import replace_contents
 
 
 def remove_line(filename, removal):
