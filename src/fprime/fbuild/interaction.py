@@ -276,9 +276,8 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 )
             )
             return 0
-        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
-            0
-        ]
+        print("did impl")
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[0]
         print("[INFO] Created new component and created initial implementations.")
         if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
             print("[INFO] Fixed hpp include in cpp file.")

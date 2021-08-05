@@ -79,7 +79,7 @@
         </port>
 {% endif %}
 {%- if cookiecutter.component_kind == 'queued' %}
-<!-- Rate group schedular port for queued components-->
+        <!-- Rate group schedular port for queued components-->
         <port name="SchedIn" data_type="Sched" kind="sync_input">
             <comment>
             The rate group scheduler input
