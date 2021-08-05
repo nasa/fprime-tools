@@ -1,17 +1,29 @@
-name: Component Cookiecutter Test
+name: fprime-tools test
+
 on: [push]
 
 jobs:
-  hello_world_job:
+  build:
+
     runs-on: ubuntu-latest
-    name: A job test an example
+
     steps:
-    - uses: actions/checkout@v2
-    - name: test example step
-      uses: ./.github/actions/
-      id: github-ci-action
-      with:
-        test: 'one'
-      # Use the output from the `hello` step
-    - name: Get the completion time
-      run: echo "The completion time was ${{ steps.github-ci-action.outputs.time }}"
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Clone fprime
+        run: |
+          cd test
+          mkdir test_env
+          cd test_env
+          git clone https://github.com/nasa/fprime.git
+          cd ../..
+      - name: Test with pytest
+        run: |
+          pytest
