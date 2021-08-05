@@ -23,6 +23,7 @@ jobs:
           mkdir test_env
           cd test_env
           git clone https://github.com/nasa/fprime.git
+          ls fprime
           cd ../..
       - name: Test with pytest
         run: |
