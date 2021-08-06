@@ -399,7 +399,6 @@ def make_namespace(deployment, cwd):
 def new_port(cwd: Path, deployment: Path, build: Build):
     """ Uses cookiecutter for making new ports """
     try:
-        print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = build.get_settings("project_root", None)
         if proj_root is not None:
             proj_root = Path(proj_root)
