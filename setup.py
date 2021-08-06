@@ -28,10 +28,7 @@ setup(
     # information should match the F prime description information.
     ####
     name="fprime-tools",
-    use_scm_version={
-        "root": ".",
-        "relative_to": __file__,
-    },
+    use_scm_version={"root": ".", "relative_to": __file__},
     license="Apache 2.0 License",
     description="F Prime Flight Software core data types",
     long_description="""

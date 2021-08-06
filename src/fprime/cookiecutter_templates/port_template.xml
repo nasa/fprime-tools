@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<interface name="{{port_name}}" namespace="{{namespace}}">
+    <comment>
+    {{short_description}}
+    </comment>
+    <args>
+    {% for arg in arg_list %}
+        <arg name="{{ arg[0] }}" type="{{ arg[1] }}">
+            <comment>{{ arg[2] }}</comment>
+        </arg>
+    {% endfor %}
+    </args>
+</interface>

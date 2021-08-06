@@ -86,10 +86,7 @@ class IniSettings:
         if not os.path.exists(settings_file):
             print("[WARNING] Failed to find settings file: {}".format(settings_file))
             fprime_location = IniSettings.find_fprime(cwd)
-            return {
-                "framework_path": fprime_location,
-                "install_dest": dfl_install_dest,
-            }
+            return {"framework_path": fprime_location, "install_dest": dfl_install_dest}
         confparse = configparser.ConfigParser()
         confparse.read(settings_file)
         # Search through F prime locations
@@ -148,6 +145,9 @@ class IniSettings:
             "install_dest": install_dest,
             "environment_file": env_file,
             "environment": environment,
+            "component_cookiecutter": confparse.get(
+                "fprime", "component_cookiecutter", fallback="default"
+            ),
         }
         # Set the project root
         if proj_root is not None:

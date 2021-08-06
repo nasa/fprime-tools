@@ -5,12 +5,15 @@ import glob
 import sys
 from pathlib import Path
 from typing import Dict
+import re
+from contextlib import contextmanager
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
+from jinja2 import Environment, FileSystemLoader
 
 from fprime.fbuild.builder import Build, Target
-from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.fbuild.cmake import CMakeExecutionException, CMakeHandler
 
 
 def confirm(msg):
@@ -23,6 +26,18 @@ def confirm(msg):
         if confirm_input.lower() in ["n", "no"]:
             return False
         print("{} is invalid.  Please use 'yes' or 'no'".format(confirm_input))
+
+
+def replace_contents(filename, what, replacement, count=1):
+    with open(filename) as fh:
+        changelog = fh.read()
+    with open(filename, "w") as fh:
+        new_file = changelog.replace(what, replacement, count)
+        fh.write(new_file)
+        if new_file != changelog:
+            return True
+        else:
+            return False
 
 
 def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
@@ -50,7 +65,9 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         "Generate implementations and merge into {} and {}?".format(hpp_dest, cpp_dest)
     ):
         return False
-    build.execute(target, context=path, make_args={})
+    print("Generating implementation files and merging...")
+    with suppress_stdout():
+        build.execute(target, context=path, make_args={})
 
     hpp_files_template = glob.glob("{}/*.hpp-template".format(path), recursive=False)
     cpp_files_template = glob.glob("{}/*.cpp-template".format(path), recursive=False)
@@ -69,41 +86,100 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         lines = lines[11:]  # Remove old header
         with open(dest, "a") as file_handle:
             file_handle.write("".join(lines))
-    removals = [path / "mod.mk", path / "Makefile", Path(hpp_src), Path(cpp_src)]
+
+    removals = [Path(hpp_src), Path(cpp_src)]
     for removal in removals:
         os.remove(removal)
     return True
 
 
 def add_to_cmake(list_file: Path, comp_path: Path):
-    """Adds new component to CMakeLists.txt"""
+    """Adds new component or port to CMakeLists.txt"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
-    with open(list_file, "r") as file_handle:
-        lines = file_handle.readlines()
-    topology_lines = [
-        (line, text) for line, text in enumerate(lines) if "/Top/" in text
-    ]
-    line = len(topology_lines)
-    if topology_lines:
-        line, text = topology_lines[0]
-        print(
-            "[INFO] Topology inclusion '{}' found on line {}.".format(
-                text.strip(), line + 1
-            )
-        )
+    with open(list_file, "r") as f:
+        lines = f.readlines()
+
+    addition = (
+        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    )
+    if addition in lines:
+        print("Already added to CMakeLists.txt")
+        return True
+
     if not confirm(
-        "Add component {} to {} {}?".format(
-            comp_path,
-            list_file,
-            "at end of file" if not topology_lines else " before topology inclusion",
-        )
+        "Add component {} to {} {}".format(comp_path, list_file, "at end of file?")
     ):
         return False
 
-    addition = 'add_fprime_subdirectory("${{CMAKE_CURRENT_LIST_DIR}}/{}/")\n'.format(
-        comp_path
-    )
-    lines.insert(line, addition)
+    lines.append(addition)
+    with open(list_file, "w") as f:
+        f.write("".join(lines))
+    return True
+
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+
+def regenerate(build: Build):
+    handler = CMakeHandler()
+    print("Refreshing cache to include new addition...")
+    with suppress_stdout():
+        handler.cmake_refresh_cache(build.get_build_cache())
+
+
+def add_unit_tests(deployment, comp_path, platform, verbose):
+    # Creates unit tests and moves them into test/ut directory
+    os.chdir(str(comp_path))
+    if confirm("Would you like to generate unit tests?: "):
+        test_path = Path("test", "ut")
+        test_path.mkdir(parents=True, exist_ok=True)
+        target = Target.get_target("impl", {"ut"})
+        build = Build(target.build_type, deployment, verbose=verbose)
+        build.load(comp_path, platform)
+        print("Generating unit tests...")
+        with suppress_stdout():
+            build.execute(target, context=comp_path, make_args={})
+        test_files = [
+            "Tester.hpp",
+            "Tester.cpp",
+            "TesterBase.hpp",
+            "TesterBase.cpp",
+            "GTestBase.hpp",
+            "GTestBase.cpp",
+            "TestMain.cpp",
+        ]
+        for file in test_files:
+            if os.path.isfile(file):
+                new_name = test_path / file
+                os.rename(file, str(new_name))
+
+
+def add_port_to_cmake(list_file: Path, comp_path: Path):
+    """Adds new port to CMakeLists.txt in port directory"""
+    print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
+    with open(list_file, "r") as file_handle:
+        lines = file_handle.readlines()
+    index = 0
+    while re.search("set\(\s*SOURCE_FILES", lines[index]) is None:
+        index += 1
+    index += 1
+    while "CMAKE_CURRENT_LIST_DIR" in lines[index]:
+        index += 1
+    if not confirm(
+        "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
+    ):
+        return False
+
+    addition = '    "${{CMAKE_CURRENT_LIST_DIR}}/{}"\n'.format(comp_path)
+    lines.insert(index, addition)
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
     return True
@@ -141,38 +217,28 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
     return None
 
 
-def new_component(
-    path: Path, deployment: Path, platform: str, verbose: bool, settings: Dict[str, str]
-):
+def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
     """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
-        calculated_defaults = {}
-        proj_root = None
-        try:
-            proj_root = Path(settings.get("project_root", None))
-            print(proj_root)
-            comp_parent_path = path.relative_to(proj_root)
-            back_path = os.sep.join([".." for _ in str(comp_parent_path).split(os.sep)])
-            calculated_defaults["component_path"] = str(comp_parent_path).rstrip(os.sep)
-            calculated_defaults["component_path_to_fprime_root"] = str(
-                back_path
-            ).rstrip(os.sep)
-        except (ValueError, TypeError):
-            print(
-                "[WARNING] No found project root. Set 'component_path' and 'component_path_to_fprime_root' carefully"
+        proj_root = build.get_settings("project_root", None)
+
+        # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
+        if (
+            build.get_settings("component_cookiecutter", None) is not None
+            and build.get_settings("component_cookiecutter", None) != "default"
+        ):
+            source = build.get_settings("component_cookiecutter", None)
+            print("[INFO] Cookiecutter source: {}".format(source))
+        else:
+            source = (
+                os.path.dirname(__file__)
+                + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
-        source = "gh:SterlingPeet/cookiecutter-fprime-component"
-        print("[INFO] Cookiecutter source: {}".format(source))
-        print()
-        print("----------------")
-        print(
-            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
-        )
-        print("----------------")
+            print("[INFO] Cookiecutter source: using builtin")
         print()
         final_component_dir = Path(
-            cookiecutter(source, extra_context=calculated_defaults)
+            cookiecutter(source, extra_context={"component_namespace": deployment.name})
         ).resolve()
         if proj_root is None:
             print(
@@ -182,6 +248,7 @@ def new_component(
             )
             return 0
         # Attempt to register to CMakeLists.txt
+        proj_root = Path(proj_root)
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
@@ -194,6 +261,7 @@ def new_component(
                 )
             )
             return 0
+        regenerate(build)
         # Attempt implementation
         if not run_impl(deployment, final_component_dir, platform, verbose):
             print(
@@ -202,7 +270,14 @@ def new_component(
                 )
             )
             return 0
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
+            0
+        ]
         print("[INFO] Created new component and created initial implementations.")
+        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+            print("[INFO] Fixed hpp include in cpp file.")
+        add_unit_tests(deployment, final_component_dir, platform, verbose)
+        print("[INFO] Unit tests were generated.")
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir
@@ -213,6 +288,192 @@ def new_component(
         print("{}".format(out_directory_error), file=sys.stderr)
     except CMakeExecutionException as exc:
         print("[ERROR] Failed to create component. {}".format(exc), file=sys.stderr)
+    except OSError as ose:
+        print("[ERROR] {}".format(ose))
+    return 1
+
+
+def is_valid_name(word: str):
+    invalid_characters = [
+        "#",
+        "%",
+        "&",
+        "{",
+        "}",
+        "/",
+        "\\",
+        "<",
+        ">",
+        "*",
+        "?",
+        " ",
+        "$",
+        "!",
+        "'",
+        '"',
+        ":",
+        "@",
+        "+",
+        "`",
+        "|",
+        "=",
+    ]
+    for char in invalid_characters:
+        if isinstance(word, str) and char in word:
+            return char
+        elif not isinstance(word, str):
+            raise ValueError("Incorrect usage of is_valid_name")
+    return "valid"
+
+
+def get_valid_input(prompt):
+    valid_name = False
+    while not valid_name:
+        name = input(prompt)
+        char = is_valid_name(name)
+        if char != "valid":
+            print("'" + char + "' is not a valid character")
+        else:
+            valid_name = True
+    return name
+
+
+def get_port_input(namespace):
+    # Gather inputs to use as context for the port template
+    defaults = {
+        "port_name": "ExamplePort",
+        "short_description": "Example usage of port",
+        "dir_name": ".",
+        "namespace": namespace,
+        "arg_list": [],
+    }
+    args_done = False
+    arg_list = []
+    port_name = get_valid_input("Port Name [{}]: ".format(defaults["port_name"]))
+    short_description = input(
+        "Short Description [{}]: ".format(defaults["short_description"])
+    )
+    dir_name = get_valid_input("Directory Name [{}]: ".format(defaults["dir_name"]))
+    namespace = get_valid_input("Port Namespace [{}]: ".format(defaults["namespace"]))
+    while not args_done:
+        if arg_list == []:
+            add_arg = confirm("Would you like to add an argument?: ")
+        else:
+            add_arg = confirm("Would you like to add another argument?: ")
+        if add_arg:
+            arg_name = get_valid_input("Argument name: ")
+            arg_type = get_valid_input(
+                "Argument type (Valid primitive types are: I8, I16, "
+                + "I32, U8, U16, U32, F32, F64, NATIVE_INT_TYPE, NATIVE_UNIT_TYPE, and POINTER_CAST. "
+                + "You may also use your own user-defined types): "
+            )
+            arg_description = input("Short description of argument: ")
+            arg_list.append((arg_name, arg_type, arg_description))
+        else:
+            args_done = True
+    values = {
+        "port_name": port_name,
+        "short_description": short_description,
+        "dir_name": dir_name,
+        "namespace": namespace,
+        "arg_list": arg_list,
+    }
+
+    # Fill in blank values with defaults
+    for key in values:
+        if values[key] == "":
+            values[key] = defaults[key]
+    return values
+
+
+def new_port(cwd: Path, deployment: Path, build: Build):
+    """Uses cookiecutter for making new ports"""
+    try:
+        proj_root = build.get_settings("project_root", None)
+        if proj_root is not None:
+            proj_root = Path(proj_root)
+            proj_root_found = True
+        else:
+            proj_root_found = False
+
+        PATH = os.path.dirname(os.path.abspath(__file__))
+        TEMPLATE_ENVIRONMENT = Environment(
+            autoescape=False,
+            loader=FileSystemLoader(os.path.join(PATH, "../cookiecutter_templates")),
+            trim_blocks=False,
+        )
+        context = get_port_input(deployment.name)
+
+        if Path(context["dir_name"]).resolve() == deployment.resolve():
+            print("[ERROR] cannot create port in deployment directory")
+            return 0
+        fname = context["port_name"] + "Port" + "Ai.xml"
+        if os.path.isfile(Path(context["dir_name"], fname)):
+            print(
+                "[ERROR] Port",
+                context["port_name"],
+                "already exists in directory",
+                context["dir_name"],
+            )
+            return 0
+        with open(fname, "w") as f:
+            xml_file = TEMPLATE_ENVIRONMENT.get_template("port_template.xml").render(
+                context
+            )
+            f.write(xml_file)
+        if not os.path.isdir(context["dir_name"]):
+            os.mkdir(context["dir_name"])
+
+        os.rename(fname, str(Path(context["dir_name"], fname)))
+        path_to_cmakelists = Path(context["dir_name"], "CMakeLists.txt")
+        if not os.path.isfile(str(path_to_cmakelists)):
+            with open(str(path_to_cmakelists), "w") as f:
+                CMake_file = TEMPLATE_ENVIRONMENT.get_template(
+                    "CMakeLists_template.txt"
+                ).render(context)
+                f.write(CMake_file)
+        else:
+            add_port_to_cmake(str(path_to_cmakelists), fname)
+
+        if proj_root_found is False:
+            print(
+                "[INFO] No project root found. Created port without adding to build system nor generating implementation."
+            )
+            return 0
+        cmake_lists_file = find_nearest_cmake_lists(
+            Path(context["dir_name"]).resolve(), deployment, proj_root
+        )
+        if cmake_lists_file is None or not add_to_cmake(
+            cmake_lists_file,
+            (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent),
+        ):
+            print(
+                "[INFO] Could not register {} with build system. Please add it and generate implementations manually.".format(
+                    Path(context["dir_name"]).resolve()
+                )
+            )
+            return 0
+        regenerate(build)
+        print("")
+        print(
+            "################################################################################"
+        )
+        print("")
+        print(
+            "You have successfully created the port "
+            + context["port_name"]
+            + " located in "
+            + context["dir_name"]
+        )
+        print("")
+        print(
+            "################################################################################"
+        )
+        return 0
+    except OutputDirExistsException as out_directory_error:
+        print("{}".format(out_directory_error), file=sys.stderr)
+    except CMakeExecutionException as exc:
+        print("[ERROR] Failed to create port. {}".format(exc), file=sys.stderr)
     except OSError as ose:
         print("[ERROR] {}".format(ose))
     return 1

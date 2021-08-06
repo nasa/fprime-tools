@@ -51,10 +51,7 @@ extensions = [
     "sphinxcontrib.mermaid",
 ]
 
-source_suffix = {
-    ".rst": "restructuredtext",
-    ".md": "markdown",
-}
+source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 
 master_doc = "index"
 
@@ -73,9 +70,7 @@ nitpicky = False
 html_theme = "sphinx_rtd_theme"
 html_show_sphinx = False
 html_static_path = ["_static"]
-html_css_files = [
-    str(Path("css", "rtd_width.css")),
-]
+html_css_files = [str(Path("css", "rtd_width.css"))]
 # html_logo = None
 # html_favicon = None
 

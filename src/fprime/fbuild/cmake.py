@@ -126,7 +126,7 @@ class CMakeHandler:
             print(
                 "[CMAKE] CMake failed to detect target, attempting CMake cache refresh and retry"
             )
-            self._cmake_refresh_cache(build_dir)
+            self.cmake_refresh_cache(build_dir)
             return self._run_cmake(
                 run_args + fleshed_args, write_override=True, environment=environment
             )
@@ -398,7 +398,7 @@ class CMakeHandler:
         if not os.path.isfile(cache_file):
             raise CMakeInvalidBuildException(build_dir)
 
-    def _cmake_refresh_cache(self, build_dir):
+    def cmake_refresh_cache(self, build_dir):
         """
         Runs the cmake  target required to refresh the cmake cache. This will allow for unknown targets to be searched
         for before the utility gives up and produces.
@@ -465,10 +465,7 @@ class CMakeHandler:
         os.close(pty_out_w)
         os.close(pty_err_w)
         ret, stdout, stderr = self._communicate(
-            proc,
-            open(pty_out_r, mode="rb"),
-            open(pty_err_r, mode="rb"),
-            print_output,
+            proc, open(pty_out_r, mode="rb"), open(pty_err_r, mode="rb"), print_output
         )
         # Raising an exception when the return code is non-zero allows us to handle the exception internally if it is
         # needed. Thus we do not just exit.

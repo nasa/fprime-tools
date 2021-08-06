@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component name="{{cookiecutter.component_name}}" kind="{{cookiecutter.component_kind}}" namespace="{{cookiecutter.component_namespace}}">
+    <!-- Example of importing a port type -->
+{% if cookiecutter.commands == "yes" %}
+    <!-- Import command ports -->
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
+    <!-- Import event ports -->
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
+    <!-- Import telemetry port -->
+    <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
+    <!-- Import parameter ports -->
+    <import_port_type>Fw/Prm/PrmGetPortAi.xml</import_port_type>
+    <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.component_kind != "passive" %}
+    <!-- Import ping port -->
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+{% endif %}
+{% if cookiecutter.component_kind == "queued" %}
+    <!-- Import schedular ports -->
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+{% endif %}
+
+    <comment>{{cookiecutter.component_short_description}}</comment>
+
+    <ports>
+        <!-- Input ports must be of kind "sync_input" or "async_input" or "guarded_input" -->
+{% if cookiecutter.commands == "yes" %}
+        <!-- Command port definitions: command input receives commands, command reg out, and response out are
+        ports used to register with the command dispatcher, and return responses to it -->
+        <port name="cmdIn" data_type="Fw::Cmd" kind="input" role="Cmd" max_number="1">
+        </port>
+        <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+        </port>
+        <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
+        <!-- Event ports: send events, and text formatted events -->
+        <port name="eventOut" data_type="Fw::Log" kind="output" role="LogEvent" max_number="1">
+        </port>
+        <port name="textEventOut" data_type="Fw::LogText" kind="output" role="LogTextEvent" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
+        <!-- Telemetry ports -->
+        <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1">
+        </port>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
+        <!-- Parameter ports: set and get parameters -->
+        <port name="prmGetOut" data_type="Fw::PrmGet" kind="output" max_number="1">
+        </port>
+        <port name="prmSetOut" data_type="Fw::PrmSet" kind="output" max_number="1">
+        </port>
+{% endif %}
+{%- if cookiecutter.component_kind != 'passive' %}
+        <!-- Input ping port -->
+        <port name="pingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
+            <comment>
+            The ping input port
+            </comment>
+        </port>
+        <!-- Output ping port -->
+        <port name="pingOut" data_type="Svc::Ping" kind="output" max_number="1">
+            <comment>
+            The ping output port
+            </comment>
+        </port>
+{% endif %}
+{%- if cookiecutter.component_kind == 'queued' %}
+        <!-- Rate group schedular port for queued components-->
+        <port name="SchedIn" data_type="Sched" kind="sync_input">
+            <comment>
+            The rate group scheduler input
+            </comment>
+        </port>
+{% endif %}
+    </ports>
+{% if cookiecutter.commands == "yes" %}
+    <commands>
+{%- if cookiecutter.component_kind == 'passive' %}
+        <command kind="sync" opcode="0" mnemonic="ExampleCommand">
+{%- else %}
+        <command kind="async" opcode="0" mnemonic="ExampleCommand">
+{%- endif %}
+            <comment>
+            Description of command
+            </comment>
+        </command>
+    </commands>
+{% endif %}
+{% if cookiecutter.parameters == "yes" %}
+    <parameters>
+        <parameter id="0" set_opcode="1" save_opcode="2" name="ExampleParameter" data_type="U32" default="10">
+            <comment>
+            An example parameter
+            </comment>
+        </parameter>
+    </parameters>
+{% endif %}
+{% if cookiecutter.telemetry == "yes" %}
+    <telemetry>
+        <channel id="0" name="ExampleChannel" data_type="U32">
+            <comment>
+            Channel Description
+            </comment>
+        </channel>
+    </telemetry>
+{% endif %}
+{% if cookiecutter.events == "yes" %}
+    <events>
+        <event id="0" name="EX_ExampleEvent" severity="ACTIVITY_HI" format_string = "Example Event has been triggered" >
+            <comment>
+            Example event description
+            </comment>
+        </event>
+    </events>
+    {% endif %}
+</component>

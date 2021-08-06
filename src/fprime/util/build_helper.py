@@ -29,8 +29,7 @@ from fprime.fbuild.builder import (
     InvalidBuildCacheException,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.interaction import confirm, new_component
-from fprime.fbuild.settings import IniSettings
+from fprime.fbuild.interaction import confirm, new_component, new_port
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
 
@@ -160,9 +159,7 @@ def parse_args(args):
         help="Turn on verbose output.",
     )
     common_parser.add_argument(
-        "--ut",
-        action="store_true",
-        help="Run command against unit testing build type",
+        "--ut", action="store_true", help="Run command against unit testing build type"
     )
 
     # Main parser for the whole application
@@ -221,11 +218,20 @@ def parse_args(args):
         add_help=False,
     )
     # New functionality
-    subparsers.add_parser(
-        "new",
-        help="Generate a new component",
-        parents=[common_parser],
-        add_help=False,
+    new_parser = subparsers.add_parser(
+        "new", help="Generate a new component", parents=[common_parser], add_help=False
+    )
+    new_parser.add_argument(
+        "--component",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a component",
+    )
+    new_parser.add_argument(
+        "--port",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a port",
     )
     for target in Target.get_all_targets():
         add_target_parser(target, subparsers, common_parser, parsers)
@@ -336,11 +342,23 @@ def utility_entry(args):
         elif parsed.command == "info":
             print_info(parsed, deployment)
         elif parsed.command == "new":
-            settings = IniSettings.load(deployment / "settings.ini", cwd)
-            status = new_component(
-                cwd, deployment, parsed.platform, parsed.verbose, settings
-            )
-            sys.exit(status)
+            build = Build(build_type, deployment, verbose=parsed.verbose)
+            build.load(cwd)
+            if parsed.component and parsed.port:
+                print("[ERROR] Use --component or --port, not both.")
+            elif parsed.component:
+                status = new_component(
+                    deployment, parsed.platform, parsed.verbose, build
+                )
+                sys.exit(status)
+            elif parsed.port:
+                status = new_port(cwd, deployment, build)
+                sys.exit(status)
+            else:
+                print(
+                    "[ERROR] Specify whether you would like to generate a component or a port."
+                )
+                print("Use --component or --port.")
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)
             lines = build.find_hashed_file(parsed.hash)
