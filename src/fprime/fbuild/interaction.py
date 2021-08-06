@@ -270,7 +270,6 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 )
             )
             return 0
-        print("did impl")
         cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
             0
         ]
