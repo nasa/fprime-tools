@@ -1,6 +1,6 @@
 name: fprime-tools test
 
-on: [pull request]
+on: [pull_request]
 
 jobs:
   build:
