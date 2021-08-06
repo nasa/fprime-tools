@@ -94,7 +94,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
 
 
 def add_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new component or port to CMakeLists.txt"""
+    """Adds new component or port to CMakeLists.txt"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as f:
         lines = f.readlines()
@@ -163,7 +163,7 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
 
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new port to CMakeLists.txt in port directory"""
+    """Adds new port to CMakeLists.txt in port directory"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
@@ -387,7 +387,7 @@ def get_port_input(namespace):
 
 
 def new_port(cwd: Path, deployment: Path, build: Build):
-    """ Uses cookiecutter for making new ports """
+    """Uses cookiecutter for making new ports"""
     try:
         proj_root = build.get_settings("project_root", None)
         if proj_root is not None:
