@@ -30,7 +30,13 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
         | PingOut | Used to receive ping signal |\n"""
         )
     elif component_kind == "queued":
-        ports = ports + "| SchedIn | Used as a schedular for queued components |\n"
+        ports = ports + ""
+        ports = ports + textwrap.dedent(
+            """\
+            | PingIn | Used for pinging other components |
+            | PingOut | Used to receive ping signal |
+            | SchedIn | Used as a schedular for queued components |\n"""
+        )
 
     if commands == "yes":
         replace_contents(

@@ -107,7 +107,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         return True
 
     if not confirm(
-        "Add component {} to {} {}?".format(comp_path, list_file, "at end of file?")
+        "Add component {} to {} {}".format(comp_path, list_file, "at end of file?")
     ):
         return False
 
@@ -229,19 +229,13 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             and build.get_settings("component_cookiecutter", None) != "default"
         ):
             source = build.get_settings("component_cookiecutter", None)
+            print("[INFO] Cookiecutter source: {}".format(source))
         else:
             source = (
                 os.path.dirname(__file__)
                 + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
-
-        print("[INFO] Cookiecutter source: {}".format(source))
-        print()
-        print("----------------")
-        print(
-            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
-        )
-        print("----------------")
+            print("[INFO] Cookiecutter source: using builtin")
         print()
         final_component_dir = Path(
             cookiecutter(source, extra_context={"component_namespace": deployment.name})
@@ -277,7 +271,9 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             )
             return 0
         print("did impl")
-        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[0]
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
+            0
+        ]
         print("[INFO] Created new component and created initial implementations.")
         if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
             print("[INFO] Fixed hpp include in cpp file.")
@@ -368,7 +364,7 @@ def get_port_input(namespace):
         if add_arg:
             arg_name = get_valid_input("Argument name: ")
             arg_type = get_valid_input(
-                "Argument type (Valid primitive types are: BOOL, I8, I16, "
+                "Argument type (Valid primitive types are: I8, I16, "
                 + "I32, U8, U16, U32, F32, F64, NATIVE_INT_TYPE, NATIVE_UNIT_TYPE, and POINTER_CAST. "
                 + "You may also use your own user-defined types): "
             )
