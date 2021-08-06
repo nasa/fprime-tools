@@ -211,7 +211,7 @@ def test_generate():
         test_flags = [{}, {"CMAKE_BUILD_TYPE": "Testing"}]
         # Build Ref with flags
         path = os.path.join(
-            os.path.dirname(__file__), "..", "..","test_env", "fprime", "Ref"
+            os.path.dirname(__file__), "..", "..", "test_env", "fprime", "Ref"
         )
         for flags in test_flags:
             # Create a temp directory and register its deletion at the end of the program run
@@ -238,7 +238,7 @@ def test_targets():
     tempdir = None
     try:
         fprime_root = os.path.join(
-            os.path.dirname(__file__), "..", "..","test_env", "fprime"
+            os.path.dirname(__file__), "..", "..", "test_env", "fprime"
         )
         # Create a temp directory and register its deletion at the end of the program run
         tempdir = tempfile.mkdtemp()

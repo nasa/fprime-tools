@@ -21,13 +21,13 @@ def full_path(path):
 
 def test_settings():
     test_cases = [
-        #{
+        # {
         #    "file": "nonexistent.ini",
         #    "expected": {
         #        "framework_path": full_path("../../../../.."),
         #        "install_dest": full_path("settings-data/build-artifacts"),
         #    },
-        #},
+        # },
         {
             "file": "settings-empty.ini",
             "expected": {
@@ -87,7 +87,9 @@ def test_settings():
                 "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
-                "environment_file": full_path("settings-data/settings-outside-cookiecutter.ini"),
+                "environment_file": full_path(
+                    "settings-data/settings-outside-cookiecutter.ini"
+                ),
                 "environment": {},
                 "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
             },

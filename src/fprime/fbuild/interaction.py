@@ -82,7 +82,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
 
 
 def add_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new component or port to CMakeLists.txt"""
+    """Adds new component or port to CMakeLists.txt"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as f:
         lines = f.readlines()
@@ -151,7 +151,7 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
 
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
-    """ Adds new port to CMakeLists.txt in port directory"""
+    """Adds new port to CMakeLists.txt in port directory"""
     print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
@@ -159,7 +159,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     while re.search("set\(\s*SOURCE_FILES", lines[index]) is None:
         index += 1
     index += 1
-    while "CMAKE_CURRENT_LIST_DIR"in lines[index]:
+    while "CMAKE_CURRENT_LIST_DIR" in lines[index]:
         index += 1
     if not confirm(
         "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
@@ -311,6 +311,7 @@ def is_valid_name(word):
             return char
     return "valid"
 
+
 def get_valid_input(prompt):
     valid_name = False
     while not valid_name:
@@ -378,7 +379,7 @@ def make_namespace(deployment, cwd):
 
 
 def new_port(cwd: Path, deployment: Path, build: Build):
-    """ Uses cookiecutter for making new ports """
+    """Uses cookiecutter for making new ports"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = build.get_settings("project_root", None)
