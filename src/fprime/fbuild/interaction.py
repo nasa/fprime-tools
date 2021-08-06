@@ -386,16 +386,6 @@ def get_port_input(namespace):
     return values
 
 
-def make_namespace(deployment, cwd):
-    # Form the namespace from the path to the deployment
-    namespace_path = cwd.relative_to(deployment)
-    deployment_dir = deployment.name
-    whole_path = Path(deployment_dir, namespace_path)
-    namespace = whole_path.parent
-    namespace_formatted = str(namespace).replace(os.path.sep, "::")
-    return namespace_formatted
-
-
 def new_port(cwd: Path, deployment: Path, build: Build):
     """ Uses cookiecutter for making new ports """
     try:
