@@ -3,7 +3,7 @@ name: fprime-tools test
 on: [pull_request]
 
 jobs:
-  build:
+  fprime-tools-tests:
 
     runs-on: ubuntu-latest
 
