@@ -206,10 +206,12 @@ def test_float_types_nominal():
 def test_float_types_off_nominal():
     """Tests the integer off nominal types"""
     invalid_values_test(
-        F32Type, filter(lambda item: not isinstance(item, float), PYTHON_TESTABLE_TYPES)
+        F32Type,
+        filter(lambda item: not isinstance(item, (float, int)), PYTHON_TESTABLE_TYPES),
     )
     invalid_values_test(
-        F64Type, filter(lambda item: not isinstance(item, float), PYTHON_TESTABLE_TYPES)
+        F64Type,
+        filter(lambda item: not isinstance(item, (float, int)), PYTHON_TESTABLE_TYPES),
     )
 
 

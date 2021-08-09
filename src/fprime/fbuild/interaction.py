@@ -28,6 +28,18 @@ def confirm(msg):
         print("{} is invalid.  Please use 'yes' or 'no'".format(confirm_input))
 
 
+def replace_contents(filename, what, replacement, count=1):
+    with open(filename) as fh:
+        changelog = fh.read()
+    with open(filename, "w") as fh:
+        new_file = changelog.replace(what, replacement, count)
+        fh.write(new_file)
+        if new_file != changelog:
+            return True
+        else:
+            return False
+
+
 def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     """Run implementation of files one time"""
     target = Target.get_target("impl", set())
@@ -95,7 +107,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         return True
 
     if not confirm(
-        "Add component {} to {} {}?".format(comp_path, list_file, "at end of file?")
+        "Add component {} to {} {}".format(comp_path, list_file, "at end of file?")
     ):
         return False
 
@@ -217,19 +229,13 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             and build.get_settings("component_cookiecutter", None) != "default"
         ):
             source = build.get_settings("component_cookiecutter", None)
+            print("[INFO] Cookiecutter source: {}".format(source))
         else:
             source = (
                 os.path.dirname(__file__)
                 + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
-
-        print("[INFO] Cookiecutter source: {}".format(source))
-        print()
-        print("----------------")
-        print(
-            "[INFO] Help available here: https://github.com/SterlingPeet/cookiecutter-fprime-component/blob/master/README.rst#id3"
-        )
-        print("----------------")
+            print("[INFO] Cookiecutter source: using builtin")
         print()
         final_component_dir = Path(
             cookiecutter(source, extra_context={"component_namespace": deployment.name})
@@ -264,8 +270,14 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 )
             )
             return 0
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
+            0
+        ]
         print("[INFO] Created new component and created initial implementations.")
+        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+            print("[INFO] Fixed hpp include in cpp file.")
         add_unit_tests(deployment, final_component_dir, platform, verbose)
+        print("[INFO] Unit tests were generated.")
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir
@@ -281,7 +293,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
     return 1
 
 
-def is_valid_name(word):
+def is_valid_name(word: str):
     invalid_characters = [
         "#",
         "%",
@@ -307,8 +319,10 @@ def is_valid_name(word):
         "=",
     ]
     for char in invalid_characters:
-        if char in word:
+        if isinstance(word, str) and char in word:
             return char
+        elif not isinstance(word, str):
+            raise ValueError("Incorrect usage of is_valid_name")
     return "valid"
 
 
@@ -318,7 +332,7 @@ def get_valid_input(prompt):
         name = input(prompt)
         char = is_valid_name(name)
         if char != "valid":
-            print("'" + char + "' is not a valid character. Enter a new port name:")
+            print("'" + char + "' is not a valid character")
         else:
             valid_name = True
     return name
@@ -347,8 +361,12 @@ def get_port_input(namespace):
         else:
             add_arg = confirm("Would you like to add another argument?: ")
         if add_arg:
-            arg_name = input("Argument name: ")
-            arg_type = input("Argument type: ")
+            arg_name = get_valid_input("Argument name: ")
+            arg_type = get_valid_input(
+                "Argument type (Valid primitive types are: I8, I16, "
+                + "I32, U8, U16, U32, F32, F64, NATIVE_INT_TYPE, NATIVE_UNIT_TYPE, and POINTER_CAST. "
+                + "You may also use your own user-defined types): "
+            )
             arg_description = input("Short description of argument: ")
             arg_list.append((arg_name, arg_type, arg_description))
         else:
@@ -368,20 +386,9 @@ def get_port_input(namespace):
     return values
 
 
-def make_namespace(deployment, cwd):
-    # Form the namespace from the path to the deployment
-    namespace_path = cwd.relative_to(deployment)
-    deployment_dir = deployment.name
-    whole_path = Path(deployment_dir, namespace_path)
-    namespace = whole_path.parent
-    namespace_formatted = str(namespace).replace(os.path.sep, "::")
-    return namespace_formatted
-
-
 def new_port(cwd: Path, deployment: Path, build: Build):
     """Uses cookiecutter for making new ports"""
     try:
-        print("[WARNING] **** fprime-util new is prototype functionality ****")
         proj_root = build.get_settings("project_root", None)
         if proj_root is not None:
             proj_root = Path(proj_root)

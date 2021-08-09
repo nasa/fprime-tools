@@ -77,7 +77,7 @@ to interact with the data coming from the FSW.
         "Markdown==3.3.4",
         "pexpect==4.8.0",
         "pytest==6.2.4",
-        "Cheetah3==3.2.6.post2",
+        "Cheetah3==3.2.6",
         "setuptools-scm==6.0.1",
         "cookiecutter==1.7.2",
     ],

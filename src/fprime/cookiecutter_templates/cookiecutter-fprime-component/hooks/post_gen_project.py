@@ -7,13 +7,7 @@ from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.builder import Build
 from pathlib import Path
 import textwrap
-
-
-def replace_contents(filename, what, replacement, count=1):
-    with open(filename) as fh:
-        changelog = fh.read()
-    with open(filename, "w") as fh:
-        fh.write(changelog.replace(what, replacement, count))
+from fprime.fbuild.interaction import replace_contents
 
 
 def remove_line(filename, removal):
@@ -27,27 +21,24 @@ def remove_line(filename, removal):
         f.close()
 
 
-def update_sdd():
+def update_sdd(component_kind, commands, parameters, events, telemetry):
     ports = "## Port Descriptions\n| Name | Description |\n"
-    if (
-        "{{cookiecutter.component_kind}}"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-        == "active"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
+    if component_kind == "active":
         ports = ports + textwrap.dedent(
             """\
         | PingIn | Used for pinging other components |
         | PingOut | Used to receive ping signal |\n"""
         )
-    elif (
-        "{{cookiecutter.component_kind}}"  # lgtm [py/comparison-of-constants]  lgtm [py/constant-conditional-expression]
-        == "queued"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
-        ports = ports + "| SchedIn | Used as a schedular for queued components |\n"
+    elif component_kind == "queued":
+        ports = ports + ""
+        ports = ports + textwrap.dedent(
+            """\
+            | PingIn | Used for pinging other components |
+            | PingOut | Used to receive ping signal |
+            | SchedIn | Used as a schedular for queued components |\n"""
+        )
 
-    if (
-        "{{cookiecutter.commands}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
+    if commands == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Commands",
@@ -67,10 +58,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Commands\n")
 
-    if (
-        "{{cookiecutter.parameters}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
+    if parameters == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Parameters",
@@ -89,10 +77,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Parameters\n")
 
-    if (
-        "{{cookiecutter.events}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
+    if events == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Events",
@@ -111,10 +96,7 @@ def update_sdd():
     else:
         remove_line("docs/sdd.md", "## Events\n")
 
-    if (
-        "{{cookiecutter.telemetry}}"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-        == "yes"  # lgtm [py/comparison-of-constants] lgtm [py/constant-conditional-expression]
-    ):
+    if telemetry == "yes":
         replace_contents(
             "docs/sdd.md",
             "## Telemetry",
@@ -144,7 +126,13 @@ def main():
         proj_root_found = True
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
-    update_sdd()
+    update_sdd(
+        "{{ cookiecutter.component_kind }}",
+        "{{ cookiecutter.commands }}",
+        "{{ cookiecutter.parameters }}",
+        "{{ cookiecutter.events }}",
+        "{{ cookiecutter.telemetry }}",
+    )
     remove_line("{{cookiecutter.component_name}}ComponentAi.xml", "\n")
 
     print(

@@ -84,12 +84,19 @@ def test_settings():
                 ),
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
+<<<<<<< HEAD
                 "framework_path": full_path("../../test_env/fprime"),
                 "install_dest": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path(
                     "settings-data/settings-outside-cookiecutter.ini"
                 ),
+=======
+                "framework_path": full_path("../../../../.."),
+                "install_dest": full_path("settings-data/build-artifacts"),
+                "library_locations": [],
+                "environment_file": full_path("settings-data/settings-empty.ini"),
+>>>>>>> nasa/devel
                 "environment": {},
                 "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
             },
