@@ -22,4 +22,4 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --ignore=test/test_env
+          pytest
