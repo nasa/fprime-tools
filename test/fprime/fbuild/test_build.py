@@ -42,21 +42,6 @@ def get_data_dir():
     )
 
 
-def test_hash_finder():
-    """
-    Tests that the hash finder works given a known builds.
-    """
-    local = pathlib.Path(os.path.dirname(__file__))
-    dep_dir = local / "cmake-data" / "testbuild"
-    builder = fprime.fbuild.builder.Build(
-        fprime.fbuild.builder.BuildType.BUILD_NORMAL, dep_dir
-    )
-    builder.load(local, build_dir=dep_dir / "build-fprime-automatic-native")
-
-    assert builder.find_hashed_file(0xDEADBEEF) == ["Abc: 0xdeadbeef\n"]
-    assert builder.find_hashed_file(0xC0DEC0DE) == ["HJK: 0xc0dec0de\n"]
-
-
 def test_needed_functions():
     """
     Test the needed functions for the given builder. This will ensure that the public interface to the builder is
@@ -199,70 +184,3 @@ def test_find_nearest_deployment():
         else:
             with pytest.raises(fprime.fbuild.builder.UnableToDetectDeploymentException):
                 fprime.fbuild.builder.Build.find_nearest_deployment(path)
-
-
-def test_generate():
-    """
-    Generate a directory and ensure that it works via CMake. This tests the common setup flags for normal and testing
-    builds. Will also test the right errors are raised.
-    """
-    rms = []
-    try:
-        test_flags = [{}, {"CMAKE_BUILD_TYPE": "Testing"}]
-        # Build Ref with flags
-        path = os.path.join(
-            os.path.dirname(__file__), "..", "..", "test_env", "fprime", "Ref"
-        )
-        for flags in test_flags:
-            # Create a temp directory and register its deletion at the end of the program run
-            tempdir = tempfile.mkdtemp()
-            rms.append(tempdir)
-            get_cmake_builder().generate_build(path, tempdir, flags, ignore_output=True)
-        # Expect errors for this step
-        path = "/nopath/somesuch/nothing"
-        with pytest.raises(fprime.fbuild.cmake.CMakeProjectException):
-            tempdir = tempfile.mkdtemp()
-            rms.append(tempdir)
-            get_cmake_builder().generate_build(path, tempdir, ignore_output=True)
-    # Clean-Up all the directories made
-    finally:
-        for rmd in rms:
-            shutil.rmtree(rmd, ignore_errors=True)
-
-
-def test_targets():
-    """
-    Test standard targets for the build.
-    """
-    # Build Ref with flags
-    tempdir = None
-    try:
-        fprime_root = os.path.join(
-            os.path.dirname(__file__), "..", "..", "test_env", "fprime"
-        )
-        # Create a temp directory and register its deletion at the end of the program run
-        tempdir = tempfile.mkdtemp()
-        get_cmake_builder().generate_build(
-            os.path.join(fprime_root, "Ref"), tempdir, {"CMAKE_BUILD_TYPE": "Testing"}
-        )
-        test_data = [
-            (os.path.join(fprime_root, "Ref"), ""),
-            (os.path.join(fprime_root, "Svc", "CmdDispatcher"), ""),
-            (os.path.join(fprime_root, "Svc", "CmdDispatcher"), "ut_exe"),
-            (os.path.join(fprime_root, "Svc", "CmdDispatcher"), "check"),
-        ]
-        # Loop over all directories and target pairs ensuing things work
-        for path, target in test_data:
-            get_cmake_builder().execute_known_target(target, tempdir, path)
-        test_data = [
-            (os.path.join(fprime_root, "Svc", "CmdDispatcher"), "nontarget1"),
-            (os.path.join(fprime_root, "Svc", "CmdDispatcher3Not"), ""),
-        ]
-        # Loop over all paths and target pairs looking for expected Exceptions
-        for path, target in test_data:
-            with pytest.raises(fprime.fbuild.cmake.CMakeException):
-                get_cmake_builder().execute_known_target(target, tempdir, path)
-    # Clean up when all done
-    finally:
-        if tempdir is not None:
-            shutil.rmtree(tempdir, ignore_errors=True)
