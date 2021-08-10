@@ -18,7 +18,9 @@ def full_path(path):
     path = LOCAL_PATH / Path(path)
     return path.resolve()
 
-#The following tests use a fake framework path due to the seperation of fprime and fprime-tools
+
+# The following tests use a fake framework path due to the separation of fprime and fprime-tools
+
 
 def test_settings():
     test_cases = [
