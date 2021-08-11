@@ -7,8 +7,6 @@ that they function as expected.
 @author mstarch
 """
 import os
-import shutil
-import tempfile
 import pathlib
 
 import pytest
