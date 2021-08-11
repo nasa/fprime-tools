@@ -39,6 +39,20 @@ def get_data_dir():
         )
     )
 
+def test_hash_finder():
+    """
+    Tests that the hash finder works given a known builds.
+    """
+    local = pathlib.Path(os.path.dirname(__file__))
+    dep_dir = local / "cmake-data" / "testbuild"
+    builder = fprime.fbuild.builder.Build(
+        fprime.fbuild.builder.BuildType.BUILD_NORMAL, dep_dir
+    )
+    builder.load(local, build_dir=dep_dir / "build-fprime-automatic-native")
+
+    assert builder.find_hashed_file(0xDEADBEEF) == ["Abc: 0xdeadbeef\n"]
+    assert builder.find_hashed_file(0xC0DEC0DE) == ["HJK: 0xc0dec0de\n"]
+
 
 def test_needed_functions():
     """
