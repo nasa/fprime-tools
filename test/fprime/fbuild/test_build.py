@@ -39,6 +39,7 @@ def get_data_dir():
         )
     )
 
+
 def test_hash_finder():
     """
     Tests that the hash finder works given a known builds.
