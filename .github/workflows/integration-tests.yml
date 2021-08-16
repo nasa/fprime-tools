@@ -23,7 +23,7 @@ jobs:
           pip install -e .
       - name: clone fprime
         run: |
-          git clone -b v${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
+          git clone -b NASA-v${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
       - name: Test generation and building
         run: |
           cd fprime/Ref
