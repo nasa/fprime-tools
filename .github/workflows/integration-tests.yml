@@ -3,7 +3,7 @@ name: Integration Tests
 on: [pull_request, push]
 
 jobs:
-  Fprime_1.5:
+  integration_test:
 
     runs-on: ubuntu-latest
     strategy:
@@ -24,7 +24,7 @@ jobs:
       - name: clone fprime
         run: |
           git clone -b v${{ matrix.fprime-version }}
-      - name: Test with pytest
+      - name: Test generation and building
         run: |
           cd fprime/Ref
           fprime-util generate
