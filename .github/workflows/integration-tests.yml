@@ -3,7 +3,7 @@ name: Integration Tests
 on: [pull_request, push]
 
 jobs:
-  fprime-1.5-integration:
+  fprime-integration:
 
     runs-on: ubuntu-latest
     strategy:
@@ -32,4 +32,6 @@ jobs:
           fprime-util build
           cd ../..
           mv fprime gps-tutorial
-          cd gps tutorial
+          cd gps-tutorial/GpsApp
+          fprime-util generate
+          fprime-util build
