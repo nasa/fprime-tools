@@ -3,7 +3,7 @@ name: Integration Tests
 on: [pull_request, push]
 
 jobs:
-  integration_test:
+  fprime-1.5-integration:
 
     runs-on: ubuntu-latest
     strategy:
@@ -24,8 +24,12 @@ jobs:
       - name: clone fprime
         run: |
           git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
+          git clone https://github.com/fprime-community/gps-tutorial.git
       - name: Test generation and building
         run: |
           cd fprime/Ref
           fprime-util generate
           fprime-util build
+          cd ../..
+          mv fprime gps-tutorial
+          cd gps tutorial
