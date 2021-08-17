@@ -13,17 +13,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python matrix.python-version
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: matrix.python-version
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e .
       - name: clone fprime
         run: |
-          git clone -b matrix.fprime-version https://github.com/nasa/fprime.git
+          git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
           git clone https://github.com/fprime-community/gps-tutorial.git
       - name: Revert gps-tutorial version if needed
         if: |
