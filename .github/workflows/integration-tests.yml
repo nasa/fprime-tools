@@ -27,10 +27,10 @@ jobs:
           git clone https://github.com/fprime-community/gps-tutorial.git
       - name: check gps-tutorial version
         if: |
-          ${{ matrix.fprime-version == 'NASA-v1.5.0' || 
+          matrix.fprime-version == 'NASA-v1.5.0' || 
           matrix.fprime-version == 'NASA-v1.5.1' || 
           matrix.fprime-version == 'NASA-v1.5.2' || 
-          matrix.fprime-version == 'NASA-v1.5.3'}}
+          matrix.fprime-version == 'NASA-v1.5.3'
         run: |
           cd gps-tutorial
           git checkout 99cef07f4b43aebd4d3e9298081655b33be859b4
