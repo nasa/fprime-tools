@@ -25,12 +25,18 @@ jobs:
         run: |
           git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
           git clone https://github.com/fprime-community/gps-tutorial.git
-      - name: Test generation and building
+      - name: check gps-tutorial version
+          if: ${{ matrix.fprime-version != v2.0.0}}
+          run: |
+            git reset --hard c09816f
+      - name: Test generation and building on Ref
         run: |
           cd fprime/Ref
           fprime-util generate
           fprime-util build
           cd ../..
+      - name: Test generation and building on gps-tutorial
+
           mv fprime gps-tutorial
           cd gps-tutorial/GpsApp
           fprime-util generate
