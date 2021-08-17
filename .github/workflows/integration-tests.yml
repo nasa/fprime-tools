@@ -38,7 +38,7 @@ jobs:
           fprime-util build
           cd ../..
       - name: Test generation and building on gps-tutorial
-        run:
+        run: |
           mv fprime gps-tutorial
           cd gps-tutorial/GpsApp
           fprime-util generate
