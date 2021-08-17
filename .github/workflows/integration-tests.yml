@@ -26,24 +26,22 @@ jobs:
           git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
           git clone https://github.com/fprime-community/gps-tutorial.git
       - name: Revert gps-tutorial version if needed
+        working-directory: gps-tutorial
         if: |
           matrix.fprime-version == 'NASA-v1.5.0' || 
           matrix.fprime-version == 'NASA-v1.5.1' || 
           matrix.fprime-version == 'NASA-v1.5.2' || 
           matrix.fprime-version == 'NASA-v1.5.3'
-        run: |
-          cd gps-tutorial
-          git checkout 99cef07f4b43aebd4d3e9298081655b33be859b4
-          cd ..
+        run: git checkout 99cef07f4b43aebd4d3e9298081655b33be859b4
       - name: Test generation and building on Ref
+        working-directory: fpime/Ref
         run: |
-          cd fprime/Ref
           fprime-util generate
           fprime-util build
-          cd ../..
+      - name: Move fprime into gps-tutorial
+        run: mv fprime gps-tutorial
       - name: Test generation and building on gps-tutorial
+        working-directory: gps-tutorial/GpsApp
         run: |
-          mv fprime gps-tutorial
-          cd gps-tutorial/GpsApp
           fprime-util generate
           fprime-util build
