@@ -113,6 +113,11 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
         )
     else:
         remove_line("docs/sdd.md", "## Telemetry\n")
+    
+    ports = ports + textwrap.dedent(
+            """\
+            | timeGetOut | Used to pass time stamps around the system |\n"""
+        )
     replace_contents("docs/sdd.md", "## Port Descriptions", ports)
 
 
