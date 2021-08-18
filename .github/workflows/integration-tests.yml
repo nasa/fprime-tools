@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
-        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, devel] , [devel, devel]]
+        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521515c] , [devel, 521516c]]
 
     steps:
       - uses: actions/checkout@v2
