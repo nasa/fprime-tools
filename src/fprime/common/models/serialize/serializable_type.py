@@ -9,6 +9,7 @@ import copy
 from .type_base import BaseType, ValueType
 from .type_exceptions import NotInitializedException, TypeMismatchException
 
+from . import array_type
 
 class SerializableType(ValueType):
     """
@@ -114,6 +115,22 @@ class SerializableType(ValueType):
             member_name: member_val.val
             for member_name, member_val, _, _ in self.mem_list
         }
+
+    @property
+    def formatted_val(self) -> dict:
+        """
+        Format all the members of dict according to the member_format.
+        Note 1: All elements will be cast to str
+        Note 2: If a member is an array will call array formatted_val
+        :return a formatted dict
+        """
+        result = dict()
+        for member_name, member_val, member_format, _ in self.mem_list:
+            if isinstance(member_val, array_type.ArrayType):
+                result[member_name] = member_val.formatted_val
+            else:
+                result[member_name] = member_format % member_val.val
+        return result
 
     @val.setter
     def val(self, val: dict):

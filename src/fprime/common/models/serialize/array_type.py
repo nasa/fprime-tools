@@ -12,6 +12,7 @@ from .type_exceptions import (
     TypeMismatchException,
 )
 
+from . import serializable_type
 
 class ArrayType(ValueType):
     """Generic fixed-size array type representation.
@@ -56,6 +57,22 @@ class ArrayType(ValueType):
         :return dictionary of member names to python values of member keys
         """
         return [item.val for item in self.__val]
+
+    @property
+    def formatted_val(self) -> list:
+        """
+        Format all the elements of array according to the arr_format.
+        Note 1: All elements will be cast to str
+        Note 2: If a member is a serializable will call serializable formatted_val
+        :return a formatted array
+        """
+        result = []
+        for item in self.__val:
+            if isinstance(item, serializable_type.SerializableType):
+                result.append(item.formatted_val)
+            else:
+                result.append(self.__arr_format % item.val)
+        return result
 
     @val.setter
     def val(self, val: list):
