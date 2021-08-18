@@ -23,8 +23,19 @@ jobs:
           pip install -e .
       - name: clone fprime and gps-tutorial
         run: |
-          git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
-          git clone -b ${{ matrix.fprime-version[1] }} https://github.com/fprime-community/gps-tutorial.git
+          git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
+          git clone https://github.com/fprime-community/gps-tutorial.git
+      - name: checkout correct gps-tutorial
+        working-directory: gps-tutorial
+        run: git checkout {{ matrix.fprime-version[1] }}
+      - name: Revert gps-tutorial version if needed
+        working-directory: gps-tutorial
+        if: |
+          matrix.fprime-version == 'NASA-v1.5.0' || 
+          matrix.fprime-version == 'NASA-v1.5.1' || 
+          matrix.fprime-version == 'NASA-v1.5.2' || 
+          matrix.fprime-version == 'NASA-v1.5.3'
+        run: git checkout 99cef07f4b43aebd4d3e9298081655b33be859b4
       - name: Test generation and building on Ref
         working-directory: fprime/Ref
         run: |
