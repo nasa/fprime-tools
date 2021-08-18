@@ -24,7 +24,7 @@ jobs:
       - name: clone fprime and gps-tutorial
         run: |
           git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
-          git clone https://github.com/fprime-community/gps-tutorial.git
+          git clone -r https://github.com/fprime-community/gps-tutorial.git
       - name: Checkout correct gps-tutorial
         working-directory: gps-tutorial
         run: git checkout ${{ matrix.fprime-version[1] }}
@@ -33,8 +33,6 @@ jobs:
         run: |
           fprime-util generate
           fprime-util build
-      - name: Move fprime into gps-tutorial
-        run: mv fprime gps-tutorial
       - name: Test generation and building on gps-tutorial
         working-directory: gps-tutorial/GpsApp
         run: |
