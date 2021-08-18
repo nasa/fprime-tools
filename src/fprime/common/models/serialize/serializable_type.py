@@ -11,6 +11,7 @@ from .type_exceptions import NotInitializedException, TypeMismatchException
 
 from . import array_type
 
+
 class SerializableType(ValueType):
     """
     Representation of the Serializable type (comparable to the ANY type)
