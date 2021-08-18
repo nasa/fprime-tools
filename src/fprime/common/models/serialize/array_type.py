@@ -14,6 +14,7 @@ from .type_exceptions import (
 
 from . import serializable_type
 
+
 class ArrayType(ValueType):
     """Generic fixed-size array type representation.
 
