@@ -24,7 +24,7 @@ jobs:
       - name: clone fprime and gps-tutorial
         run: |
           git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
-          git clone -r https://github.com/fprime-community/gps-tutorial.git
+          git clone --recurse-submodules https://github.com/fprime-community/gps-tutorial.git
       - name: Checkout correct gps-tutorial
         working-directory: gps-tutorial
         run: git checkout ${{ matrix.fprime-version[1] }}
