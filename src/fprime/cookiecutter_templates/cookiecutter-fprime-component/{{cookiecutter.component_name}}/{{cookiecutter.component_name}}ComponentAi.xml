@@ -63,11 +63,11 @@
         <port name="prmGetOut" data_type="Fw::PrmGet" kind="output" max_number="1">
         </port>
         <port name="prmSetOut" data_type="Fw::PrmSet" kind="output" max_number="1">
-        <!-- Time port: to pass around time stamps -->
-        </port>
-        <port name="timeGetOut" data_type="Fw::Time" kind="output" max_number="1">
         </port>
 {% endif %}
+        <!-- Time port: to pass around time stamps -->        
+        <port name="timeGetOut" data_type="Fw::Time" kind="output" max_number="1">
+        </port>
 {%- if cookiecutter.component_kind != 'passive' %}
         <!-- Input ping port -->
         <port name="pingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
