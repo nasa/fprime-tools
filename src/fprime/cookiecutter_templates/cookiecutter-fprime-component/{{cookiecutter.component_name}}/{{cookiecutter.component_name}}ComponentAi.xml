@@ -21,6 +21,8 @@
     <import_port_type>Fw/Prm/PrmGetPortAi.xml</import_port_type>
     <import_port_type>Fw/Prm/PrmSetPortAi.xml</import_port_type>
 {% endif %}
+    <!-- Import time port -->
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
 {% if cookiecutter.component_kind != "passive" %}
     <!-- Import ping port -->
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
@@ -63,6 +65,9 @@
         <port name="prmSetOut" data_type="Fw::PrmSet" kind="output" max_number="1">
         </port>
 {% endif %}
+        <!-- Time port: to pass around time stamps -->        
+        <port name="timeGetOut" data_type="Fw::Time" kind="output" max_number="1">
+        </port>
 {%- if cookiecutter.component_kind != 'passive' %}
         <!-- Input ping port -->
         <port name="pingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
