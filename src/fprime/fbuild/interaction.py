@@ -3,6 +3,7 @@
 import os
 import glob
 import sys
+import textwrap
 from pathlib import Path
 from typing import Dict
 import re
@@ -161,6 +162,27 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
                 new_name = test_path / file
                 os.rename(file, str(new_name))
 
+        with open("CMakeLists.txt", "r") as f:
+            cmakeFile = f.read()
+
+        with open("CMakeLists.txt", "w") as f:
+            cmakeFile = cmakeFile + textwrap.dedent(
+                """\n
+                set(UT_SOURCE_FILES
+                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/TestMain.cpp"
+                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/Tester.cpp"
+                )
+
+                register_fprime_ut()"""
+            )
+            f.write(cmakeFile)
+        
+        if replace_contents(Path("test", "ut", "Tester.hpp"), "ComponentImpl.hpp", ".hpp", -1):
+            print("[INFO] Fixed hpp include in Tester.hpp")
+        print("[INFO] Unit tests were generated.")
+
+
+
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """Adds new port to CMakeLists.txt in port directory"""
@@ -276,8 +298,10 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         print("[INFO] Created new component and created initial implementations.")
         if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
             print("[INFO] Fixed hpp include in cpp file.")
+        #if os.path.isdir(str(Path(final_component_dir,"test","ut"))):
+        #    if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+                
         add_unit_tests(deployment, final_component_dir, platform, verbose)
-        print("[INFO] Unit tests were generated.")
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
                 "" if platform is None else " " + platform, final_component_dir
