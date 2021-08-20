@@ -3,6 +3,8 @@ string_util.py
 Utility functions to process strings to be used in FPrime GDS
 @Created March 18, 2021
 @janamian
+
+Note: This function has an identical copy in fprime-gds
 """
 
 import re
