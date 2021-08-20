@@ -590,6 +590,13 @@ BUILD_TARGETS = [
         flags={"ut"},
         cmake="ut_exe",
     ),
+    GlobalTarget(
+        "build",
+        "Build all unit tests",
+        build_type=BuildType.BUILD_TESTING,
+        flags={"all", "ut"},
+        cmake="all",
+    ),
     # Implementation targets
     LocalTarget("impl", "Generate implementation template files"),
     LocalTarget("impl", "Generate unit test files", flags={"ut"}, cmake="testimpl"),
