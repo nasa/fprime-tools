@@ -176,12 +176,12 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
                 register_fprime_ut()"""
             )
             f.write(cmakeFile)
-        
-        if replace_contents(Path("test", "ut", "Tester.hpp"), "ComponentImpl.hpp", ".hpp", -1):
+
+        if replace_contents(
+            Path("test", "ut", "Tester.hpp"), "ComponentImpl.hpp", ".hpp", -1
+        ):
             print("[INFO] Fixed hpp include in Tester.hpp")
         print("[INFO] Unit tests were generated.")
-
-
 
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
@@ -298,9 +298,9 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         print("[INFO] Created new component and created initial implementations.")
         if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
             print("[INFO] Fixed hpp include in cpp file.")
-        #if os.path.isdir(str(Path(final_component_dir,"test","ut"))):
+        # if os.path.isdir(str(Path(final_component_dir,"test","ut"))):
         #    if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
-                
+
         add_unit_tests(deployment, final_component_dir, platform, verbose)
         print(
             "[INFO] Next run `fprime-util build{}` in {}".format(
