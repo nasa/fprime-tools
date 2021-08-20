@@ -13,6 +13,7 @@ from .type_exceptions import (
 )
 
 from . import serializable_type
+from fprime.util.string_util import format_string_template
 
 
 class ArrayType(ValueType):
@@ -69,10 +70,12 @@ class ArrayType(ValueType):
         """
         result = []
         for item in self.__val:
-            if isinstance(item, serializable_type.SerializableType):
+            if isinstance(item, (
+                serializable_type.SerializableType, ArrayType)):
                 result.append(item.formatted_val)
             else:
-                result.append(self.__arr_format % item.val)
+                result.append(
+                    format_string_template(self.__arr_format, item.val))
         return result
 
     @val.setter

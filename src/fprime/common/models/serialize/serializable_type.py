@@ -10,6 +10,7 @@ from .type_base import BaseType, ValueType
 from .type_exceptions import NotInitializedException, TypeMismatchException
 
 from . import array_type
+from fprime.util.string_util import format_string_template
 
 
 class SerializableType(ValueType):
@@ -127,10 +128,10 @@ class SerializableType(ValueType):
         """
         result = dict()
         for member_name, member_val, member_format, _ in self.mem_list:
-            if isinstance(member_val, array_type.ArrayType):
+            if isinstance(member_val, (array_type.ArrayType, SerializableType)):
                 result[member_name] = member_val.formatted_val
             else:
-                result[member_name] = member_format % member_val.val
+                result[member_name] = format_string_template(member_format, member_val.val)
         return result
 
     @val.setter
