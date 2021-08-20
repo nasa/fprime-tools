@@ -131,7 +131,9 @@ class SerializableType(ValueType):
             if isinstance(member_val, (array_type.ArrayType, SerializableType)):
                 result[member_name] = member_val.formatted_val
             else:
-                result[member_name] = format_string_template(member_format, member_val.val)
+                result[member_name] = format_string_template(
+                    member_format, member_val.val
+                )
         return result
 
     @val.setter
