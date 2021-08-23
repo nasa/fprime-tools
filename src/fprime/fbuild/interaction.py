@@ -298,8 +298,6 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         print("[INFO] Created new component and created initial implementations.")
         if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
             print("[INFO] Fixed hpp include in cpp file.")
-        # if os.path.isdir(str(Path(final_component_dir,"test","ut"))):
-        #    if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
 
         add_unit_tests(deployment, final_component_dir, platform, verbose)
         print(
