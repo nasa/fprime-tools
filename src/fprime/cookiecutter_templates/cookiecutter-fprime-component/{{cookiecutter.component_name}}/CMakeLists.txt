@@ -7,8 +7,8 @@
 #
 ####
 set(SOURCE_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAi.xml"
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAi.xml"
+  "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.cpp"
 )
 
 # Uncomment and add any modules that this component depends on, else
@@ -19,9 +19,3 @@ set(SOURCE_FILES
 # )
 
 register_fprime_module()
-
-set(UT_SOURCE_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/test/ut/main.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/test/ut/Tester.cpp"
-)
-register_fprime_ut()
