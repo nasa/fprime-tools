@@ -314,10 +314,11 @@ def print_hash_info(lines, hash_val):
         print("[INFO] File(s) associated with hash 0x{:x}".format(hash_val))
         for line in lines:
             print("   ", line, end="")
-        return
+        return 0
     print(
         "[ERROR] No file hashes found in {} build. Do you need '--build-type Testing' for a unittest run?"
     )
+    return 1
 
 
 def utility_entry(args):
@@ -347,13 +348,9 @@ def utility_entry(args):
             if parsed.component and parsed.port:
                 print("[ERROR] Use --component or --port, not both.")
             elif parsed.component:
-                status = new_component(
-                    deployment, parsed.platform, parsed.verbose, build
-                )
-                sys.exit(status)
+                return new_component(deployment, parsed.platform, parsed.verbose, build)
             elif parsed.port:
-                status = new_port(cwd, deployment, build)
-                sys.exit(status)
+                return new_port(cwd, deployment, build)
             else:
                 print(
                     "[ERROR] Specify whether you would like to generate a component or a port."
@@ -361,8 +358,9 @@ def utility_entry(args):
                 print("Use --component or --port.")
         elif parsed.command == "hash-to-file":
             build = Build(build_type, deployment, verbose=parsed.verbose)
+            build.load(cwd, parsed.platform)
             lines = build.find_hashed_file(parsed.hash)
-            print_hash_info(lines, parsed.hash)
+            return print_hash_info(lines, parsed.hash)
         elif parsed.command == "generate":
             build = Build(build_type, deployment, verbose=parsed.verbose)
             build.invent(cwd, parsed.platform)

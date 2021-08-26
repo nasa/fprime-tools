@@ -28,13 +28,16 @@ jobs:
       - name: Generate correct fprime version in gps-tutorial
         working-directory: gps-tutorial
         run: git submodule update --recursive
+      # 0x72ad3277 is Fw/Types/Assert.cpp, a file that should be consistent across releases
       - name: Test generation and building on Ref
         working-directory: fprime/Ref
         run: |
           fprime-util generate
           fprime-util build
+          fprime-util hash-to-file 0x72ad3277
       - name: Test generation and building on gps-tutorial
         working-directory: gps-tutorial/GpsApp
         run: |
           fprime-util generate
           fprime-util build
+          fprime-util hash-to-file 0x72ad3277
