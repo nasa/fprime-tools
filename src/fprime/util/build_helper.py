@@ -18,38 +18,20 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from fprime.common.error import FprimeException
 from fprime.fbuild.builder import (
-    Target,
     Build,
     BuildType,
     GenerateException,
-    InvalidBuildCacheException,
+    Target,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.interaction import confirm, new_component, new_port
+from fprime.fbuild.cli import add_fbuild_parsers
+from fprime.fpp.cli import add_fpp_parsers
+from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
-
-
-def get_target(parsed: argparse.Namespace) -> Target:
-    """Gets the target given the argparse namespace
-
-    Takes the parsed namespace and processes it to a known matching target.
-
-    Args:
-        parsed: argparse namespace to read values from
-
-    Returns:
-        target that can support the given supplied namespace
-    """
-    mnemonic = parsed.command
-    flags = {
-        flag for flag in Target.get_all_possible_flags() if getattr(parsed, flag, False)
-    }
-    return Target.get_target(mnemonic, flags)
 
 
 def validate(parsed, unknown):
@@ -70,56 +52,10 @@ def validate(parsed, unknown):
         }
         cmake_args.update(d_args)
     # Build type only for generate, jobs only for non-generate
-    elif parsed.command not in ["info", "purge", "hash-to-file", "new"]:
+    elif parsed.command in Target.get_all_targets():
         parsed.settings = None  # Force to load from cache if possible
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
     return cmake_args, make_args
-
-
-def add_target_parser(
-    target: Target,
-    subparsers,
-    common: argparse.ArgumentParser,
-    existing: Dict[str, Tuple[argparse.ArgumentParser, List[str]]],
-):
-    """Add a subparser for a given build target
-
-    For a given build target, construct an argument parser with mnemonic as subcommand and needed flags. Then add it as
-    a subparser to the global parent. If it already exists in existing, then just add non-existent flags/
-
-    Args:
-        target:     target for building a new subparser
-        subparsers: argument parser to add a subparser to
-        common:     common subparser to be used as parent carrying common flags
-        existing:   dictionary storing the mnemonic to parser and flags tuple
-
-    Notes:
-        This functions has side effects of editing existing and the list of subparsers
-    """
-    if target.mnemonic not in existing:
-        parser = subparsers.add_parser(
-            target.mnemonic,
-            parents=[common],
-            add_help=False,
-            help="{} in the specified directory".format(target.desc),
-        )
-        # --ut flag also exists at the global parsers, skip adding it
-        existing[target.mnemonic] = (parser, ["ut"])
-        # Common target-only items
-        parser.add_argument(
-            "-j",
-            "--jobs",
-            default=1,
-            type=int,
-            help="Parallel build job count. Default: %(default)s.",
-        )
-    parser, flags = existing[target.mnemonic]
-    new_flags = [flag for flag in target.flags if flag not in flags]
-    for flag in new_flags:
-        parser.add_argument(
-            "--{}".format(flag), action="store_true", default=False, help=target.desc
-        )
-    flags.extend(new_flags)
 
 
 def parse_args(args):
@@ -163,78 +99,19 @@ def parse_args(args):
     )
 
     # Main parser for the whole application
-    parsers = {}
     parser = argparse.ArgumentParser(description="F prime helper application.")
     subparsers = parser.add_subparsers(
         description="F prime utility command line. Please run one of the commands. "
         + "For help, run a command with the --help flag.",
         dest="command",
     )
-    # Add non-target parsers
-    generate_parser = subparsers.add_parser(
-        "generate",
-        help="Generate a build cache directory. Defaults to generating a release build cache",
-        parents=[common_parser],
-        add_help=False,
-    )
-    generate_parser.add_argument(
-        "-Dxyz",
-        action="append",
-        help="Pass -D flags through to CMakes",
-        nargs=1,
-        default=[],
-    )
-    purge_parser = subparsers.add_parser(
-        "purge",
-        help="Purge build cache directories",
-        add_help=False,
-        parents=[common_parser],
-    )
-    purge_parser.add_argument(
-        "-f",
-        "--force",
-        default=False,
-        action="store_true",
-        help="Purges the build directory by force. No confirmation will be requested.",
-    )
-    # Add a search for hash function
-    hash_parser = subparsers.add_parser(
-        "hash-to-file",
-        help="Converts F prime build hash to filename.",
-        parents=[common_parser],
-        add_help=False,
-    )
-    hash_parser.add_argument(
-        "hash",
-        type=lambda x: int(x, 0),
-        help="F prime assert hash to associate with a file.",
-    )
 
-    # Add a search for hash function
-    subparsers.add_parser(
-        "info",
-        help="Gets fprime-util contextual information.",
-        parents=[common_parser],
-        add_help=False,
-    )
-    # New functionality
-    new_parser = subparsers.add_parser(
-        "new", help="Generate a new component", parents=[common_parser], add_help=False
-    )
-    new_parser.add_argument(
-        "--component",
-        default=False,
-        action="store_true",
-        help="Tells the new command to generate a component",
-    )
-    new_parser.add_argument(
-        "--port",
-        default=False,
-        action="store_true",
-        help="Tells the new command to generate a port",
-    )
-    for target in Target.get_all_targets():
-        add_target_parser(target, subparsers, common_parser, parsers)
+    # Add all externally defined cli parser command to running functions
+    runners = {}
+    runners.update(add_fbuild_parsers(subparsers, common_parser))
+    runners.update(add_fpp_parsers(subparsers, common_parser))
+    runners.update(add_special_parsers(subparsers, common_parser))
+
     # Parse and prepare to run
     parsed, unknown = parser.parse_known_args(args)
     bad = [bad for bad in unknown if not CMAKE_REG.match(bad)]
@@ -246,184 +123,35 @@ def parse_args(args):
         parser.print_help()
         sys.exit(1)
     cmake_args, make_args = validate(parsed, unknown)
-    return parsed, cmake_args, make_args, parser
-
-
-def print_info(parsed, deployment):
-    """Builds and prints the informational output block"""
-    cwd = Path(parsed.path)
-    build_types = BuildType
-
-    # Roll up targets for more concise display
-    build_infos = {}
-    local_generic_targets = set()
-    global_generic_targets = set()
-    # Loop through available builds and harvest targets
-    for build_type in build_types:
-        build = Build(build_type, deployment, verbose=parsed.verbose)
-        try:
-            build.load(cwd, parsed.platform)
-        except InvalidBuildCacheException:
-            print(
-                "[WARNING] Not displaying results for build type '{}', missing build cache.".format(
-                    build_type.get_cmake_build_type()
-                )
-            )
-            continue
-        build_info = build.get_build_info(cwd)
-        # Target list
-        local_targets = {
-            "'{}'".format(target) for target in build_info.get("local_targets", [])
-        }
-        global_targets = {
-            "'{}'".format(target) for target in build_info.get("global_targets", [])
-        }
-        build_artifacts = (
-            build_info.get("auto_location")
-            if build_info.get("auto_location") is not None
-            else "N/A"
-        )
-        local_generic_targets = local_generic_targets.union(local_targets)
-        global_generic_targets = global_generic_targets.union(global_targets)
-        build_infos[build_type] = build_artifacts
-
-    # Print out directory and deployment target sections
-    print("[INFO] Fprime build information:")
-    print("    Available directory targets: {}".format(" ".join(local_generic_targets)))
-    print()
-    print(
-        "    Available deployment targets: {}".format(" ".join(global_generic_targets))
-    )
-
-    # Artifact locations come afterwards
-    print("  ----------------------------------------------------------")
-    for build_type, build_artifact_location in build_infos.items():
-        format_string = "    {} build cache: {}"
-        print(
-            format_string.format(
-                build_type.get_cmake_build_type(), build_artifact_location
-            )
-        )
-    print()
-
-
-def print_hash_info(lines, hash_val):
-    """Prints out hash info from lines"""
-    # Print out lines when found
-    if lines:
-        print("[INFO] File(s) associated with hash 0x{:x}".format(hash_val))
-        for line in lines:
-            print("   ", line, end="")
-        return 0
-    print(
-        "[ERROR] No file hashes found in {} build. Do you need '--build-type Testing' for a unittest run?"
-    )
-    return 1
+    return parsed, cmake_args, make_args, parser, runners
 
 
 def utility_entry(args):
     """Main interface to F prime utility"""
-    parsed, cmake_args, make_args, parser = parse_args(args)
-    cwd = Path(parsed.path)
-
-    build_type = BuildType.BUILD_NORMAL
-    if parsed.ut:
-        build_type = BuildType.BUILD_TESTING
+    parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
+        cwd = Path(parsed.path)
+        build_type = BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
         deployment = (
             Path(parsed.deploy)
             if parsed.deploy is not None
             else Build.find_nearest_deployment(cwd)
         )
-        if parsed.command is None:
-            print("[ERROR] Must supply subcommand for fprime-util. See below.")
-            parser.print_help()
-            print_info(parsed, deployment)
-        elif parsed.command == "info":
-            print_info(parsed, deployment)
-        elif parsed.command == "new":
-            build = Build(build_type, deployment, verbose=parsed.verbose)
-            build.load(cwd)
-            if parsed.component and parsed.port:
-                print("[ERROR] Use --component or --port, not both.")
-            elif parsed.component:
-                return new_component(deployment, parsed.platform, parsed.verbose, build)
-            elif parsed.port:
-                return new_port(cwd, deployment, build)
-            else:
-                print(
-                    "[ERROR] Specify whether you would like to generate a component or a port."
-                )
-                print("Use --component or --port.")
-        elif parsed.command == "hash-to-file":
-            build = Build(build_type, deployment, verbose=parsed.verbose)
-            build.load(cwd, parsed.platform)
-            lines = build.find_hashed_file(parsed.hash)
-            return print_hash_info(lines, parsed.hash)
-        elif parsed.command == "generate":
-            build = Build(build_type, deployment, verbose=parsed.verbose)
-            build.invent(cwd, parsed.platform)
-            toolchain = build.find_toolchain()
-            print("[INFO] Generating build directory at: {}".format(build.build_dir))
-            print(
-                "[INFO] Using toolchain file {} for platform {}".format(
-                    toolchain, parsed.platform
-                )
-            )
-            if toolchain is not None:
-                cmake_args.update({"CMAKE_TOOLCHAIN_FILE": toolchain})
-            build.generate(cmake_args)
-        elif parsed.command == "purge":
-            for build_type in BuildType:
-                build = Build(build_type, deployment, verbose=parsed.verbose)
-                try:
-                    build.load(cwd, parsed.platform)
-                except InvalidBuildCacheException:
-                    continue
-                print(
-                    "[INFO] {} build directory at: {}".format(
-                        parsed.command.title(), build.build_dir
-                    )
-                )
-                if parsed.force or confirm("Purge this directory (yes/no)?"):
-                    build.purge()
+        build = Build(build_type, deployment, verbose=parsed.verbose)
 
-            build = Build(BuildType.BUILD_NORMAL, deployment, verbose=parsed.verbose)
-            try:
-                build.load(cwd, parsed.platform)
-            except InvalidBuildCacheException:
-                # Just load the install destination regardless of whether the build is valid.
-                pass
-
-            install_dir = build.install_dest_exists()
-            if install_dir is None:
-                return
-
-            print(
-                "[INFO] {} install directory at: {}".format(
-                    parsed.command.title(), install_dir
-                )
-            )
-            if parsed.force or confirm("Purge installation directory (yes/no)?"):
-                build.purge_install()
-        else:
-            target = get_target(parsed)
-            build = Build(target.build_type, deployment, verbose=parsed.verbose)
-            build.load(cwd, parsed.platform)
-            build.execute(target, context=Path(parsed.path), make_args=make_args)
+        # When not handling generate/purge we need a valid build cache and should load it
+        if parsed.command not in ["generate", "purge"]:
+            build.load(parsed.platform)
+        runners[parsed.command](build, parsed, cmake_args, make_args)
     except GenerateException as genex:
         print(
-            "[ERROR] {}. Partial build cache remains. Run purge to clean-up.".format(
-                genex
-            ),
+            f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
             file=sys.stderr,
         )
     except UnableToDetectDeploymentException:
-        print(
-            "[ERROR] Could not detect deployment directory for: {}".format(parsed.path)
-        )
+        print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
     except FprimeException as exc:
-        print("[ERROR] {}".format(exc), file=sys.stderr)
+        print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
     return 0

@@ -25,6 +25,8 @@ class BuildType(Enum):
     BUILD_NORMAL = (0,)
     """ Testing build allowing unit testing mapping to CMake 'Testing'"""  # pylint: disable=W0105
     BUILD_TESTING = 1
+    """ FPP locations build """
+    BUILD_FPP_LOCS = 2
 
     def get_suffix(self):
         """Get the suffix of a directory supporting this build"""
@@ -42,9 +44,16 @@ class BuildType(Enum):
             return "Release"
         if self == BuildType.BUILD_TESTING:
             return "Testing"
+        if self == BuildType.BUILD_FPP_LOCS:
+            return "Release"
         raise InvalidBuildTypeException(
             "{} is not a supported build type".format(self.name)
         )
+
+    @staticmethod
+    def get_public_types() -> List["BuildType"]:
+        """Returns public build types"""
+        return [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
 
 
 class Target(ABC):
@@ -210,7 +219,7 @@ class Build:
         self.cmake = CMakeHandler()
         self.cmake.set_verbose(verbose)
 
-    def invent(self, cwd: Path, platform: str = None, build_dir: Path = None):
+    def invent(self, platform: str = None, build_dir: Path = None):
         """Invents a build path from a given platform
 
         Sets this build up as a new build that would be used as as part of a generate step. This directory must not
@@ -229,13 +238,13 @@ class Build:
         Raises:
             InvalidBuildCacheException: a build cache already exists as it should not
         """
-        self.__setup_default(cwd, platform, build_dir)
+        self.__setup_default(platform, build_dir)
         if self.build_dir.exists():
             raise InvalidBuildCacheException(
                 "{} already exists.".format(self.build_dir)
             )
 
-    def load(self, cwd: Path, platform: str = None, build_dir: Path = None):
+    def load(self, platform: str = None, build_dir: Path = None):
         """Load an existing build cache
 
         Sets this build up from an existing build cache. This can be used after a previous run that has generated a
@@ -249,7 +258,7 @@ class Build:
         Raises:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
-        self.__setup_default(cwd, platform, build_dir)
+        self.__setup_default(platform, build_dir)
         if (
             not self.build_dir.exists()
             or not (self.build_dir / "CMakeCache.txt").exists()
@@ -521,7 +530,7 @@ class Build:
                 return full_path
         return Build.find_nearest_deployment(full_path.parent)
 
-    def __setup_default(self, cwd: Path, platform: str = None, build_dir: Path = None):
+    def __setup_default(self, platform: str = None, build_dir: Path = None):
         """Sets up default build
 
         Sets this build up before determining if it is a pre-generated, or post-generated build.
@@ -538,7 +547,7 @@ class Build:
         assert self.platform is None, "Already setup it is invalid to re-setup"
         assert self.build_dir is None, "Already setup it is invalid to re-setup"
 
-        self.settings = IniSettings.load(self.deployment / "settings.ini", cwd)
+        self.settings = IniSettings.load(self.deployment / "settings.ini")
 
         if platform is not None and platform != "default":
             self.platform = platform
