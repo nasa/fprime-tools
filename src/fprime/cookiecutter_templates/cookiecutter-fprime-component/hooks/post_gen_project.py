@@ -124,7 +124,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
 def main():
     cwd = Path(os.getcwd())
     deployment = Build.find_nearest_deployment(cwd)
-    settings = IniSettings.load(Path(deployment, "settings.ini"), cwd)
+    settings = IniSettings.load(Path(deployment, "settings.ini"))
     if settings.get("project_root") is None:
         proj_root_found = False
     else:

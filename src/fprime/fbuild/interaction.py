@@ -408,7 +408,7 @@ def get_port_input(namespace):
     return values
 
 
-def new_port(cwd: Path, deployment: Path, build: Build):
+def new_port(deployment: Path, build: Build):
     """Uses cookiecutter for making new ports"""
     try:
         proj_root = build.get_settings("project_root", None)

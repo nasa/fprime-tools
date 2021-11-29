@@ -67,25 +67,21 @@ class IniSettings:
         return expanded
 
     @staticmethod
-    def load(settings_file: Path, cwd: Path):
+    def load(settings_file: Path):
         """
         Load settings from specified file or from specified build directory. Either a specific file or the build
         directory must be not None.
 
-        :param settings_file: (optional) file to load settings from (in INI format). Must be specified if build_dir is not.
-        :param build_dir: (optional) directory to search for settings.ini. Must be specified if file is not.
+        :param settings_file: file to load settings from (in INI format). Must be specified if build_dir is not.
         :return: a dictionary of needed settings
         """
-        settings_file = (
-            settings_file if settings_file is not None else Path(IniSettings.DEF_FILE)
-        ).resolve()
-
-        dfl_install_dest = Path(settings_file.resolve().parent, "build-artifacts")
+        settings_file = settings_file.resolve()
+        dfl_install_dest = Path(settings_file.parent, "build-artifacts")
 
         # Check file existence if specified
         if not os.path.exists(settings_file):
             print("[WARNING] Failed to find settings file: {}".format(settings_file))
-            fprime_location = IniSettings.find_fprime(cwd)
+            fprime_location = IniSettings.find_fprime(settings_file.parent)
             return {"framework_path": fprime_location, "install_dest": dfl_install_dest}
         confparse = configparser.ConfigParser()
         confparse.read(settings_file)
@@ -94,7 +90,7 @@ class IniSettings:
             confparse, "fprime", "framework_path", settings_file
         )
         if not fprime_location:
-            fprime_location = IniSettings.find_fprime(cwd)
+            fprime_location = IniSettings.find_fprime(settings_file.parent)
         else:
             fprime_location = Path(fprime_location[0])
         # Read project root if it is available
