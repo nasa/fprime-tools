@@ -3,16 +3,20 @@ Common implementations for FPP tool wrapping
 
 @author mstarch
 """
+import subprocess
 from typing import List, Dict
 from pathlib import Path
+
+from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build, BuildType, GlobalTarget
+
 
 FPP_TARGETS = [GlobalTarget("fpp-locs", "Generate/regenerate the fpp-locs file")]
 FPP_LOCS_DIR = "fpp-locs"
 
 
 def fpp_get_locations_file(
-    cwd: Path, build_cache: Build, make_args: Dict[str, str]
+    cwd: Path, build: Build, make_args: Dict[str, str], refresh: bool = True
 ) -> Path:
     """
     Refreshes the fpp locations file and returns the path to it
@@ -22,41 +26,73 @@ def fpp_get_locations_file(
 
     Args:
         cwd: current working directory
-        build_cache: build cache of the current directory
+        build: build cache of the current directory
         make_args: arguments to pass to the make system
     Returns:
         path to the fpp locations file
     """
-    fpp_build_cache_path = build_cache.build_dir / FPP_LOCS_DIR
-    locs_cache = Build(
-        BuildType.BUILD_FPP_LOCS, build_cache.deployment, build_cache.cmake.verbose
-    )
-    locs_cache.load(build_cache.platform, build_dir=fpp_build_cache_path)
+    fpp_build_cache_path = build.build_dir / FPP_LOCS_DIR
+    if refresh:
+        locs_cache = Build(
+            BuildType.BUILD_FPP_LOCS, build.deployment, build.cmake.verbose
+        )
+        locs_cache.load(build.platform, build_dir=fpp_build_cache_path)
 
-    locs_cache.execute(FPP_TARGETS[0], context=Path(cwd), make_args=make_args)
+        locs_cache.execute(FPP_TARGETS[0], context=Path(cwd), make_args=make_args)
     return fpp_build_cache_path / "locs.fpp"
 
 
-def fpp_dependencies(
-    cwd: Path, build_cache: Build, make_args: Dict[str, str]
-) -> List[Path]:
+def fpp_dependencies(cwd: Path, build: Build, make_args: Dict[str, str]) -> List[Path]:
     """
     Gets a list of FPP paths that are dependencies of the current module
 
-    TODO: fill in a full description here
+    Mines the dependencies from the memo file within the build cache. This is done because there is no clean way to get
+    a list of autocoder sources from within the build system for external use, however; the memo file acts like an
+    export of the information we do need. This function extracts that.
 
     Args:
         cwd: current working directory
-        build_cache: build cache used for work
+        build: build cache used for work
         make_args: make arguments
 
     Returns:
         List of paths to fpp file dependencies of the given directory
     """
-    return []
+    # Force a refresh of the cache, to ensure the memo file is updated and as a by-product the locs file is updated
+    build.cmake.cmake_refresh_cache(build.build_dir)
+
+    build_info = build.get_build_info(cwd)
+    directory_info = build_info.get("auto_location")
+    if not directory_info:
+        raise FppCannotException(
+            "Could not find build cache folder. Perhaps directory is outside build?"
+        )
+    deps_file = directory_info / "autocoder" / "fpp.multiple.dep"
+    if not deps_file.exists():
+        raise FppCannotException(
+            "No fpp dependency memo found. Perhaps directory is outside build?"
+        )
+    with open(deps_file, "r") as file_handle:
+        lines = file_handle.readlines()
+    if len(lines) < 4:
+        raise FppCannotException(
+            "No fpp dependency memo malformed. Purge and regenerate?"
+        )
+    return [Path(item) for item in lines[3].strip().split(";")]
 
 
-def fpp_check(cwd: Path, build_cache: Build, make_args: Dict[str, str]) -> List[Path]:
-    """TODO:"""
-    dependencies = fpp_dependencies(cwd, build_cache, make_args)
-    # TODO: run fpp-check here.
+def run_fpp_util(
+    cwd: Path, build: Build, make_args: Dict[str, str], util: str, util_args: List[str]
+):
+
+    dependencies = fpp_dependencies(cwd, build, make_args)
+    locs_file = fpp_get_locations_file(
+        cwd, build, make_args, False
+    )  # Avoid refresh iff after fpp_dependencies
+
+    app_args = [util] + util_args + [str(item) for item in ([locs_file] + dependencies)]
+    return subprocess.run(app_args, capture_output=False)
+
+
+class FppCannotException(FprimeException):
+    """Cannot run fpp"""

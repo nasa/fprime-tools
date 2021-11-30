@@ -81,6 +81,7 @@ firest
 floordiv
 FPGA
 fprime
+fpp
 fromkeys
 fromtimestamp
 func
@@ -122,6 +123,7 @@ len
 LGTM
 lgtm
 Linux
+locs
 lstrip
 lxml
 makedirs
