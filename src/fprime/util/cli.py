@@ -23,7 +23,7 @@ def print_info(
     information and prints it to the screen.
 
     Args:
-        base: base build used to find other builds including informaiton
+        base: base build used to find other builds including information
         parsed: parsed command namespace
         _: unused cmake arguments
         __: unused make arguments

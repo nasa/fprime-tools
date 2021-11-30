@@ -72,6 +72,8 @@ class CMakeHandler:
         make_args=None,
         top_target=False,
         environment=None,
+        full_cache_rebuild=False,
+        print_output=True,
     ):
         """
         Executes a known target for a given build_dir. Path will default to a known path.
@@ -82,6 +84,8 @@ class CMakeHandler:
         :param cmake_args: cmake args input
         :param top_target: top-level target. Do not append path name
         :param environment: environment to setup when executing CMake
+        :param full_cache_rebuild: rebuild the cache fully. Default: False, use the short version
+        :param print_output: should this call print output. Default: True, print output
         :return: return code from CMake
         """
         assert build_dir is not None, "Invalid build dir supplied"
@@ -94,14 +98,19 @@ class CMakeHandler:
             map(lambda key: "{}={}".format(key, make_args[key]), make_args.keys())
         )
 
-        module = self.get_cmake_module(path, build_dir)
-        cmake_target = (
-            module
-            if target == ""
-            else (
-                "{}_{}".format(module, target).lstrip("_") if not top_target else target
+        if target != "" and top_target:
+            cmake_target = target
+        else:
+            module = self.get_cmake_module(path, build_dir)
+            cmake_target = (
+                module
+                if target == ""
+                else (
+                    "{}_{}".format(module, target).lstrip("_")
+                    if not top_target
+                    else target
+                )
             )
-        )
         run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
@@ -113,7 +122,10 @@ class CMakeHandler:
 
         try:
             return self._run_cmake(
-                run_args + fleshed_args, write_override=True, environment=environment
+                run_args + fleshed_args,
+                write_override=True,
+                environment=environment,
+                print_output=print_output,
             )
         except CMakeExecutionException as exc:
             no_target = functools.reduce(
@@ -126,9 +138,12 @@ class CMakeHandler:
             print(
                 "[CMAKE] CMake failed to detect target, attempting CMake cache refresh and retry"
             )
-            self.cmake_refresh_cache(build_dir)
+            self.cmake_refresh_cache(build_dir, full=full_cache_rebuild)
             return self._run_cmake(
-                run_args + fleshed_args, write_override=True, environment=environment
+                run_args + fleshed_args,
+                write_override=True,
+                environment=environment,
+                print_output=print_output,
             )
 
     def get_include_locations(self, cmake_dir):
@@ -398,21 +413,39 @@ class CMakeHandler:
         if not os.path.isfile(cache_file):
             raise CMakeInvalidBuildException(build_dir)
 
-    def cmake_refresh_cache(self, build_dir):
+    def cmake_refresh_cache(self, build_dir, full=False):
         """
         Runs the cmake  target required to refresh the cmake cache. This will allow for unknown targets to be searched
         for before the utility gives up and produces.
 
         :param build_dir: directory to build in
+        :param full: full re-generate of the cache. Default: false, attempt to build 'noop' target instead
         """
-        environment = {}
-        run_args = ["--build", build_dir]
-        if self.verbose:
-            print("[CMAKE] Refreshing CMake build cache")
-            environment["VERBOSE"] = "1"
-        run_args.extend(["--target", "rebuild_cache"])
-        self._cmake_cache = None  # Clear internal cache of cmake variables
-        self._run_cmake(run_args, write_override=True, environment=environment)
+        if full:
+            environment = {}
+            run_args = ["--build", build_dir]
+            if self.verbose:
+                print("[CMAKE] Refreshing CMake build cache")
+                environment["VERBOSE"] = "1"
+            run_args.extend(["--target", "rebuild_cache"])
+            self._cmake_cache = None  # Clear internal cache of cmake variables
+            self._run_cmake(
+                run_args,
+                write_override=True,
+                environment=environment,
+                print_output=False,
+            )
+        else:
+            if self.verbose:
+                print("[CMAKE] Checking CMake cache for rebuild")
+            self.execute_known_target(
+                "noop",
+                build_dir,
+                None,
+                top_target=True,
+                full_cache_rebuild=True,
+                print_output=False,
+            )
 
     def _run_cmake(
         self,
