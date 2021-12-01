@@ -36,7 +36,7 @@ def run_fpp_deps(
     _: Dict[str, str],
     make_args: Dict[str, str],
 ):
-    """Runs the fpp_locs command
+    """Runs the fpp_deps command
 
     Args:
         build: build cache

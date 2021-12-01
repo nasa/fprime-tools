@@ -75,7 +75,11 @@ class IniSettings:
         :param settings_file: file to load settings from (in INI format). Must be specified if build_dir is not.
         :return: a dictionary of needed settings
         """
-        settings_file = (Path.cwd() / IniSettings.DEF_FILE if settings_file is None else settings_file).resolve()
+        settings_file = (
+            Path.cwd() / IniSettings.DEF_FILE
+            if settings_file is None
+            else settings_file
+        ).resolve()
         dfl_install_dest = Path(settings_file.parent, "build-artifacts")
 
         # Check file existence if specified
