@@ -223,6 +223,7 @@ tzinfo
 uint
 Uncomment
 undoc
+uninstall
 unittest
 unt
 url
