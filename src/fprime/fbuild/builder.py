@@ -443,8 +443,20 @@ class Build:
             cmake_args["FPRIME_LIBRARY_LOCATIONS"] = ";".join(
                 cmake_args["FPRIME_LIBRARY_LOCATIONS"]
             )
-
-        cmake_args.update({"CMAKE_BUILD_TYPE": self.build_type.get_cmake_build_type()})
+        # When the new v3 autocoder directory exists, this means we can use the new UT api and preserve the build type
+        v3_autocoder_directory = Path(
+            cmake_args.get("FPRIME_FRAMEWORK_PATH") / "cmake" / "autocoder"
+        )
+        if (
+            v3_autocoder_directory.exists()
+            and self.build_type == BuildType.BUILD_TESTING
+        ):
+            cmake_args.update({"BUILD_TESTING": "ON"})
+            cmake_args.update(
+                {"CMAKE_BUILD_TYPE": cmake_args.get("CMAKE_BUILD_TYPE", "Debug")}
+            )
+        elif self.build_type == BuildType.BUILD_TESTING:
+            cmake_args.update({"CMAKE_BUILD_TYPE": "Testing"})
         return cmake_args
 
     def execute(self, target: Target, context: Path, make_args: dict):
