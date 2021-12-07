@@ -28,22 +28,12 @@ def print_info(
         _: unused cmake arguments
         __: unused make arguments
     """
-    build_types = BuildType.get_public_types()
-
     # Roll up targets for more concise display
     build_infos = {}
     local_generic_targets = set()
     global_generic_targets = set()
     # Loop through available builds and harvest targets
-    for build_type in build_types:
-        build = Build(base.build_type, base.deployment, verbose=parsed.verbose)
-        try:
-            build.load(parsed.platform)
-        except InvalidBuildCacheException:
-            print(
-                f"[WARNING] No results for build type '{build_type.get_cmake_build_type()}', missing build cache."
-            )
-            continue
+    for build in Build.get_build_list(base, parsed.build_cache):
         build_info = build.get_build_info(Path(parsed.path))
         # Target list
         local_targets = {
@@ -59,7 +49,7 @@ def print_info(
         )
         local_generic_targets = local_generic_targets.union(local_targets)
         global_generic_targets = global_generic_targets.union(global_targets)
-        build_infos[build_type] = build_artifacts
+        build_infos[build.build_type] = build_artifacts
 
     # Print out directory and deployment target sections
     print(f"[INFO] Fprime build information:")
