@@ -14,7 +14,7 @@ from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
 from fprime.fbuild.builder import Build, Target
-from fprime.fbuild.cmake import CMakeExecutionException, CMakeHandler
+from fprime.fbuild.cmake import CMakeExecutionException
 
 
 def confirm(msg):
