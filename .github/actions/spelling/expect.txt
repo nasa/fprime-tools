@@ -67,6 +67,7 @@ Dxyz
 elif
 endfor
 endif
+endswith
 enum
 excinfo
 exe

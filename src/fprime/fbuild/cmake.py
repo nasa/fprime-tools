@@ -433,7 +433,7 @@ class CMakeHandler:
                 run_args,
                 write_override=True,
                 environment=environment,
-                print_output=False,
+                print_output=self.verbose,
             )
         else:
             if self.verbose:
@@ -444,7 +444,7 @@ class CMakeHandler:
                 None,
                 top_target=True,
                 full_cache_rebuild=True,
-                print_output=False,
+                print_output=self.verbose,
             )
 
     def _run_cmake(

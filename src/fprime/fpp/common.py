@@ -4,12 +4,13 @@ Common implementations for FPP tool wrapping
 @author mstarch
 """
 import subprocess
+import sys
 from typing import List, Dict
 from pathlib import Path
 
 from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build, BuildType, GlobalTarget
-
+from fprime.fbuild.cmake import CMakeExecutionException
 
 FPP_TARGETS = [GlobalTarget("fpp-locs", "Generate/regenerate the fpp-locs file")]
 FPP_LOCS_DIR = "fpp-locs"
@@ -28,6 +29,7 @@ def fpp_get_locations_file(
         cwd: current working directory
         build: build cache of the current directory
         make_args: arguments to pass to the make system
+        refresh: force an update to the fpp locs file
     Returns:
         path to the fpp locations file
     """
@@ -37,7 +39,7 @@ def fpp_get_locations_file(
             BuildType.BUILD_FPP_LOCS, build.deployment, build.cmake.verbose
         )
         locs_cache.load(build.platform, build_dir=fpp_build_cache_path)
-
+        print("[INFO] Updating fpp locations file. This may take some time.")
         locs_cache.execute(FPP_TARGETS[0], context=Path(cwd), make_args=make_args)
     return fpp_build_cache_path / "locs.fpp"
 
@@ -59,9 +61,16 @@ def fpp_dependencies(cwd: Path, build: Build, make_args: Dict[str, str]) -> List
         List of paths to fpp file dependencies of the given directory
     """
     # Force a refresh of the cache, to ensure the memo file is updated and as a by-product the locs file is updated
-    build.cmake.cmake_refresh_cache(build.build_dir)
+    print(
+        "[INFO] Updating fpp locations file and build cache. This may take some time."
+    )
+    try:
+        build.cmake.cmake_refresh_cache(build.build_dir)
+        build_info = build.get_build_info(cwd)
+    except CMakeExecutionException as error:
+        print("".join(error.stderr), file=sys.stderr)
+        raise
 
-    build_info = build.get_build_info(cwd)
     directory_info = build_info.get("auto_location")
     if not directory_info:
         raise FppCannotException(
@@ -78,7 +87,11 @@ def fpp_dependencies(cwd: Path, build: Build, make_args: Dict[str, str]) -> List
         raise FppCannotException(
             "No fpp dependency memo malformed. Purge and regenerate?"
         )
-    return [Path(item) for item in lines[3].strip().split(";")]
+    make_paths = lambda line: [
+        Path(item) for item in line.strip().split(";") if item.endswith(".fpp")
+    ]
+    all_paths = make_paths(lines[2]) + make_paths(lines[3])
+    return all_paths
 
 
 def run_fpp_util(
@@ -91,6 +104,8 @@ def run_fpp_util(
     )  # Avoid refresh iff after fpp_dependencies
 
     app_args = [util] + util_args + [str(item) for item in ([locs_file] + dependencies)]
+    if build.cmake.verbose:
+        print(f"[FPP] '{' '.join(app_args)}'")
     return subprocess.run(app_args, capture_output=False)
 
 
