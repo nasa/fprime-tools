@@ -24,10 +24,11 @@ from fprime.fbuild.builder import (
     Build,
     BuildType,
     GenerateException,
+    NoSuchTargetException,
     Target,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.cli import add_fbuild_parsers
+from fprime.fbuild.cli import add_fbuild_parsers, get_target
 from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
@@ -132,7 +133,15 @@ def utility_entry(args):
 
     try:
         cwd = Path(parsed.path)
-        build_type = BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
+
+        try:
+            target = get_target(parsed)
+            build_type = target.build_type
+        except NoSuchTargetException:
+            build_type = (
+                BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
+            )
+
         deployment = (
             Path(parsed.deploy)
             if parsed.deploy is not None
