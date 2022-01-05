@@ -50,6 +50,14 @@ to interact with the data coming from the FSW.
     ####
     packages=find_packages("src"),
     package_dir={"": "src"},
+    package_data={
+        "fprime": [
+            "cookiecutter_templates/*",
+            "cookiecutter_templates/*/*",
+            "cookiecutter_templates/*/*/*",
+            "cookiecutter_templates/*/*/*/*",
+        ]
+    },
     ####
     # Classifiers:
     #
