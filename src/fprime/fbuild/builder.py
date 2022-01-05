@@ -620,7 +620,13 @@ BUILD_TARGETS = [
     ),
     # Implementation targets
     LocalTarget("impl", "Generate implementation template files"),
-    LocalTarget("impl", "Generate unit test files", flags={"ut"}, cmake="testimpl"),
+    LocalTarget(
+        "impl",
+        "Generate unit test files",
+        flags={"ut"},
+        cmake="testimpl",
+        build_type=BuildType.BUILD_TESTING,
+    ),
     # Check targets and unittest targets
     LocalTarget("check", "Run unit tests", build_type=BuildType.BUILD_TESTING),
     LocalTarget(
