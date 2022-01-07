@@ -158,6 +158,7 @@ def utility_entry(args):
             f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
             file=sys.stderr,
         )
+        return genex.exit_code
     except UnableToDetectDeploymentException:
         print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
         return 1
