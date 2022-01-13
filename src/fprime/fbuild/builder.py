@@ -496,7 +496,7 @@ class Build:
                 environment=self.settings.get("environment", None),
             )
         except CMakeException as cexc:
-            raise GenerateException(str(cexc)) from cexc
+            raise GenerateException(str(cexc), cexc.exit_code) from cexc
 
     def purge(self):
         """Purge a build cache directory"""
@@ -573,6 +573,10 @@ class Build:
 
 class GenerateException(FprimeException):
     """An exception indicating generate has failed and the user may need to respond"""
+
+    def __init__(self, message, exit_code=1):
+        super().__init__(message)
+        self.exit_code = exit_code
 
 
 class InvalidBuildTypeException(FprimeException):

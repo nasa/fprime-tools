@@ -507,6 +507,7 @@ class CMakeHandler:
                 "CMake erred with return code {}".format(proc.returncode),
                 stderr,
                 print_output,
+                ret,
             )
         return stdout, stderr
 
@@ -567,6 +568,10 @@ class CMakeHandler:
 class CMakeException(FprimeException):
     """Error occurred within this CMake package"""
 
+    def __init__(self, message, exit_code=1):
+        super().__init__(message)
+        self.exit_code = exit_code
+
 
 class CMakeInconsistentCacheException(CMakeException):
     """Project CMakeCache.txt is inconsistent with settings.ini file"""
@@ -613,9 +618,9 @@ class CMakeInvalidBuildException(CMakeException):
 class CMakeExecutionException(CMakeException):
     """Pass up a CMake Error as an Exception"""
 
-    def __init__(self, message, stderr, printed):
+    def __init__(self, message, stderr, printed, exit_code=1):
         """The error data should be stored"""
-        super().__init__(message)
+        super().__init__(message, exit_code)
         self.stderr = stderr
         self.need = not printed
 
