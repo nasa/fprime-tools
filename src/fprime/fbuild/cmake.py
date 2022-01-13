@@ -478,7 +478,7 @@ class CMakeHandler:
         cargs.extend(arguments)
         if self.verbose:
             print("[CMAKE] '{}'".format(" ".join(cargs)))
-            for key, val in cm_environ.items():
+            for key, val in sorted(cm_environ.items(), key=lambda x: x[0]):
                 print("[CMAKE]     {}={}".format(key, val))
 
         # In order to get proper console highlighting while still getting access to the output, we need to create a
