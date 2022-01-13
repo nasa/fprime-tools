@@ -536,7 +536,7 @@ class Build:
         if not full_path.parents:
             raise UnableToDetectDeploymentException()
         if list_file.exists():
-            with open(list_file) as file_handle:
+            with open(list_file, encoding="utf8") as file_handle:
                 text = file_handle.read()
             if Build.VALID_CMAKE_LIST.search(text):
                 return full_path
