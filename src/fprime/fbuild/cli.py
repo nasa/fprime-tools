@@ -8,7 +8,7 @@ target operations.
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple, Callable
-from fprime.fbuild.builder import Target, BuildType, Build, InvalidBuildCacheException
+from fprime.fbuild.builder import Target, BuildType, Build
 from fprime.fbuild.interaction import confirm
 
 

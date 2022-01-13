@@ -10,7 +10,7 @@ import sys
 
 from pathlib import Path
 from typing import Dict, Callable
-from fprime.fbuild.builder import Build, BuildType, InvalidBuildCacheException
+from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.fbuild.interaction import new_component, new_port
 
 
