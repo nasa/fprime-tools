@@ -393,7 +393,7 @@ class CMakeHandler:
         if not os.path.isfile(cmake_file):
             raise CMakeProjectException(source_dir, "No CMakeLists.txt is defined")
         # Test the cmake_file for project(
-        with open(cmake_file) as file_handle:
+        with open(cmake_file, encoding="utf8") as file_handle:
             project_lines = list(
                 filter(lambda line: "project(" in line, file_handle.readlines())
             )
