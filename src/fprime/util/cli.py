@@ -45,7 +45,7 @@ def print_info(
         build_artifacts = (
             build_info.get("auto_location")
             if build_info.get("auto_location") is not None
-            else "N/A"
+            else "N/A", build_info.get("build_dir", "Unknown")
         )
         local_generic_targets = local_generic_targets.union(local_targets)
         global_generic_targets = global_generic_targets.union(global_targets)
@@ -59,9 +59,12 @@ def print_info(
 
     # Artifact locations come afterwards
     print("  ----------------------------------------------------------")
-    for build_type, build_artifact_location in build_infos.items():
+    for build_type, (build_artifact_location, global_build_cache) in build_infos.items():
         print(
-            f"    {build_type.get_cmake_build_type()} build cache: {build_artifact_location}"
+            f"    {build_type.get_cmake_build_type()} build cache module directory: {build_artifact_location}"
+        )
+        print(
+            f"    {build_type.get_cmake_build_type()} build cache: {global_build_cache}"
         )
     print()
 
@@ -80,7 +83,7 @@ def hash_to_file(
     lines = build.find_hashed_file(parsed.hash)
     if not lines:
         raise InvalidBuildCacheException(
-            "No hashes.txt found. Do you need '--ut' for a unittest run?"
+            f"Hash 0x{parsed.hash:x} not found. Do you need '--ut' for a unittest run?"
         )
     print("[INFO] File(s) associated with hash 0x{:x}".format(parsed.hash))
     for line in lines:

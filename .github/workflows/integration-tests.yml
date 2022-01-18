@@ -46,4 +46,4 @@ jobs:
         run: |
           fprime-util generate --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
-          fprime-util hash-to-file 0x6d98b892 --build-cache ./special-cache
+          fprime-util hash-to-file 0x2ed4bda6 --build-cache ./special-cache

@@ -48,6 +48,8 @@ class BuildType(Enum):
             return "Testing"
         if self == BuildType.BUILD_FPP_LOCS:
             return "Release"
+        if self == BuildType.BUILD_CUSTOM:
+            return "Custom"
         raise InvalidBuildTypeException(
             "{} is not a supported build type".format(self.name)
         )
@@ -311,7 +313,7 @@ class Build:
             )
         with open(hashes_file) as file_handle:
             lines = filter(
-                lambda line: "{:x}".format(hash_value) in line, file_handle.readlines()
+                lambda line: hash_value == int(line.split(" ")[-1], 0), file_handle.readlines()
             )
         return list(lines)
 
@@ -369,6 +371,7 @@ class Build:
             "local_targets": local_targets,
             "global_targets": global_targets,
             "auto_location": auto_location,
+            "build_dir": self.build_dir
         }
 
     def find_toolchain(self):
