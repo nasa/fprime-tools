@@ -10,7 +10,7 @@ import sys
 
 from pathlib import Path
 from typing import Dict, Callable
-from fprime.fbuild.builder import Build, BuildType, InvalidBuildCacheException
+from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.fbuild.interaction import new_component, new_port
 
 
@@ -28,22 +28,12 @@ def print_info(
         _: unused cmake arguments
         __: unused make arguments
     """
-    build_types = BuildType.get_public_types()
-
     # Roll up targets for more concise display
     build_infos = {}
     local_generic_targets = set()
     global_generic_targets = set()
     # Loop through available builds and harvest targets
-    for build_type in build_types:
-        build = Build(base.build_type, base.deployment, verbose=parsed.verbose)
-        try:
-            build.load(parsed.platform)
-        except InvalidBuildCacheException:
-            print(
-                f"[WARNING] No results for build type '{build_type.get_cmake_build_type()}', missing build cache."
-            )
-            continue
+    for build in Build.get_build_list(base, parsed.build_cache):
         build_info = build.get_build_info(Path(parsed.path))
         # Target list
         local_targets = {
@@ -55,11 +45,12 @@ def print_info(
         build_artifacts = (
             build_info.get("auto_location")
             if build_info.get("auto_location") is not None
-            else "N/A"
+            else "N/A",
+            build_info.get("build_dir", "Unknown"),
         )
         local_generic_targets = local_generic_targets.union(local_targets)
         global_generic_targets = global_generic_targets.union(global_targets)
-        build_infos[build_type] = build_artifacts
+        build_infos[build.build_type] = build_artifacts
 
     # Print out directory and deployment target sections
     print(f"[INFO] Fprime build information:")
@@ -69,9 +60,15 @@ def print_info(
 
     # Artifact locations come afterwards
     print("  ----------------------------------------------------------")
-    for build_type, build_artifact_location in build_infos.items():
+    for build_type, (
+        build_artifact_location,
+        global_build_cache,
+    ) in build_infos.items():
         print(
-            f"    {build_type.get_cmake_build_type()} build cache: {build_artifact_location}"
+            f"    {build_type.get_cmake_build_type()} build cache module directory: {build_artifact_location}"
+        )
+        print(
+            f"    {build_type.get_cmake_build_type()} build cache: {global_build_cache}"
         )
     print()
 
@@ -90,7 +87,7 @@ def hash_to_file(
     lines = build.find_hashed_file(parsed.hash)
     if not lines:
         raise InvalidBuildCacheException(
-            "No hashes.txt found. Do you need '--ut' for a unittest run?"
+            f"Hash 0x{parsed.hash:x} not found. Do you need '--ut' for a unittest run?"
         )
     print("[INFO] File(s) associated with hash 0x{:x}".format(parsed.hash))
     for line in lines:

@@ -27,6 +27,8 @@ class BuildType(Enum):
     BUILD_TESTING = 1
     """ FPP locations build """
     BUILD_FPP_LOCS = 2
+    """ User custom build """
+    BUILD_CUSTOM = 3
 
     def get_suffix(self):
         """Get the suffix of a directory supporting this build"""
@@ -46,6 +48,8 @@ class BuildType(Enum):
             return "Testing"
         if self == BuildType.BUILD_FPP_LOCS:
             return "Release"
+        if self == BuildType.BUILD_CUSTOM:
+            return "Custom"
         raise InvalidBuildTypeException(
             "{} is not a supported build type".format(self.name)
         )
@@ -309,7 +313,8 @@ class Build:
             )
         with open(hashes_file) as file_handle:
             lines = filter(
-                lambda line: "{:x}".format(hash_value) in line, file_handle.readlines()
+                lambda line: hash_value == int(line.split(" ")[-1], 0),
+                file_handle.readlines(),
             )
         return list(lines)
 
@@ -367,6 +372,7 @@ class Build:
             "local_targets": local_targets,
             "global_targets": global_targets,
             "auto_location": auto_location,
+            "build_dir": self.build_dir,
         }
 
     def find_toolchain(self):
@@ -541,6 +547,38 @@ class Build:
             if Build.VALID_CMAKE_LIST.search(text):
                 return full_path
         return Build.find_nearest_deployment(full_path.parent)
+
+    @staticmethod
+    def get_build_list(base, build_cache=None):
+        """Returns a list of builds that the tool will process
+
+        Will return a list of builds the tool will process. This will be a build for each public build type unless the
+        cache has been overridden.  If overridden, this will be one build pointed at that cache.
+
+        Args:
+            base: base build identified from command line. Used to get: deployment, platform,
+            build_cache: (optional) path to specified build cache.
+
+        Returns:
+            List of builds for public build types, or list of one for a custom build at build cache
+        """
+        build_types = (
+            [BuildType.BUILD_CUSTOM]
+            if build_cache is not None
+            else BuildType.get_public_types()
+        )
+        builds = []
+        for build_type in build_types:
+            build = Build(build_type, base.deployment, verbose=base.cmake.verbose)
+            try:
+                build.load(base.platform, build_dir=build_cache)
+                builds.append(build)
+            except InvalidBuildCacheException as error:
+                if build_cache is None:
+                    print(f"[WARNING] No build cache found with error '{error}'.")
+                    continue
+                raise
+        return builds
 
     def __setup_default(self, platform: str = None, build_dir: Path = None):
         """Sets up default build

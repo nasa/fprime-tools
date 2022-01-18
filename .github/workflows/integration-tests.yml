@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
-        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c] , [devel, 521516c]]
+        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
 
     steps:
       - uses: actions/checkout@v2
@@ -41,3 +41,9 @@ jobs:
           fprime-util generate
           fprime-util build
           fprime-util hash-to-file 0x72ad3277
+      - name: Test special generation on Ref
+        working-directory: fprime/Ref
+        run: |
+          fprime-util generate --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
+          fprime-util build --build-cache ./special-cache
+          fprime-util hash-to-file 0x2ed4bda6 --build-cache ./special-cache

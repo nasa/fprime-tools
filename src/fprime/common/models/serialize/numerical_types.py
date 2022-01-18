@@ -44,6 +44,7 @@ class NumericalType(ValueType, abc.ABC):
     @abc.abstractmethod
     def get_serialize_format():
         """Gets the format serialization string such that the class can be serialized via struct"""
+        raise NotImplementedError("get_serialize_format")
 
     def serialize(self):
         """Serializes this type using struct and the val property"""

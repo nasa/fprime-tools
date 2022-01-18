@@ -56,6 +56,9 @@ def validate(parsed, unknown):
     elif parsed.command in Target.get_all_targets():
         parsed.settings = None  # Force to load from cache if possible
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
+    parsed.build_cache = (
+        None if parsed.build_cache is None else Path(parsed.build_cache)
+    )
     return cmake_args, make_args
 
 
@@ -87,6 +90,12 @@ def parse_args(args):
         "--path",
         default=os.getcwd(),
         help="F prime directory to operate on. Default: cwd, %(default)s.",
+    )
+    common_parser.add_argument(
+        "--build-cache",
+        dest="build_cache",
+        default=None,
+        help="Overrides the build cache with a specific directory",
     )
     common_parser.add_argument(
         "-v",
@@ -151,7 +160,7 @@ def utility_entry(args):
 
         # When not handling generate/purge we need a valid build cache and should load it
         if parsed.command not in ["generate", "purge"]:
-            build.load(parsed.platform)
+            build.load(parsed.platform, parsed.build_cache)
         runners[parsed.command](build, parsed, cmake_args, make_args)
     except GenerateException as genex:
         print(

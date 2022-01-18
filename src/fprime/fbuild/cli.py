@@ -8,7 +8,7 @@ target operations.
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple, Callable
-from fprime.fbuild.builder import Target, BuildType, Build, InvalidBuildCacheException
+from fprime.fbuild.builder import Target, BuildType, Build
 from fprime.fbuild.interaction import confirm
 
 
@@ -45,7 +45,7 @@ def run_fbuild_cli(
         make_args: arguments to the make system
     """
     if parsed.command == "generate":
-        build.invent(parsed.platform)
+        build.invent(parsed.platform, build_dir=parsed.build_cache)
         toolchain = build.find_toolchain()
         print(f"[INFO] Generating build directory at: {build.build_dir}")
         print(f"[INFO] Using toolchain file {toolchain} for platform {parsed.platform}")
@@ -53,28 +53,25 @@ def run_fbuild_cli(
             cmake_args.update({"CMAKE_TOOLCHAIN_FILE": toolchain})
         build.generate(cmake_args)
     elif parsed.command == "purge":
-        for build_type in BuildType.get_public_types():
-            purge_build = Build(build_type, build.deployment, verbose=parsed.verbose)
-            try:
-                purge_build.load(parsed.platform)
-            except InvalidBuildCacheException:
-                continue
-            # Always attempt to remove the install directory
-            finally:
-                install_dir = purge_build.install_dest_exists()
-                if install_dir:
-                    print(
-                        f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
-                    )
-                    if parsed.force or confirm(
-                        "Purge installation directory (yes/no)?"
-                    ):
-                        purge_build.purge_install()
+        for purge_build in Build.get_build_list(build, parsed.build_cache):
             print(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
             )
             if parsed.force or confirm("Purge this directory (yes/no)?"):
                 purge_build.purge()
+            install_dir = purge_build.install_dest_exists()
+            if (
+                purge_build.build_type != BuildType.BUILD_CUSTOM
+                and install_dir
+                and install_dir.exists()
+            ):
+                print(
+                    f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
+                )
+                if parsed.force or confirm(
+                    f"Purge installation directory at {install_dir} (yes/no)?"
+                ):
+                    purge_build.purge_install()
     else:
         target = get_target(parsed)
         build.execute(target, context=Path(parsed.path), make_args=make_args)
