@@ -44,6 +44,6 @@ jobs:
       - name: Test special generation on Ref
         working-directory: fprime/Ref
         run: |
-          fprime-util generate --build-cache ./special-cache -DBUILD_TESTING=ON -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
+          fprime-util generate --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
           fprime-util hash-to-file 0x6d98b892 --build-cache ./special-cache
