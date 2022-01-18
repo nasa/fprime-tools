@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9, 3.10]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
 
     steps:
