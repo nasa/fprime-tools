@@ -53,6 +53,7 @@ def run_fbuild_cli(
             cmake_args.update({"CMAKE_TOOLCHAIN_FILE": toolchain})
         build.generate(cmake_args)
     elif parsed.command == "purge":
+        build.platform = parsed.platform # Since purge does not load its "base", we need to overload the platform
         for purge_build in Build.get_build_list(build, parsed.build_cache):
             print(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
