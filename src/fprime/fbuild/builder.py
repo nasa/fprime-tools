@@ -459,7 +459,7 @@ class Build:
         ):
             cmake_args.update({"BUILD_TESTING": "ON"})
             cmake_args.update(
-                {"CMAKE_BUILD_TYPE": cmake_args.get("CMAKE_BUILD_TYPE", "Debug")}
+                {"CMAKE_BUILD_TYPE": cmake_args.get("CMAKE_BUILD_TYPE", "DEBUG")}
             )
         elif self.build_type == BuildType.BUILD_TESTING:
             cmake_args.update({"CMAKE_BUILD_TYPE": "Testing"})
