@@ -6,14 +6,14 @@ Created on Dec 18, 2014
 """
 import copy
 
-from .type_base import BaseType, ValueType
-from .type_exceptions import NotInitializedException, TypeMismatchException
+from .type_base import BaseType, DictionaryType
+from .type_exceptions import MissingMemberException, NotInitializedException, TypeMismatchException
 
 from . import array_type
 from fprime.util.string_util import format_string_template
 
 
-class SerializableType(ValueType):
+class SerializableType(DictionaryType):
     """
     Representation of the Serializable type (comparable to the ANY type)
 
@@ -27,83 +27,50 @@ class SerializableType(ValueType):
     The member descriptions can be None
     """
 
-    def __init__(self, typename, mem_list=None):
-        """
-        Constructor
-        """
-        super().__init__()
-        if not isinstance(typename, str):
-            raise TypeMismatchException(str, type(typename))
-        self.__typename = typename
+    @classmethod
+    def construct_type(cls, name, member_list=None):
+        """ Consturct a new serializable sub-type
 
-        new_mem_list = []
-        # If the member list is defined, stamp in None for any missing descriptions
-        if mem_list:
-            new_mem_list = [
-                entry if len(entry) == 4 else (entry[0], entry[1], entry[2], None)
-                for entry in mem_list
-            ]
-        # Set the member list then set the value
-        self.mem_list = new_mem_list
+        Constructs a new serializable subtype from the supplied member list and name. Member list may optionaly excluede
+        description keys, which will be filled with None.
+
+        Args:
+            name: name of the new sub-type
+            member_list: list of member definitions in form list of tuples (name, type, format string, description)
+        """
+        if member_list:
+            member_list = [item if len(item) == 4 else (item[0], item[1], item[2], None) for item in member_list]
+            # Check that we are dealing with a list
+            if not isinstance(member_list, list):
+                raise TypeMismatchException(list, type(self.mem_list))
+            # Check the validity of the member list
+            for member_name, member_type, format_string, description in member_list:
+                # Check each of these members for correct types
+                if not isinstance(member_name, str):
+                    raise TypeMismatchException(str, type(member_name))
+                elif not issubclass(member_type, BaseType):
+                    raise TypeMismatchException(BaseType, member_type)
+                elif not isinstance(format_string, str):
+                    raise TypeMismatchException(str, type(format_string))
+                elif not isinstance(description, (type(None), str)):
+                    raise TypeMismatchException(str, type(description))
+        return DictionaryType.construct_type(cls, name, MEMBER_LIST=member_list)
 
     def validate(self, val=None):
         """Validate this object including member list and values"""
-        # Blank member list does not validate
-        if not self.mem_list:
+        if not self.MEMBER_LIST or not val:
             return
-        elif not isinstance(self.mem_list, list):
-            raise TypeMismatchException(list, self.mem_list)
-        for member_name, member_val, format_string, description in self.mem_list:
-            # Check each of these members for correct types
-            if not isinstance(member_name, str):
-                raise TypeMismatchException(str, type(member_name))
-            elif not isinstance(member_val, BaseType):
-                raise TypeMismatchException(BaseType, type(member_val))
-            elif not isinstance(format_string, str):
-                raise TypeMismatchException(str, type(format_string))
-            elif description is not None and not isinstance(description, str):
-                raise TypeMismatchException(str, type(description))
-        # When a value is set and is not empty we need to set the member properties
-        if not val:
-            return
-        # If a value is supplied then check each value against the member list
-        for val_member, list_entry in zip(val, self.mem_list):
-            _, member_list_val, _, _ = list_entry
-            member_list_val.validate(
-                val_member
-            )  # Insure that the the val_member is consistent with the existing member
-
-    @property
-    def mem_list(self):
-        """Gets the member list"""
-        return self.__mem_list
-
-    @mem_list.setter
-    def mem_list(self, mem_list):
-        """
-        Sets the member list and validates against the current value.
-        """
-        self.__mem_list = mem_list
-        if mem_list is None:
-            self.validate(self.mem_list)
-
-    def serialize(self):
-        """Serializes the members of the serializable"""
-        if self.mem_list is None:
-            raise NotInitializedException(type(self))
-        return b"".join(
-            [member_val.serialize() for _, member_val, _, _ in self.mem_list]
-        )
-
-    def deserialize(self, data, offset):
-        """Deserialize the values of each of the members"""
-        new_member_list = []
-        for entry1, member_val, entry3, entry4 in self.mem_list:
-            cloned = copy.copy(member_val)
-            cloned.deserialize(data, offset)
-            new_member_list.append((entry1, cloned, entry3, entry4))
-            offset += member_val.getSize()
-        self.mem_list = new_member_list
+        # Ensure that the supplied value is a dictionary
+        if not isinstance(val, dict):
+            raise TypeMismatchException(dict, type(val))
+        # Now validate each field as defined via the value
+        for member_name, member_type, _, _ in self.MEMBER_LIST:
+            member_val = val.get(member_name, None)
+            if not member_val:
+                raise MissingMemberException(member_name)
+            elif not isinstance(member_val, member_type):
+                raise TypeMismatchException(type(member_val), member_type)
+            member_val.validate(member_val.val)
 
     @property
     def val(self) -> dict:
@@ -114,23 +81,8 @@ class SerializableType(ValueType):
         :return dictionary of member names to python values of member keys
         """
         return {
-            member_name: member_val.val
-            for member_name, member_val, _, _ in self.mem_list
-        }
-
-    @property
-    def formatted_val(self) -> dict:
-        """
-        Format all the members of dict according to the member_format.
-        Note 1: All elements will be cast to str
-        Note 2: If a member is an array will call array formatted_val
-        :return a formatted dict
-        """
-        return {
-            member_name: member_val.formatted_val
-            if isinstance(member_val, (array_type.ArrayType, SerializableType))
-            else format_string_template(member_format, member_val.val)
-            for member_name, member_val, member_format, _ in self.mem_list
+            member_name: self.__val.get(member_name).val
+            for member_name, _, _, _ in self.MEMBER_LIST
         }
 
     @val.setter
@@ -142,15 +94,30 @@ class SerializableType(ValueType):
 
         :param val: dictionary containing python types to key names. This
         """
-        values_list = [val[name] for name, _, _, _ in self.mem_list]
-        # Member list is the explicit store for storing these values
-        for val_member, list_entry in zip(values_list, self.mem_list):
-            _, member_list_val, _, _ = list_entry
-            member_list_val.val = val_member
+        self.validate(val)
+        self.__val = {member_name: member_type(val.get(member_name)) for memer_name, member_type, _, _, in self.MEMBER_LIST}
+
+    def serialize(self):
+        """Serializes the members of the serializable"""
+        if self.MEMBER_LIST is None:
+            raise NotInitializedException(type(self))
+        return b"".join(
+            [self.__val.get(member_name).serialize() for member_name, _, _, _ in self.MEMBER_LIST]
+        )
+
+    def deserialize(self, data, offset):
+        """Deserialize the values of each of the members"""
+        new_value = {}
+        for member_name, member_type, _, _ in self.MEMBER_LIST:
+            new_member = member_type()
+            member_type.deserialize(new_member, offset)
+            new_value[member_name] = new_member
+            offset += new_member.getSize()
+        self.__val = new_value
 
     def getSize(self):
         """The size of a struct is the size of all the members"""
-        return sum(mem_type.getSize() for _, mem_type, _, _ in self.mem_list)
+        return sum(self.__val.get(name).getSize() for name, _, _, _ in self.MEMBER_LIST)
 
     def to_jsonable(self):
         """
@@ -159,5 +126,5 @@ class SerializableType(ValueType):
         members = {}
         for member_name, member_value, member_format, member_desc in self.mem_list:
             members[member_name] = {"format": member_format, "description": member_desc}
-            members[member_name].update(member_value.to_jsonable())
+            members[member_name].update(self.__val.get(member_name).to_jsonable())
         return members

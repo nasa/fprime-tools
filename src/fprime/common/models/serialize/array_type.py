@@ -5,7 +5,7 @@ Created on May 29, 2020
 """
 import copy
 
-from .type_base import ValueType
+from .type_base import DictionaryType
 from .type_exceptions import (
     ArrayLengthException,
     NotInitializedException,
@@ -16,39 +16,35 @@ from . import serializable_type
 from fprime.util.string_util import format_string_template
 
 
-class ArrayType(ValueType):
+class ArrayType(DictionaryType):
     """Generic fixed-size array type representation.
 
     Represents a custom named type of a fixed number of like members, each of which are other types in the system.
     """
 
-    def __init__(self, typename, config_info, val=None):
-        """Constructs a new array type.
+    @classmethod
+    def construct_type(cls, name, member_type, length, format):
+        """ Constructs a sub-array type
+
+        Constructs a new sub-type of array to represent an array of the given name, member type, length, and format
+        string.
 
         Args:
-            typename: name of this array type
-            config_info: (type, size, format string) information for array
-            val: (optional) list of values to assign to array
+            name: name of the array subtype
+            member_type: type of the members of the array subtype
+            length: length of the array subtype
+            format: format string for members of the array subtype
         """
-        super().__init__()
-        if not isinstance(typename, str):
-            raise TypeMismatchException(str, type(typename))
-        self.__val = None
-        self.__typename = typename
-        self.__arr_type, self.__arr_size, self.__arr_format = config_info
-        # Set value only if it is a valid, non-empty list
-        if not val:
-            return
-        self.val = val
+        return DictionaryType.construct_type(cls, name, MEMBER_TYPE=member_type, LENGTH=length, FORMAT=format)
 
     def validate(self, val):
         """Validates the values of the array"""
-        size = self.__arr_size
-        if len(val) != size:
-            raise ArrayLengthException(self.__arr_type, size, len(val))
-        for i in range(self.__arr_size):
-            if not isinstance(val[i], type(self.__arr_type)):
-                raise TypeMismatchException(type(self.__arr_type), type(val[i]))
+        if len(val) != self.LENGTH:
+            raise ArrayLengthException(self.MEMBER_TYPE, self.LENGTH, len(val))
+        for i in range(self.LENGTH):
+            if not isinstance(val[i], self.MEMBER_TYPE):
+                raise TypeMismatchException(self.MEMBER_TYPE, type(val[i]))
+            val[i].validate(val)
 
     @property
     def val(self) -> list:
@@ -73,7 +69,7 @@ class ArrayType(ValueType):
             if isinstance(item, (serializable_type.SerializableType, ArrayType)):
                 result.append(item.formatted_val)
             else:
-                result.append(format_string_template(self.__arr_format, item.val))
+                result.append(format_string_template(self.FORMAT, item.val))
         return result
 
     @val.setter
@@ -85,11 +81,8 @@ class ArrayType(ValueType):
 
         :param val: dictionary containing python types to key names. This
         """
-        items = []
-        for item in val:
-            cloned = copy.deepcopy(self.arr_type)
-            cloned.val = item
-            items.append(cloned)
+        items = [self.MEMBER_TYPE(val) for item in val]
+        self.validate(val)
         self.__val = items
 
     def to_jsonable(self):
@@ -97,10 +90,10 @@ class ArrayType(ValueType):
         JSONable type
         """
         members = {
-            "name": self.__typename,
-            "type": self.__typename,
-            "size": self.__arr_size,
-            "format": self.__arr_format,
+            "name": self.__class__.__name__,
+            "type": self.__class__.__name__,
+            "size": self.LENGTH,
+            "format": self.FORMAT,
             "values": None
             if self.__val is None
             else [member.to_jsonable() for member in self.__val],
@@ -116,27 +109,12 @@ class ArrayType(ValueType):
     def deserialize(self, data, offset):
         """Deserialize the members of the array"""
         values = []
-        for i in range(self.__arr_size):
-            item = copy.deepcopy(self.arr_type)
+        for i in range(self.LENGTH):
+            item = self.MEMBER_TYPE()
             item.deserialize(data, offset + i * item.getSize())
             values.append(item.val)
         self.val = values
 
-    @property
-    def arr_type(self):
-        """Property representing the size of the array"""
-        return self.__arr_type
-
-    @property
-    def arr_size(self):
-        """Property representing the number of elements of the array"""
-        return self.__arr_size
-
-    @property
-    def arr_format(self):
-        """Property representing the format string of an item in the array"""
-        return self.__arr_format
-
     def getSize(self):
         """Return the size of the array"""
-        return self.arr_type.getSize() * self.arr_size
+        return sum([item.getSize() for item in self.__val])

@@ -16,28 +16,28 @@ from .type_exceptions import (
     TypeMismatchException,
 )
 
-
-class StringType(type_base.ValueType):
+class StringType(type_base.DictionaryType):
     """
-    String type representation for F prime. This is a value type that stores a half-word first for representing the
-    length of this given string.
+    String type representation for F prime. This is a type that stores a half-word first for representing the length of
+    this given string. Each sub stiring class defines the sub-type property max length that represents the maximum
+    length of any string value stored to it.
+
+    All string types follow this implementation, but have some specific type-based properties: MAX_LENGTH.
     """
 
-    def __init__(self, val=None, max_string_len=None):
-        """
-        Constructor to build a string
-        @param val: value form which to create a string. Default: None.
-        @param max_string: maximum length of the string. Default: None, not used.
-        """
-        self.__max_string_len = max_string_len
-        super().__init__(val)
+    @classmethod
+    def construct_type(cls, name, max_length=None):
+        """ Constructs a new string type with given name and maximum length """
+        tmp = type_base.DictionaryType.construct_type(cls, name, MAX_LENGTH=max_length)
+        return tmp
+
 
     def validate(self, val):
         """Validates that this is a string"""
         if not isinstance(val, str):
             raise TypeMismatchException(str, type(val))
-        elif self.__max_string_len is not None and len(val) > self.__max_string_len:
-            raise StringSizeException(len(val), self.__max_string_len)
+        elif self.MAX_LENGTH is not None and len(val) > self.MAX_LENGTH:
+            raise StringSizeException(len(val), self.MAX_LENGTH)
 
     def serialize(self):
         """
@@ -48,9 +48,9 @@ class StringType(type_base.ValueType):
             raise NotInitializedException(type(self))
         # Check string size before serializing
         elif (
-            self.__max_string_len is not None and len(self.val) > self.__max_string_len
+            self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH
         ):
-            raise StringSizeException(len(self.val), self.__max_string_len)
+            raise StringSizeException(len(self.val), self.MAX_LENGTH)
         # Pack the string size first then return the encoded data
         buff = struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)
         return buff
@@ -67,8 +67,8 @@ class StringType(type_base.ValueType):
                     f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2 :])}"
                 )
             # Deal with a string that is larger than max string
-            elif self.__max_string_len is not None and val_size > self.__max_string_len:
-                raise StringSizeException(val_size, self.__max_string_len)
+            elif self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:
+                raise StringSizeException(val_size, self.MAX_LENGTH)
             self.val = data[offset + 2 : offset + 2 + val_size].decode(DATA_ENCODING)
         except struct.error:
             raise DeserializeException("Not enough bytes to deserialize string length.")

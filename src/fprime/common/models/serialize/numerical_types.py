@@ -18,25 +18,21 @@ from .type_exceptions import (
     TypeRangeException,
 )
 
-BITS_RE = re.compile(r"[IUF](\d\d?)")
+#BITS_RE = re.compile(r"[IUF](\d\d?)")
 
 
 class NumericalType(ValueType, abc.ABC):
     """Numerical types that can be serialized using struct and are of some power of 2 byte width"""
 
     @classmethod
+    @abc.abstractmethod
     def get_bits(cls):
         """Gets the integer bits of a given type"""
-        match = BITS_RE.match(cls.__name__)
-        assert (
-            match
-        ), f"Type {cls} does not follow format I#Type U#Type nor F#Type required of numerical types"
-        return int(match.group(1))
 
     @classmethod
     def getSize(cls):
         """Gets the size of the integer based on the size specified in the class name"""
-        return int(cls.get_bits() / 8)
+        return int(cls.get_bits() >> 3) # Divide by 8 quickly
 
     @staticmethod
     @abc.abstractmethod
@@ -61,16 +57,17 @@ class NumericalType(ValueType, abc.ABC):
 class IntegerType(NumericalType, abc.ABC):
     """Base class that represents all integer common functions"""
 
+    @classmethod
+    @abc.abstractmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+
     def validate(self, val):
         """Validates the given integer."""
         if not isinstance(val, int):
             raise TypeMismatchException(int, type(val))
-        max_val = 1 << (
-            self.get_bits() - (1 if self.__class__.__name__.startswith("I") else 0)
-        )
-        min_val = -max_val if self.__class__.__name__.startswith("I") else 0
-        # Compare to min and max
-        if val < min_val or val >= max_val:
+        min_val, max_val = self.range()
+        if val < min_val or val > max_val:
             raise TypeRangeException(val)
 
 
@@ -86,6 +83,16 @@ class FloatType(NumericalType, abc.ABC):
 class I8Type(IntegerType):
     """Single byte integer type. Represents C chars"""
 
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (-128, 127)
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 8
+
     @staticmethod
     def get_serialize_format():
         """Allows serialization using struct"""
@@ -94,6 +101,22 @@ class I8Type(IntegerType):
 
 class I16Type(IntegerType):
     """Double byte integer type. Represents C shorts"""
+
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (-32768, 32767)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return True
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 16
+
 
     @staticmethod
     def get_serialize_format():
@@ -104,6 +127,21 @@ class I16Type(IntegerType):
 class I32Type(IntegerType):
     """Four byte integer type. Represents C int32_t,"""
 
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (-2147483648, 2147483647)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return True
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 32
+
     @staticmethod
     def get_serialize_format():
         """Allows serialization using struct"""
@@ -112,6 +150,22 @@ class I32Type(IntegerType):
 
 class I64Type(IntegerType):
     """Eight byte integer type. Represents C int64_t,"""
+
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (-9223372036854775808, 9223372036854775807)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return True
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 64
+
 
     @staticmethod
     def get_serialize_format():
@@ -122,6 +176,22 @@ class I64Type(IntegerType):
 class U8Type(IntegerType):
     """Single byte integer type. Represents C chars"""
 
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (0, 0xFF)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return False
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 8
+
+
     @staticmethod
     def get_serialize_format():
         """Allows serialization using struct"""
@@ -130,6 +200,21 @@ class U8Type(IntegerType):
 
 class U16Type(IntegerType):
     """Double byte integer type. Represents C shorts"""
+
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (0, 0xFFFF)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return False
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 16
 
     @staticmethod
     def get_serialize_format():
@@ -140,6 +225,21 @@ class U16Type(IntegerType):
 class U32Type(IntegerType):
     """Four byte integer type. Represents C unt32_t,"""
 
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (0, 0xFFFFFFFF)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return False
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 32
+
     @staticmethod
     def get_serialize_format():
         """Allows serialization using struct"""
@@ -148,6 +248,22 @@ class U32Type(IntegerType):
 
 class U64Type(IntegerType):
     """Eight byte integer type. Represents C unt64_t,"""
+
+    @classmethod
+    def range(cls):
+        """Gets signed/unsigned of this type"""
+        return (0, 0xFFFFFFFFFFFFFFFF)
+
+    @classmethod
+    def is_signed(cls):
+        """Gets signed/unsigned of this type"""
+        return False
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 32
+
 
     @staticmethod
     def get_serialize_format():
@@ -158,6 +274,11 @@ class U64Type(IntegerType):
 class F32Type(FloatType):
     """Eight byte integer type. Represents C unt64_t,"""
 
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 32
+
     @staticmethod
     def get_serialize_format():
         """Allows serialization using struct"""
@@ -166,6 +287,11 @@ class F32Type(FloatType):
 
 class F64Type(FloatType):
     """Eight byte integer type. Represents C unt64_t,"""
+
+    @classmethod
+    def get_bits(cls):
+        """ Get the bit count of this type """
+        return 64
 
     @staticmethod
     def get_serialize_format():
