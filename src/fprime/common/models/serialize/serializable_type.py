@@ -42,7 +42,7 @@ class SerializableType(DictionaryType):
             member_list = [item if len(item) == 4 else (item[0], item[1], item[2], None) for item in member_list]
             # Check that we are dealing with a list
             if not isinstance(member_list, list):
-                raise TypeMismatchException(list, type(self.mem_list))
+                raise TypeMismatchException(list, type(member_list))
             # Check the validity of the member list
             for member_name, member_type, format_string, description in member_list:
                 # Check each of these members for correct types
@@ -95,7 +95,26 @@ class SerializableType(DictionaryType):
         :param val: dictionary containing python types to key names. This
         """
         self.validate(val)
-        self.__val = {member_name: member_type(val.get(member_name)) for memer_name, member_type, _, _, in self.MEMBER_LIST}
+        self.__val = {member_name: member_type(val.get(member_name)) for member_name, member_type, _, _, in self.MEMBER_LIST}
+
+    @property
+    def formatted_val(self) -> dict:
+        """
+        Format all the members of dict according to the member_format.
+        Note 1: All elements will be cast to str
+        Note 2: If a member is an array will call array formatted_val
+        :return a formatted dict
+        """
+        result = dict()
+        for member_name, _, member_format, _ in self.MEMBER_LIST:
+            value_object = self.__val[member_name]
+            if isinstance(value_object, (array_type.ArrayType, SerializableType)):
+                result[member_name] = value_object.formatted_val
+            else:
+                result[member_name] = format_string_template(
+                    member_format, value_object.val
+                )
+        return result
 
     def serialize(self):
         """Serializes the members of the serializable"""
@@ -110,7 +129,7 @@ class SerializableType(DictionaryType):
         new_value = {}
         for member_name, member_type, _, _ in self.MEMBER_LIST:
             new_member = member_type()
-            member_type.deserialize(new_member, offset)
+            new_member.deserialize(data, offset)
             new_value[member_name] = new_member
             offset += new_member.getSize()
         self.__val = new_value
