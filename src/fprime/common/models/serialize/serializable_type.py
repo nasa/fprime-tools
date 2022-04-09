@@ -126,15 +126,12 @@ class SerializableType(ValueType):
         Note 2: If a member is an array will call array formatted_val
         :return a formatted dict
         """
-        result = dict()
-        for member_name, member_val, member_format, _ in self.mem_list:
-            if isinstance(member_val, (array_type.ArrayType, SerializableType)):
-                result[member_name] = member_val.formatted_val
-            else:
-                result[member_name] = format_string_template(
-                    member_format, member_val.val
-                )
-        return result
+        return {
+            member_name: member_val.formatted_val
+            if isinstance(member_val, (array_type.ArrayType, SerializableType))
+            else format_string_template(member_format, member_val.val)
+            for member_name, member_val, member_format, _ in self.mem_list
+        }
 
     @val.setter
     def val(self, val: dict):
