@@ -457,12 +457,10 @@ class Build:
             v3_autocoder_directory.exists()
             and self.build_type == BuildType.BUILD_TESTING
         ):
-            cmake_args.update({"BUILD_TESTING": "ON"})
-            cmake_args.update(
-                {"CMAKE_BUILD_TYPE": cmake_args.get("CMAKE_BUILD_TYPE", "Debug")}
-            )
+            cmake_args["BUILD_TESTING"] = "ON"
+            cmake_args["CMAKE_BUILD_TYPE"] = cmake_args.get("CMAKE_BUILD_TYPE", "Debug")
         elif self.build_type == BuildType.BUILD_TESTING:
-            cmake_args.update({"CMAKE_BUILD_TYPE": "Testing"})
+            cmake_args["CMAKE_BUILD_TYPE"] = "Testing"
         return cmake_args
 
     def execute(self, target: Target, context: Path, make_args: dict):

@@ -50,7 +50,7 @@ def run_fbuild_cli(
         print(f"[INFO] Generating build directory at: {build.build_dir}")
         print(f"[INFO] Using toolchain file {toolchain} for platform {parsed.platform}")
         if toolchain is not None:
-            cmake_args.update({"CMAKE_TOOLCHAIN_FILE": toolchain})
+            cmake_args["CMAKE_TOOLCHAIN_FILE"] = toolchain
         build.generate(cmake_args)
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
