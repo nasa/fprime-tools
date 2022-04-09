@@ -26,7 +26,7 @@ def confirm(msg):
             return True
         if confirm_input.lower() in ["n", "no"]:
             return False
-        print("{} is invalid.  Please use 'yes' or 'no'".format(confirm_input))
+        print(f"{confirm_input} is invalid.  Please use 'yes' or 'no'")
 
 
 def replace_contents(filename, what, replacement, count=1):
@@ -47,8 +47,8 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     build = Build(target.build_type, deployment, verbose=verbose)
     build.load(platform)
 
-    hpp_files = glob.glob("{}/*.hpp".format(path), recursive=False)
-    cpp_files = glob.glob("{}/*.cpp".format(path), recursive=False)
+    hpp_files = glob.glob(f"{path}/*.hpp", recursive=False)
+    cpp_files = glob.glob(f"{path}/*.cpp", recursive=False)
     cpp_files.sort(key=len)
 
     # Check destinations
@@ -63,15 +63,15 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     cpp_dest = common[0] if common else cpp_files[0]
 
     if not confirm(
-        "Generate implementations and merge into {} and {}?".format(hpp_dest, cpp_dest)
+        f"Generate implementations and merge into {hpp_dest} and {cpp_dest}?"
     ):
         return False
     print("Generating implementation files and merging...")
     with suppress_stdout():
         build.execute(target, context=path, make_args={})
 
-    hpp_files_template = glob.glob("{}/*.hpp-template".format(path), recursive=False)
-    cpp_files_template = glob.glob("{}/*.cpp-template".format(path), recursive=False)
+    hpp_files_template = glob.glob(f"{path}/*.hpp-template", recursive=False)
+    cpp_files_template = glob.glob(f"{path}/*.cpp-template", recursive=False)
 
     if not hpp_files_template or not cpp_files_template:
         print("[WARNING] Failed to find generated .cpp-template or .hpp-template files")
@@ -96,7 +96,7 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
 
 def add_to_cmake(list_file: Path, comp_path: Path):
     """Adds new component or port to CMakeLists.txt"""
-    print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
+    print(f"[INFO] Found CMakeLists.txt at '{list_file}'")
     with open(list_file, "r") as f:
         lines = f.readlines()
 
@@ -108,7 +108,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         return True
 
     if not confirm(
-        "Add component {} to {} {}".format(comp_path, list_file, "at end of file?")
+        f"Add component {comp_path} to {list_file} at end of file?"
     ):
         return False
 
@@ -188,7 +188,7 @@ def add_unit_tests(deployment, comp_path, platform, verbose):
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """Adds new port to CMakeLists.txt in port directory"""
-    print("[INFO] Found CMakeLists.txt at '{}'".format(list_file))
+    print(f"[INFO] Found CMakeLists.txt at '{list_file}'")
     with open(list_file, "r") as file_handle:
         lines = file_handle.readlines()
     index = 0
@@ -198,7 +198,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     while "CMAKE_CURRENT_LIST_DIR" in lines[index]:
         index += 1
     if not confirm(
-        "Add port {} to {} {}?".format(comp_path, list_file, "ports in CMakeLists.txt")
+        f"Add port {comp_path} to {list_file} ports in CMakeLists.txt?"
     ):
         return False
 
@@ -253,7 +253,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             and build.get_settings("component_cookiecutter", None) != "default"
         ):
             source = build.get_settings("component_cookiecutter", None)
-            print("[INFO] Cookiecutter source: {}".format(source))
+            print(f"[INFO] Cookiecutter source: {source}")
         else:
             source = (
                 os.path.dirname(__file__)
@@ -266,9 +266,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         ).resolve()
         if proj_root is None:
             print(
-                "[INFO] Created component directory without adding to build system nor generating implementation {}".format(
-                    final_component_dir
-                )
+                f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
             )
             return 0
         # Attempt to register to CMakeLists.txt
@@ -280,9 +278,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
         ):
             print(
-                "[INFO] Could not register {} with build system. Please add it and generate implementations manually.".format(
-                    final_component_dir
-                )
+                f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
             )
             return 0
         regenerate(build)
@@ -303,17 +299,15 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
 
         add_unit_tests(deployment, final_component_dir, platform, verbose)
         print(
-            "[INFO] Next run `fprime-util build{}` in {}".format(
-                "" if platform is None else " " + platform, final_component_dir
-            )
+            f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
         )
         return 0
     except OutputDirExistsException as out_directory_error:
-        print("{}".format(out_directory_error), file=sys.stderr)
+        print(f"{out_directory_error}", file=sys.stderr)
     except CMakeExecutionException as exc:
-        print("[ERROR] Failed to create component. {}".format(exc), file=sys.stderr)
+        print(f"[ERROR] Failed to create component. {exc}", file=sys.stderr)
     except OSError as ose:
-        print("[ERROR] {}".format(ose))
+        print(f"[ERROR] {ose}")
     return 1
 
 
@@ -373,12 +367,12 @@ def get_port_input(namespace):
     }
     args_done = False
     arg_list = []
-    port_name = get_valid_input("Port Name [{}]: ".format(defaults["port_name"]))
+    port_name = get_valid_input(f'Port Name [{defaults["port_name"]}]: ')
     short_description = input(
-        "Short Description [{}]: ".format(defaults["short_description"])
+        f'Short Description [{defaults["short_description"]}]: '
     )
-    dir_name = get_valid_input("Directory Name [{}]: ".format(defaults["dir_name"]))
-    namespace = get_valid_input("Port Namespace [{}]: ".format(defaults["namespace"]))
+    dir_name = get_valid_input(f'Directory Name [{defaults["dir_name"]}]: ')
+    namespace = get_valid_input(f'Port Namespace [{defaults["namespace"]}]: ')
     while not args_done:
         if arg_list == []:
             add_arg = confirm("Would you like to add an argument?: ")
@@ -472,9 +466,7 @@ def new_port(deployment: Path, build: Build):
             (Path(context["dir_name"]).resolve()).relative_to(cmake_lists_file.parent),
         ):
             print(
-                "[INFO] Could not register {} with build system. Please add it and generate implementations manually.".format(
-                    Path(context["dir_name"]).resolve()
-                )
+                f'[INFO] Could not register {Path(context["dir_name"]).resolve()} with build system. Please add it and generate implementations manually.'
             )
             return 0
         regenerate(build)
@@ -495,9 +487,9 @@ def new_port(deployment: Path, build: Build):
         )
         return 0
     except OutputDirExistsException as out_directory_error:
-        print("{}".format(out_directory_error), file=sys.stderr)
+        print(f"{out_directory_error}", file=sys.stderr)
     except CMakeExecutionException as exc:
-        print("[ERROR] Failed to create port. {}".format(exc), file=sys.stderr)
+        print(f"[ERROR] Failed to create port. {exc}", file=sys.stderr)
     except OSError as ose:
-        print("[ERROR] {}".format(ose))
+        print(f"[ERROR] {ose}")
     return 1

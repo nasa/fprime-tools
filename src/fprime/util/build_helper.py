@@ -129,7 +129,7 @@ def parse_args(args):
         parser.print_help()
         sys.exit(1)
     elif bad:
-        print("[ERROR] Unknown arguments: {}".format(", ".join(bad)))
+        print(f'[ERROR] Unknown arguments: {", ".join(bad)}')
         parser.print_help()
         sys.exit(1)
     cmake_args, make_args = validate(parsed, unknown)

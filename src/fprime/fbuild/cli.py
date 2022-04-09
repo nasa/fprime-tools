@@ -107,7 +107,7 @@ def add_target_parser(
             target.mnemonic,
             parents=[common],
             add_help=False,
-            help="{} in the specified directory".format(target.desc),
+            help=f"{target.desc} in the specified directory",
         )
         # --ut flag also exists at the global parsers, skip adding it
         existing[target.mnemonic] = (parser, ["ut"])
@@ -123,7 +123,7 @@ def add_target_parser(
     new_flags = [flag for flag in target.flags if flag not in flags]
     for flag in new_flags:
         parser.add_argument(
-            "--{}".format(flag), action="store_true", default=False, help=target.desc
+            f"--{flag}", action="store_true", default=False, help=target.desc
         )
     flags.extend(new_flags)
     return target.mnemonic
