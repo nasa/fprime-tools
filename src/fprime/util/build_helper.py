@@ -20,16 +20,15 @@ import sys
 from pathlib import Path
 
 from fprime.common.error import FprimeException
+from fprime.fbuild.target import Target, NoSuchTargetException
 from fprime.fbuild.builder import (
     Build,
     BuildType,
     GenerateException,
-    NoSuchTargetException,
-    Target,
     UnableToDetectDeploymentException,
 )
 from fprime.fbuild.cli import add_fbuild_parsers, get_target
-from fprime.fpp.cli import add_fpp_parsers
+#from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
@@ -119,7 +118,7 @@ def parse_args(args):
     # Add all externally defined cli parser command to running functions
     runners = {}
     runners.update(add_fbuild_parsers(subparsers, common_parser))
-    runners.update(add_fpp_parsers(subparsers, common_parser))
+    #runners.update(add_fpp_parsers(subparsers, common_parser))
     runners.update(add_special_parsers(subparsers, common_parser))
 
     # Parse and prepare to run

@@ -8,7 +8,9 @@ target operations.
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple, Callable
-from fprime.fbuild.builder import Target, BuildType, Build
+from fprime.fbuild.types import BuildType
+from fprime.fbuild.target import Target
+from fprime.fbuild.builder import Build
 from fprime.fbuild.interaction import confirm
 
 
@@ -76,7 +78,7 @@ def run_fbuild_cli(
                     purge_build.purge_install()
     else:
         target = get_target(parsed)
-        build.execute(target, context=Path(parsed.path), make_args=make_args)
+        target.execute(build, context=Path(parsed.path), args=make_args)
 
 
 def add_target_parser(

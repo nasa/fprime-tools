@@ -165,11 +165,12 @@ class CMakeHandler:
     def get_include_info(self, path, cmake_dir):
         """
         Calculates the include root of the given path. The include root is defined as the following based on the other
-        two values supplied. First, the following two path values are established:
+        two values supplied. First, the following paths values are established:
         - Location of the project's root. This is defined in the project_dir's CMakeList.txt, or in the CMake Cache.
         - Location of the project's F prime checkout. This is defined in the same places.
-        From there, the include root of the supplied path is whichever of those two paths is your parent. In cases where
-        both are parents, it will take the outer-most parent
+        - Locations of any libraries defined in the same places.
+        From there, the include root of the supplied path is whichever of those paths is your parent. In cases where
+        both are parents, it will take the nearest parent.
 
         :param path: path to calculate looking for include-root
         :param cmake_dir: directory of a CMake build, or directory containing a CMake project

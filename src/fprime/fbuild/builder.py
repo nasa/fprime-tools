@@ -10,169 +10,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, List, Set, Union
 
+from fprime.fbuild.types import BuildType, InvalidBuildCacheException, NoSuchToolchainException, AmbiguousToolchainException, UnableToDetectDeploymentException
+from fprime.fbuild.target import TargetScope, Target, BuildSystemTarget
 from fprime.common.error import FprimeException
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
 
-
-class BuildType(Enum):
-    """
-    An enumeration used to represent the various build types used to build fprime. These types can support different
-    types of targets underneath. i.e. the unit-test build may build unit test executables.
-    """
-
-    """ Normal build normal binaries for a deployment mapping to CMake 'Release'"""  # pylint: disable=W0105
-    BUILD_NORMAL = (0,)
-    """ Testing build allowing unit testing mapping to CMake 'Testing'"""  # pylint: disable=W0105
-    BUILD_TESTING = 1
-    """ FPP locations build """
-    BUILD_FPP_LOCS = 2
-    """ User custom build """
-    BUILD_CUSTOM = 3
-
-    def get_suffix(self):
-        """Get the suffix of a directory supporting this build"""
-        if self == BuildType.BUILD_NORMAL:
-            return ""
-        if self == BuildType.BUILD_TESTING:
-            return "-ut"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
-
-    def get_cmake_build_type(self):
-        """Get the suffix of a directory supporting this build"""
-        if self == BuildType.BUILD_NORMAL:
-            return "Release"
-        if self == BuildType.BUILD_TESTING:
-            return "Testing"
-        if self == BuildType.BUILD_FPP_LOCS:
-            return "Release"
-        if self == BuildType.BUILD_CUSTOM:
-            return "Custom"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
-
-    @staticmethod
-    def get_public_types() -> List["BuildType"]:
-        """Returns public build types"""
-        return [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
-
-
-class Target(ABC):
-    """Generic build target base class
-
-    A target can be specified by the user using a mnemonic and flags. The mnemonic is the command typed in by the user,
-    and the flags allow the user to remember fewer mnemonics by changing the build target using a modifier. Each build
-    target is available in certain build types.
-
-    Targets can be global, using the GlobalTarget base class. Global targets don't use contextual information to modify
-    the target, but apply to the whole deployment. Note: global targets are also engaged at the deployment level should
-    that be the context.
-
-    Targets may also be local. These targets use context information to figure out what to build. This allows for one
-    target to represent a class of targets. i.e. build can be used as a local target to build any given sub directory.
-    """
-
-    def __init__(
-        self,
-        mnemonic: str,
-        desc: str,
-        build_type: BuildType = None,
-        flags: set = None,
-        cmake: str = None,
-    ):
-        """Constructs a build target
-
-        Args:
-            mnemonic:    mnemonic used to engage build targets. Is not unique, but mnemonic + flags must be.
-            desc:        help description of this build target
-            build_types: supported build types for target. Defaults to [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
-            flags:       flags used to uniquely identify build targets who share logical mnemonics. Defaults to None.
-            cmake:       cmake target override to handle oddly named cmake targets
-        """
-        self.mnemonic = mnemonic
-        self.desc = desc
-        self.build_type = (
-            build_type if build_type is not None else BuildType.BUILD_NORMAL
-        )
-        self.flags = flags if flags is not None else set()
-        self.cmake_target = cmake if cmake is not None else mnemonic
-
-    def __str__(self):
-        """Makes this target into a string"""
-        return self.config_string(self.mnemonic, self.flags)
-
-    @staticmethod
-    def config_string(mnemonic, flags):
-        """Converts a mnemonic and set of flags to string
-
-        Args:
-            mnemonic: mnemonic of the target
-            flags: sset of flags to pair with mnemonic
-        Returns:
-            string of format "mnemonic --flag1 --flag2 ..."
-        """
-        flag_string = " ".join([f"--{flag}" for flag in flags])
-        flag_string = f" {flag_string}" if flag_string else ""
-        return f"{mnemonic}{flag_string}"
-
-    @classmethod
-    def get_all_possible_flags(cls) -> Set[str]:
-        """Gets list of all targets' flags used
-
-        Returns:
-            List of targets's supported by the system
-        """
-        return functools.reduce(
-            lambda agg, item: agg.union(item.flags), cls.get_all_targets(), set()
-        )
-
-    @classmethod
-    def get_all_targets(cls) -> List["Target"]:
-        """Gets list of all targets registered
-
-        Returns:
-            List of targets supported by the system
-        """
-        return BUILD_TARGETS
-
-    @classmethod
-    def get_target(cls, mnemonic: str, flags: Set[str]) -> "Target":
-        """Gets the actual build target given the parsed namespace
-
-        Using the global list of build targets and the flags supplied to the namespace, attempt to determine which build
-        targets can be used. If more than one are found, then generate exception.
-
-        Args:
-            mnemonic: mnemonic of command to look for
-            flags:    flags to narrow down target
-
-        Returns:
-            single matching target
-        """
-        matching = []
-        for target in cls.get_all_targets():
-            if target.mnemonic == mnemonic and flags == target.flags:
-                matching.append(target)
-        if not matching:
-            raise NoSuchTargetException(
-                f"Could not find target '{cls.config_string(mnemonic, flags)}'"
-            )
-        assert len(matching) == 1, "Conflicting targets specified in code"
-        return matching[0]
-
-
-class GlobalTarget(Target):
-    """Represents a global build target
-
-    Build targets are global if they do not apply to a specific directory, but rather to a full deployment.
-    """
-
-
-class LocalTarget(Target):
-    """Represents a local build target
-
-    Build targets are local if they do  apply to a specific directory whose context drives the build setup.
-    """
-
+import fprime.fbuild.target_definitions
 
 class Build:
     """Represents a build configuration
@@ -267,7 +111,7 @@ class Build:
             )
 
     def get_settings(
-        self, setting: Union[str, Iterable[str]], default: Union[str, Iterable[str]]
+        self, setting: Union[None, str, Iterable[Union[None, str]]], default: Union[None, str, Iterable[Union[None, str]]]
     ) -> Union[str, Iterable[str]]:
         """Fetches settings in the settings file
 
@@ -342,12 +186,12 @@ class Build:
         )
         local_targets = [
             target
-            for target in BUILD_TARGETS
-            if target.cmake_target in valid_cmake_targets
-            and isinstance(target, LocalTarget)
+            for target in Target.get_all_targets()
+            if not isinstance(target, BuildSystemTarget) or target.build_target in valid_cmake_targets
+            and target.scope == TargetScope.LOCAL
         ]
         global_targets = [
-            target for target in BUILD_TARGETS if isinstance(target, GlobalTarget)
+            target for target in Target.get_all_targets() if target.scope == TargetScope.GLOBAL
         ]
 
         relative_path = self.cmake.get_project_relative_path(
@@ -453,24 +297,40 @@ class Build:
             cmake_args.update({"CMAKE_BUILD_TYPE": "Testing"})
         return cmake_args
 
-    def execute(self, target: Target, context: Path, make_args: dict):
+    def get_module_name(self, path: Path):
+        """ Gets name of module from path """
+        return self.cmake.get_cmake_module(path, self.build_dir)
+
+    def get_relative_path(self, path: Path, to_build_cache: bool=False) -> Path:
+        """ Gets path relative to project """
+        relative_path, include_root = self.cmake.get_include_info(path, self.build_dir)
+        relative_path = Path(relative_path)
+        fprime_root = Path(self.get_settings("framework_path", None))
+        # FPrime paths need special handling when relative to build cache, but still needs to handle Ref and RPI
+        if to_build_cache and fprime_root == Path(include_root):
+            cache_path = self.build_dir / relative_path
+            return relative_path if cache_path.exists() else Path("F-Prime") / relative_path
+        return relative_path
+
+    def execute_build_target(self, build_target: str, context: Path, top: bool, make_args: dict):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the make system. Context
         is supplied such that the system can match local targets to the global target list.
 
         Args:
-            target: target to run
+            build_target: build system target to run as string
             context: context path for local targets
+            top: True if it is a top-level (global) target, False if it is a local target
             make_args: make system arguments directly supplied
         """
         self.cmake.execute_known_target(
-            target.cmake_target,
+            build_target,
             self.build_dir,
             context.absolute(),
             cmake_args=self.get_cmake_args(),
             make_args=make_args,
-            top_target=isinstance(target, GlobalTarget),
+            top_target=top,
             environment=self.settings.get("environment", None),
         )
 
@@ -605,92 +465,70 @@ class GenerateException(FprimeException):
         self.exit_code = exit_code
 
 
-class InvalidBuildTypeException(FprimeException):
-    """An exception indicating a build type do not exit"""
-
-
-class InvalidBuildCacheException(FprimeException):
-    """An exception indicating a build cache"""
-
-
-class UnableToDetectDeploymentException(FprimeException):
-    """An exception indicating a build cache"""
-
-
-class NoSuchTargetException(FprimeException):
-    """Could not find a matching build target"""
-
-
-class NoSuchToolchainException(FprimeException):
-    """Could not find a matching build target"""
-
-
-class AmbiguousToolchainException(FprimeException):
-    """Could not find a matching build target"""
 
 
 """ Defined set of build targets available to the system"""  # pylint: disable=W0105
-BUILD_TARGETS = [
-    # Various "build" target
-    LocalTarget("build", "Build components, ports, and deployments", cmake=""),
-    GlobalTarget("build", "Build all deployment targets", flags={"all"}, cmake="all"),
-    LocalTarget(
-        "build",
-        "Build unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"ut"},
-        cmake="ut_exe",
-    ),
-    GlobalTarget(
-        "build",
-        "Build all unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "ut"},
-        cmake="all",
-    ),
-    # Implementation targets
-    LocalTarget("impl", "Generate implementation template files"),
-    LocalTarget(
-        "impl",
-        "Generate unit test files",
-        flags={"ut"},
-        cmake="testimpl",
-        build_type=BuildType.BUILD_TESTING,
-    ),
-    # Check targets and unittest targets
-    LocalTarget("check", "Run unit tests", build_type=BuildType.BUILD_TESTING),
-    LocalTarget(
-        "check",
-        "Run unit tests with memory checking",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"leak"},
-        cmake="check_leak",
-    ),
-    LocalTarget(
-        "check",
-        "Run unit tests with code coverage",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"coverage"},
-        cmake="coverage",
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all"},
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests with memory checking",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "leak"},
-        cmake="check_leak",
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests with code coverage",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "coverage"},
-        cmake="coverage",
-    ),
-]
+# BUILD_TARGETS_2 = [
+#     # Various "build" target
+#     LocalTarget("build", "Build components, ports, and deployments", cmake=""),
+#     GlobalTarget("build", "Build all deployment targets", flags={"all"}, cmake="all"),
+#     LocalTarget(
+#         "build",
+#         "Build unit tests",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"ut"},
+#         cmake="ut_exe",
+#     ),
+#     GlobalTarget(
+#         "build",
+#         "Build all unit tests",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"all", "ut"},
+#         cmake="all",
+#     ),
+#     # Implementation targets
+#     LocalTarget("impl", "Generate implementation template files"),
+#     LocalTarget(
+#         "impl",
+#         "Generate unit test files",
+#         flags={"ut"},
+#         cmake="testimpl",
+#         build_type=BuildType.BUILD_TESTING,
+#     ),
+#     # Check targets and unittest targets
+#     LocalTarget("check", "Run unit tests", build_type=BuildType.BUILD_TESTING),
+#     LocalTarget(
+#         "check",
+#         "Run unit tests with memory checking",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"leak"},
+#         cmake="check_leak",
+#     ),
+#     LocalTarget(
+#         "check",
+#         "Run unit tests with code coverage",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"coverage"},
+#         cmake="coverage",
+#     ),
+#     GlobalTarget(
+#         "check",
+#         "Run all deployment unit tests",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"all"},
+#     ),
+#     GlobalTarget(
+#         "check",
+#         "Run all deployment unit tests with memory checking",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"all", "leak"},
+#         cmake="check_leak",
+#     ),
+#     GlobalTarget(
+#         "check",
+#         "Run all deployment unit tests with code coverage",
+#         build_type=BuildType.BUILD_TESTING,
+#         flags={"all", "coverage"},
+#         cmake="coverage",
+#     ),
+# ]

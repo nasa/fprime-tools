@@ -13,7 +13,8 @@ from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
-from fprime.fbuild.builder import Build, Target
+from fprime.fbuild.builder import Build
+from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
 
 
