@@ -59,9 +59,7 @@ class IniSettings:
             full_path = os.path.abspath(os.path.normpath(os.path.join(base_dir, path)))
             if exists and not os.path.exists(full_path):
                 raise FprimeSettingsException(
-                    "Nonexistent path '{}' found in section '{}' option '{}' of file '{}'".format(
-                        path, section, key, ini_file
-                    )
+                    f"Nonexistent path '{path}' found in section '{section}' option '{key}' of file '{ini_file}'"
                 )
             expanded.append(full_path)
         return expanded
@@ -84,7 +82,7 @@ class IniSettings:
 
         # Check file existence if specified
         if not os.path.exists(settings_file):
-            print("[WARNING] Failed to find settings file: {}".format(settings_file))
+            print(f"[WARNING] Failed to find settings file: {settings_file}")
             fprime_location = IniSettings.find_fprime(settings_file.parent)
             return {"framework_path": fprime_location, "install_dest": dfl_install_dest}
         confparse = configparser.ConfigParser()

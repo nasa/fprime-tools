@@ -95,6 +95,6 @@ def test_settings():
     for case in test_cases:
         fp = full_path("settings-data/" + case["file"])
         results = IniSettings.load(fp)
-        assert case["expected"] == results, "{}: Expected {}, got {}".format(
-            fp, case["expected"], results
-        )
+        assert (
+            case["expected"] == results
+        ), f'{fp}: Expected {case["expected"]}, got {results}'

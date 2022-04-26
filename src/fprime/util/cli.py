@@ -37,10 +37,10 @@ def print_info(
         build_info = build.get_build_info(Path(parsed.path))
         # Target list
         local_targets = {
-            "'{}'".format(target) for target in build_info.get("local_targets", [])
+            f"'{target}'" for target in build_info.get("local_targets", [])
         }
         global_targets = {
-            "'{}'".format(target) for target in build_info.get("global_targets", [])
+            f"'{target}'" for target in build_info.get("global_targets", [])
         }
         build_artifacts = (
             build_info.get("auto_location")
@@ -53,7 +53,7 @@ def print_info(
         build_infos[build.build_type] = build_artifacts
 
     # Print out directory and deployment target sections
-    print(f"[INFO] Fprime build information:")
+    print("[INFO] Fprime build information:")
     print(f"    Available directory targets: {' '.join(local_generic_targets)}")
     print()
     print(f"    Available deployment targets: {' '.join(global_generic_targets)}")

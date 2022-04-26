@@ -25,32 +25,28 @@ class AbstractMethodException(TypeException):
     """Not implemented exception under another name"""
 
     def __init__(self, val):
-        super().__init__("%s must be implemented since it is abstract!" % str(val))
+        super().__init__(f"{str(val)} must be implemented since it is abstract!")
 
 
 class TypeRangeException(TypeException):
     """Value is out of range"""
 
     def __init__(self, val):
-        super().__init__("Value %s out of range!" % str(val))
+        super().__init__(f"Value {str(val)} out of range!")
 
 
 class StringSizeException(TypeException):
     """String size is to large for defined type"""
 
     def __init__(self, size, max_size):
-        super().__init__(
-            "String size {} is greater than {}!".format(str(size), str(max_size))
-        )
+        super().__init__(f"String size {str(size)} is greater than {str(max_size)}!")
 
 
 class TypeMismatchException(TypeException):
     """Wrong type found exception"""
 
     def __init__(self, expected_type, actual_type):
-        super().__init__(
-            "Type {} expected, type {} found!".format(expected_type, actual_type)
-        )
+        super().__init__(f"Type {expected_type} expected, type {actual_type} found!")
 
 
 class ArrayLengthException(TypeException):
@@ -58,8 +54,7 @@ class ArrayLengthException(TypeException):
 
     def __init__(self, arr_type, expected_len, actual_len):
         super().__init__(
-            "Array type %s is of length %s, actual length %s found!"
-            % (arr_type, expected_len, actual_len)
+            f"Array type {arr_type} is of length {expected_len}, actual length {actual_len} found!"
         )
 
 
@@ -67,9 +62,7 @@ class EnumMismatchException(TypeException):
     """Enum member not defined"""
 
     def __init__(self, enum, bad_member):
-        super().__init__(
-            "Invalid enum member {} set in {} enum!".format(bad_member, enum)
-        )
+        super().__init__(f"Invalid enum member {bad_member} set in {enum} enum!")
 
 
 class DeserializeException(TypeException):
@@ -82,14 +75,14 @@ class ArgNotFoundException(TypeException):
     """Argument not found exception"""
 
     def __init__(self, message):
-        super().__init__("Arg %s not found!" % message)
+        super().__init__(f"Arg {message} not found!")
 
 
 class NotInitializedException(TypeException):
     """Did not initialize types"""
 
     def __init__(self, message):
-        super().__init__("Instance %s not initialized!" % message)
+        super().__init__(f"Instance {message} not initialized!")
 
 
 class NotOverriddenException(TypeException):
@@ -97,7 +90,7 @@ class NotOverriddenException(TypeException):
 
     def __init__(self, message):
         super().__init__(
-            "Required base class method not overwritten in type %s!" % message
+            f"Required base class method not overwritten in type {message}!"
         )
 
 

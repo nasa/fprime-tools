@@ -34,9 +34,7 @@ def get_data_dir():
     if type(get_cmake_builder()) == fprime.fbuild.cmake.CMakeHandler:
         return os.path.join(os.path.dirname(__file__), "cmake-data")
     raise Exception(
-        "Test data directory not setup for {} builder class".format(
-            type(get_cmake_builder())
-        )
+        f"Test data directory not setup for {type(get_cmake_builder())} builder class"
     )
 
 

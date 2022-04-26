@@ -95,7 +95,7 @@ class CMakeHandler:
 
         make_args = {} if make_args is None else make_args
         fleshed_args = ["--"] + list(
-            map(lambda key: "{}={}".format(key, make_args[key]), make_args.keys())
+            map(lambda key: f"{key}={make_args[key]}", make_args.keys())
         )
 
         if target != "" and top_target:
@@ -106,7 +106,7 @@ class CMakeHandler:
                 module
                 if target == ""
                 else (
-                    "{}_{}".format(module, target).lstrip("_")
+                    f"{module}_{target}".lstrip("_")
                     if not top_target
                     else target
                 )
@@ -399,7 +399,7 @@ class CMakeHandler:
             )
             if not project_lines:
                 raise CMakeProjectException(
-                    source_dir, "No 'project()' calls in {}".format(cmake_file)
+                    source_dir, f"No 'project()' calls in {cmake_file}"
                 )
 
     @staticmethod
@@ -477,9 +477,9 @@ class CMakeHandler:
             cargs.append("-N")
         cargs.extend(arguments)
         if self.verbose:
-            print("[CMAKE] '{}'".format(" ".join(cargs)))
+            print(f"""[CMAKE] '{" ".join(cargs)}'""")
             for key, val in sorted(cm_environ.items(), key=lambda x: x[0]):
-                print("[CMAKE]     {}={}".format(key, val))
+                print(f"[CMAKE]     {key}={val}")
 
         # In order to get proper console highlighting while still getting access to the output, we need to create a
         # pseudo-terminal. This will allow the proc to write to one side, and our select below to read from the other
@@ -504,7 +504,7 @@ class CMakeHandler:
         # needed. Thus we do not just exit.
         if ret != 0:
             raise CMakeExecutionException(
-                "CMake erred with return code {}".format(proc.returncode),
+                f"CMake erred with return code {proc.returncode}",
                 stderr,
                 print_output,
                 ret,
@@ -579,9 +579,7 @@ class CMakeInconsistentCacheException(CMakeException):
     def __init__(self, key, expected, actual):
         """Force an appropriate message"""
         super().__init__(
-            "Expected CMake variable {} to be set to '{}', was actually set to '{}'. This is usually caused by updating the settings.ini file without purging and regenerating the accompanying build cache.".format(
-                key, expected, actual
-            )
+            f"Expected CMake variable {key} to be set to '{expected}', was actually set to '{actual}'. This is usually caused by updating the settings.ini file without purging and regenerating the accompanying build cache."
         )
 
 
@@ -590,7 +588,7 @@ class CMakeOrphanException(CMakeException):
 
     def __init__(self, file_dir):
         """Force an appropriate message"""
-        super().__init__("{} is outside the F prime project".format(file_dir))
+        super().__init__(f"{file_dir} is outside the F prime project")
 
 
 class CMakeProjectException(CMakeException):
@@ -598,9 +596,7 @@ class CMakeProjectException(CMakeException):
 
     def __init__(self, project_dir, error):
         """Force an appropriate message"""
-        super().__init__(
-            "{} is an invalid F prime deployment. {}".format(project_dir, error)
-        )
+        super().__init__(f"{project_dir} is an invalid F prime deployment. {error}")
 
 
 class CMakeInvalidBuildException(CMakeException):
@@ -609,9 +605,7 @@ class CMakeInvalidBuildException(CMakeException):
     def __init__(self, build_dir):
         """Force an appropriate message"""
         super().__init__(
-            "{} is not a CMake build directory. Please setup using 'fprime-util generate'".format(
-                build_dir
-            )
+            f"{build_dir} is not a CMake build directory. Please setup using 'fprime-util generate'"
         )
 
 
@@ -644,4 +638,4 @@ class CMakeNoSuchTargetException(CMakeException):
 
     def __init__(self, build_dir, target):
         """Better messaging for this exception"""
-        super().__init__("{} does not support target {}".format(build_dir, target))
+        super().__init__(f"{build_dir} does not support target {target}")

@@ -30,9 +30,7 @@ class NumericalType(ValueType, abc.ABC):
         match = BITS_RE.match(cls.__name__)
         assert (
             match
-        ), "Type {} does not follow format I#Type U#Type nor F#Type required of numerical types".format(
-            cls
-        )
+        ), f"Type {cls} does not follow format I#Type U#Type nor F#Type required of numerical types"
         return int(match.group(1))
 
     @classmethod
