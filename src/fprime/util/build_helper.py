@@ -30,14 +30,15 @@ from fprime.fbuild.builder import (
 )
 from .help_text import HelpText
 from fprime.fbuild.cli import add_fbuild_parsers, get_target
-#from fprime.fpp.cli import add_fpp_parsers
+
+# from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
 
 
 class ArgValidationException(Exception):
-    """ An exception used for argument validation """
+    """An exception used for argument validation"""
 
 
 def validate(parsed, unknown):
@@ -67,8 +68,10 @@ def validate(parsed, unknown):
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
     # Check if any arguments are still unknown
     if unknown:
-        runnable = f'{os.path.basename(sys.argv[0])} {parsed.command}'
-        raise ArgValidationException(f"'{runnable}' supplied invalid arguments: {','.join(unknown)}")
+        runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"
+        raise ArgValidationException(
+            f"'{runnable}' supplied invalid arguments: {','.join(unknown)}"
+        )
     parsed.build_cache = (
         None if parsed.build_cache is None else Path(parsed.build_cache)
     )
@@ -124,7 +127,7 @@ def parse_args(args):
     # Main parser for the whole application
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=HelpText.long("global_help")
+        description=HelpText.long("global_help"),
     )
     subparsers = parser.add_subparsers(
         description=HelpText.long("subparsers_description"),
@@ -135,10 +138,12 @@ def parse_args(args):
     runners = {}
     parsers = {}
 
-    fbuild_runners, fbuild_parsers = add_fbuild_parsers(subparsers, common_parser, HelpText)
+    fbuild_runners, fbuild_parsers = add_fbuild_parsers(
+        subparsers, common_parser, HelpText
+    )
     runners.update(fbuild_runners)
     parsers.update(fbuild_parsers)
-    #runners.update(add_fpp_parsers(subparsers, common_parser))
+    # runners.update(add_fpp_parsers(subparsers, common_parser))
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
@@ -186,7 +191,9 @@ def utility_entry(args):
             except InvalidBuildCacheException:
                 if parsed.command not in ["purge", "info"]:
                     raise
-        runners[parsed.command](build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", []))
+        runners[parsed.command](
+            build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
+        )
     except GenerateException as genex:
         print(
             f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",

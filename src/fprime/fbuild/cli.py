@@ -37,7 +37,7 @@ def run_fbuild_cli(
     parsed: argparse.Namespace,
     cmake_args: Dict[str, str],
     make_args: Dict[str, str],
-    pass_through: List[str]
+    pass_through: List[str],
 ):
     """Execution of the fbuild commands
 
@@ -87,7 +87,7 @@ def add_target_parser(
     subparsers,
     common: argparse.ArgumentParser,
     existing: Dict[str, Tuple[argparse.ArgumentParser, List[str]]],
-    help_text: "HelpText"
+    help_text: "HelpText",
 ) -> str:
     """Add a subparser for a given build target
 
@@ -107,7 +107,9 @@ def add_target_parser(
     Notes:
         This functions has side effects of editing existing and the list of subparsers
     """
-    help_string = help_text.short(target.mnemonic, f"{target.desc} in the specified directory")
+    help_string = help_text.short(
+        target.mnemonic, f"{target.desc} in the specified directory"
+    )
     description = help_text.long(target.mnemonic, help_string)
     if target.mnemonic not in existing:
         parser = subparsers.add_parser(
@@ -116,7 +118,7 @@ def add_target_parser(
             add_help=False,
             description=description,
             help=help_string,
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         # --ut flag also exists at the global parsers, skip adding it
         existing[target.mnemonic] = (parser, ["ut"])
@@ -131,22 +133,30 @@ def add_target_parser(
     parser, flags = existing[target.mnemonic]
     new_flags = [flag for flag in target.flags if flag not in flags]
     for flag in new_flags:
-        extra_help = f". Use '--pass-through' to supply '{target.pass_handler()}' arguments" if target.allows_pass_args() else ""
+        extra_help = (
+            f". Use '--pass-through' to supply '{target.pass_handler()}' arguments"
+            if target.allows_pass_args()
+            else ""
+        )
         parser.add_argument(
             f"--{flag}", action="store_true", default=False, help=f"{target.desc}{extra_help}"
         )
     # Allow pass through arguments
     if target.pass_handler() and "--pass-through" not in flags:
         parser.add_argument(
-            "--pass-through", nargs=argparse.REMAINDER, default=[],
-            help=f"If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable"
+            "--pass-through",
+            nargs=argparse.REMAINDER,
+            default=[],
+            help=f"If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
         )
         flags.append("--pass-through")
     flags.extend(new_flags)
     return target.mnemonic
 
 
-def add_special_targets(subparsers, common: argparse.ArgumentParser, help_text: "HelpText") -> List[str]:
+def add_special_targets(
+    subparsers, common: argparse.ArgumentParser, help_text: "HelpText"
+) -> List[str]:
     """Add in generate and purge commands
 
     Args:
@@ -160,11 +170,15 @@ def add_special_targets(subparsers, common: argparse.ArgumentParser, help_text: 
 
     generate_parser = subparsers.add_parser(
         "generate",
-        help=help_text.short("generate", "Generate a build cache for specified deployment"),
-        description=help_text.long("generate", "Generate a build cache for specified deployment"),
+        help=help_text.short(
+            "generate", "Generate a build cache for specified deployment"
+        ),
+        description=help_text.long(
+            "generate", "Generate a build cache for specified deployment"
+        ),
         parents=[common],
         add_help=False,
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     generate_parser.add_argument(
         "-Dxyz",
@@ -176,10 +190,12 @@ def add_special_targets(subparsers, common: argparse.ArgumentParser, help_text: 
     purge_parser = subparsers.add_parser(
         "purge",
         help=help_text.short("purge", "Remove build caches for specified deployment"),
-        description=help_text.long("purge", "Remove build caches for specified deployment"),
+        description=help_text.long(
+            "purge", "Remove build caches for specified deployment"
+        ),
         add_help=False,
         parents=[common],
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     purge_parser.add_argument(
         "-f",
@@ -192,8 +208,7 @@ def add_special_targets(subparsers, common: argparse.ArgumentParser, help_text: 
 
 
 def add_fbuild_parsers(
-    subparsers, common: argparse.ArgumentParser,
-    help_text: "HelpText"
+    subparsers, common: argparse.ArgumentParser, help_text: "HelpText"
 ) -> Tuple[Dict[str, Callable], Dict[str, argparse.ArgumentParser]]:
     """Add in the build-system targets: generate, purge, and all build endpoints
 
@@ -210,10 +225,15 @@ def add_fbuild_parsers(
     """
     parsers = {}
     run_map = {
-        add_target_parser(target, subparsers, common, parsers, help_text=help_text): run_fbuild_cli
+        add_target_parser(
+            target, subparsers, common, parsers, help_text=help_text
+        ): run_fbuild_cli
         for target in Target.get_all_targets()
     }
     run_map.update(
-        {command: run_fbuild_cli for command in add_special_targets(subparsers, common, help_text=help_text)}
+        {
+            command: run_fbuild_cli
+            for command in add_special_targets(subparsers, common, help_text=help_text)
+        }
     )
     return run_map, parsers

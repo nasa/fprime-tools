@@ -10,13 +10,20 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, List, Set, Union
 
-from fprime.fbuild.types import BuildType, InvalidBuildCacheException, NoSuchToolchainException, AmbiguousToolchainException, UnableToDetectDeploymentException
+from fprime.fbuild.types import (
+    BuildType,
+    InvalidBuildCacheException,
+    NoSuchToolchainException,
+    AmbiguousToolchainException,
+    UnableToDetectDeploymentException,
+)
 from fprime.fbuild.target import TargetScope, Target, BuildSystemTarget, DelegatorTarget
 from fprime.common.error import FprimeException
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
 
 import fprime.fbuild.target_definitions
+
 
 class Build:
     """Represents a build configuration
@@ -110,14 +117,22 @@ class Build:
                 gen_args = f" --build-cache {build_dir}"
             else:
                 gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
-                gen_args += " " + platform if platform is not None and platform != "native" and platform != "default" else ""
+                gen_args += (
+                    " " + platform
+                    if platform is not None
+                    and platform != "native"
+                    and platform != "default"
+                    else ""
+                )
             raise InvalidBuildCacheException(
-                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args}'",
+                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'",
                 self.build_dir
             )
 
     def get_settings(
-        self, setting: Union[None, str, Iterable[Union[None, str]]], default: Union[None, str, Iterable[Union[None, str]]]
+        self,
+        setting: Union[None, str, Iterable[Union[None, str]]],
+        default: Union[None, str, Iterable[Union[None, str]]],
     ) -> Union[str, Iterable[str]]:
         """Fetches settings in the settings file
 
@@ -151,7 +166,7 @@ class Build:
         hashes_file = self.build_dir / "hashes.txt"
         if not hashes_file.exists():
             raise InvalidBuildCacheException(
-                f"Failed to find {hashes_file}, was the build generated.",
+                f"Failed to find {hashes_file}, was the build generated?",
                 self.build_dir
             )
         with open(hashes_file) as file_handle:
@@ -193,7 +208,11 @@ class Build:
         )
         temp_targets = Target.get_all_targets()
         # Remove targets that are not supported given the list of valid cmake targets
-        temp_targets = [target for target in temp_targets if target.is_supported(valid_cmake_targets)]
+        temp_targets = [
+            target
+            for target in temp_targets
+            if target.is_supported(valid_cmake_targets)
+        ]
         # Now filter for local scope
         local_targets = [
             target
@@ -201,7 +220,9 @@ class Build:
             if target.scope in [TargetScope.LOCAL, TargetScope.BOTH]
         ]
         global_targets = [
-            target for target in Target.get_all_targets() if target.scope == TargetScope.GLOBAL
+            target
+            for target in Target.get_all_targets()
+            if target.scope == TargetScope.GLOBAL
         ]
 
         relative_path = self.cmake.get_project_relative_path(
@@ -308,21 +329,27 @@ class Build:
         return cmake_args
 
     def get_module_name(self, path: Path):
-        """ Gets name of module from path """
+        """Gets name of module from path"""
         return self.cmake.get_cmake_module(path, self.build_dir)
 
-    def get_relative_path(self, path: Path, to_build_cache: bool=False) -> Path:
-        """ Gets path relative to project """
+    def get_relative_path(self, path: Path, to_build_cache: bool = False) -> Path:
+        """Gets path relative to project"""
         relative_path, include_root = self.cmake.get_include_info(path, self.build_dir)
         relative_path = Path(relative_path)
         fprime_root = Path(self.get_settings("framework_path", None))
         # FPrime paths need special handling when relative to build cache, but still needs to handle Ref and RPI
         if to_build_cache and fprime_root == Path(include_root):
             cache_path = self.build_dir / relative_path
-            return relative_path if cache_path.exists() else Path("F-Prime") / relative_path
+            return (
+                relative_path
+                if cache_path.exists()
+                else Path("F-Prime") / relative_path
+            )
         return relative_path
 
-    def execute_build_target(self, build_target: str, context: Path, top: bool, make_args: dict):
+    def execute_build_target(
+        self, build_target: str, context: Path, top: bool, make_args: dict
+    ):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the make system. Context
@@ -433,7 +460,9 @@ class Build:
                 builds.append(build)
             except InvalidBuildCacheException as error:
                 if build_cache is None:
-                    print(f"[WARNING] Build cache '{error.cache}' invalid or not found. Skipping.")
+                    print(
+                        f"[WARNING] Build cache '{error.cache}' invalid or not found. Skipping."
+                    )
                     continue
                 raise
         return builds

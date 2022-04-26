@@ -88,7 +88,7 @@ to interact with the data coming from the FSW.
         "Cheetah3==3.2.6",
         "setuptools-scm==6.0.1",
         "cookiecutter==1.7.2",
-        "gcovr==5.1"
+        "gcovr==5.1",
     ],
     extras_require={
         "dev": [

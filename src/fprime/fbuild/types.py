@@ -1,5 +1,3 @@
-
-
 from enum import Enum
 from typing import List
 
@@ -8,9 +6,11 @@ from fprime.common.error import FprimeException
 
 class InvalidBuildCacheException(FprimeException):
     """An exception indicating a build cache"""
+
     def __init__(self, message, build_cache=""):
         super().__init__(message)
         self.cache = build_cache
+
 
 class UnableToDetectDeploymentException(FprimeException):
     """An exception indicating a build cache"""
@@ -75,4 +75,3 @@ class BuildType(Enum):
     def get_public_types() -> List["BuildType"]:
         """Returns public build types"""
         return [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
-

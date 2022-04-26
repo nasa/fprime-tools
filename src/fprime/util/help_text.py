@@ -272,7 +272,6 @@ Examples:
 WARNING: prototype code. Not recommended for inexperienced users. '{EXECUTABLE} new' runs a wizard to create new ports
 and components in fprime. The code has not been updated to use FPP models. Please check back later.
 """,
-
 }
 
 
@@ -298,7 +297,6 @@ class HelpText(object):
         lines = MNEMONIC_HELP_MAP.get(context_key, default).splitlines()
         return lines[0] if lines else default
 
-
     @staticmethod
     def long(context_key: str, default: str = ""):
         """long help text for context
@@ -312,4 +310,3 @@ class HelpText(object):
             long help description
         """
         return MNEMONIC_HELP_MAP.get(context_key, default)
-

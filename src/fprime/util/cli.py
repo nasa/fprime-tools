@@ -58,9 +58,13 @@ def print_info(
     # Print out directory and deployment target sections
     if local_generic_targets.keys() or global_generic_targets.keys():
         print(f"[INFO] fprime build information:")
-        print(f"    Available directory targets: {' '.join(local_generic_targets.keys())}")
+        print(
+            f"    Available directory targets: {' '.join(local_generic_targets.keys())}"
+        )
         print()
-        print(f"    Available global targets: {' '.join(global_generic_targets.keys())}")
+        print(
+            f"    Available global targets: {' '.join(global_generic_targets.keys())}"
+        )
         print("  ----------------------------------------------------------")
     # Artifact locations come afterwards
     for build_type, (
@@ -135,7 +139,7 @@ def add_special_parsers(
         help=help_text.short("hash-to-file"),
         parents=[common],
         add_help=False,
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hash_parser.add_argument(
         "hash",
@@ -150,7 +154,7 @@ def add_special_parsers(
         help=help_text.short("info"),
         parents=[common],
         add_help=False,
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     # New functionality
@@ -160,7 +164,7 @@ def add_special_parsers(
         help=help_text.short("new"),
         parents=[common],
         add_help=False,
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     new_parser.add_argument(
         "--component",

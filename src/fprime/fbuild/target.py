@@ -14,27 +14,29 @@ from .types import BuildType, NoSuchTargetException
 
 
 class TargetScope(Enum):
-    """ Scoping for target execution: GLOBAL, LOCAL
+    """Scoping for target execution: GLOBAL, LOCAL
 
     GLOBAL targets trigger top-level (global) build system targets. LOCAL targets trigger per-directory build system
     targets. BOTH represents a target that can operate in both LOCAL and GLOBAL mode one at a time. When registering
     a BOTH targets, the system will create a local target and a global target and register those. These targets differ
     in both scope and flags as the GLOBAL target receives the flag "--all" added to its list.
     """
+
     GLOBAL = 0x1
     LOCAL = 0x2
     BOTH = GLOBAL | LOCAL
 
 
 class ExecutableAction(ABC):
-    """ Executable action not declaring a formal mnemonic, description, etc.
+    """Executable action not declaring a formal mnemonic, description, etc.
 
     Some steps in the execution of a composite target need to execute "actions lite" or anonymous targets. Things that
     have an execute method but are only executable through other targets. This class can be derived to create that
     without generating all the normal target metadata.
     """
+
     def is_supported(self, build_target_names: List[str]):
-        """ Is supported by the list of build target names
+        """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
@@ -47,8 +49,10 @@ class ExecutableAction(ABC):
         return True
 
     @abstractmethod
-    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
-        """ Executes the given target """
+    def execute(
+        self, builder: "Builder", context: Path, args: Tuple[Dict[str, str], List[str]]
+    ):
+        """Executes the given target"""
 
     def allows_pass_args(self):
         """Target allows pass-through arguments"""
@@ -59,7 +63,7 @@ class ExecutableAction(ABC):
         return None
 
     def __repr__(self):
-        """ Representation """
+        """Representation"""
         return f"{self.__class__.__name__}"
 
 
@@ -77,6 +81,7 @@ class Target(ExecutableAction):
     Targets may also be local. These targets use context information to figure out what to build. This allows for one
     target to represent a class of targets. i.e. build can be used as a local target to build any given sub directory.
     """
+
     ALL_TARGETS = []
 
     def __init__(
@@ -112,15 +117,19 @@ class Target(ExecutableAction):
         # Targets defined as either local or global scope are registered directly. "Both" targets are wrapped in a
         # delegator for both scopes and those end up being registered.
         if self.scope != TargetScope.BOTH:
-            self.ALL_TARGETS.append(self) # Add newly minted target to the tracked list of targets
+            self.ALL_TARGETS.append(
+                self
+            )  # Add newly minted target to the tracked list of targets
         else:
             DelegatorTarget(self, mnemonic, desc, TargetScope.LOCAL, build_type, flags)
             new_flags = {"all"}
             new_flags = new_flags.union(flags) if flags else new_flags
-            DelegatorTarget(self, mnemonic, desc, TargetScope.GLOBAL, build_type, new_flags)
+            DelegatorTarget(
+                self, mnemonic, desc, TargetScope.GLOBAL, build_type, new_flags
+            )
 
     def __repr__(self):
-        """ Representation """
+        """Representation"""
         return f"{self.__class__.__name__}({str(self)})"
 
     def __str__(self):
@@ -188,19 +197,19 @@ class Target(ExecutableAction):
 
 
 class CompositeTarget(Target):
-    """ Target whose execution is a composition of other targets """
+    """Target whose execution is a composition of other targets"""
 
     def __init__(self, targets, *args, **kwargs):
-        """ Constructor setting child targets """
+        """Constructor setting child targets"""
         super().__init__(*args, **kwargs)
         self.targets = targets
 
     def __repr__(self):
-        """ So we can see what it delegated to """
+        """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{', '.join([target.__repr__() for target in self.targets])}]"
 
     def is_supported(self, build_target_names: List[str]):
-        """ Is supported by the list of build target names
+        """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
@@ -210,31 +219,42 @@ class CompositeTarget(Target):
             True if supported false otherwise
         """
         # Supported only if all steps supported
-        return functools.reduce(lambda sum, target: sum and target.is_supported(build_target_names), self.targets, True)
+        return functools.reduce(
+            lambda sum, target: sum and target.is_supported(build_target_names),
+            self.targets,
+            True,
+        )
 
     def allows_pass_args(self):
-        """ Pass args allowed if any child allows it """
-        return functools.reduce(lambda sum, target: sum or target.allows_pass_args(), self.targets, False)
+        """Pass args allowed if any child allows it"""
+        return functools.reduce(
+            lambda sum, target: sum or target.allows_pass_args(), self.targets, False
+        )
 
     def pass_handler(self):
-        """ Pass handler as , separated list """
-        handlers = [target.pass_handler() for target in self.targets if target.pass_handler()]
+        """Pass handler as , separated list"""
+        handlers = [
+            target.pass_handler() for target in self.targets if target.pass_handler()
+        ]
         return ",".join(handlers)
 
     def execute(self, *args, **kwargs):
-        """ Execute the composite target """
+        """Execute the composite target"""
         for child in self.targets:
             child.execute(*args, **kwargs)
 
 
 class BuildSystemTarget(Target):
-    """ Target whose execution invokes a command within the build system """
+    """Target whose execution invokes a command within the build system"""
+
     def __init__(self, build_target, *args, **kwargs):
-        """ Constructor setting child targets """
+        """Constructor setting child targets"""
         super().__init__(*args, **kwargs)
         self.build_target = build_target
 
-    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
+    def execute(
+        self, builder: "Builder", context: Path, args: Tuple[Dict[str, str], List[str]]
+    ):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the build system.
@@ -246,11 +266,17 @@ class BuildSystemTarget(Target):
             make_args: make system arguments directly supplied
         """
         # Global targets with build target "" must be mapped to "arg"
-        build_target = self.build_target if self.build_target != "" or self.scope == TargetScope.LOCAL else "all"
-        builder.execute_build_target(build_target, context, self.scope == TargetScope.GLOBAL, args[0])
+        build_target = (
+            self.build_target
+            if self.build_target != "" or self.scope == TargetScope.LOCAL
+            else "all"
+        )
+        builder.execute_build_target(
+            build_target, context, self.scope == TargetScope.GLOBAL, args[0]
+        )
 
     def is_supported(self, build_target_names: List[str]):
-        """ Is supported by the list of build target names
+        """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
@@ -263,22 +289,23 @@ class BuildSystemTarget(Target):
 
 
 class DelegatorTarget(Target):
-    """ Delegates to another target
+    """Delegates to another target
 
     Sometimes a target needs to be created that delegates to another target. As an example, local and global variants of
     a "both" target need to delegate through the original. This target delegates to other targets.
     """
+
     def __init__(self, delegate: Target, *args, **kwargs):
-        """ Constructor """
+        """Constructor"""
         super().__init__(*args, **kwargs)
         self.delegate = delegate
 
     def __repr__(self):
-        """ So we can see what it delegated to """
+        """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{self.delegate.__repr__()}]"
 
     def is_supported(self, build_target_names: List[str]):
-        """ Is supported by the list of build target names
+        """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
@@ -290,15 +317,15 @@ class DelegatorTarget(Target):
         return self.delegate.is_supported(build_target_names)
 
     def allows_pass_args(self):
-        """ Pass args allowed if any child allows it """
+        """Pass args allowed if any child allows it"""
         return self.delegate.allows_pass_args()
 
     def pass_handler(self):
-        """ Pass handler from delegate """
+        """Pass handler from delegate"""
         return self.delegate.pass_handler()
 
     def execute(self, *args, **kwargs):
-        """ Delegate the execution """
+        """Delegate the execution"""
         old_scope = self.delegate.scope
         try:
             # Temporarily overrides effective scope of delegate for this invocation
