@@ -9,7 +9,7 @@ import functools
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import List, Set
+from typing import Dict, List, Set, Tuple
 from .types import BuildType, NoSuchTargetException
 
 
@@ -33,9 +33,34 @@ class ExecutableAction(ABC):
     have an execute method but are only executable through other targets. This class can be derived to create that
     without generating all the normal target metadata.
     """
+    def is_supported(self, build_target_names: List[str]):
+        """ Is supported by the list of build target names
+
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
+
+        Args:
+            build_target_names: names of builds system targets
+        Return:
+            True if supported false otherwise
+        """
+        # Always supported by targets, unless specifically overridden
+        return True
+
     @abstractmethod
-    def execute(self, builder: "Builder", context: Path, args: dict):
+    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
         """ Executes the given target """
+
+    def allows_pass_args(self):
+        """Target allows pass-through arguments"""
+        return False
+
+    def pass_handler(self):
+        """Handler of pass-through args"""
+        return None
+
+    def __repr__(self):
+        """ Representation """
+        return f"{self.__class__.__name__}"
 
 
 class Target(ExecutableAction):
@@ -90,10 +115,13 @@ class Target(ExecutableAction):
             self.ALL_TARGETS.append(self) # Add newly minted target to the tracked list of targets
         else:
             DelegatorTarget(self, mnemonic, desc, TargetScope.LOCAL, build_type, flags)
-            new_flags = {"-all"}
+            new_flags = {"all"}
             new_flags = new_flags.union(flags) if flags else new_flags
             DelegatorTarget(self, mnemonic, desc, TargetScope.GLOBAL, build_type, new_flags)
 
+    def __repr__(self):
+        """ Representation """
+        return f"{self.__class__.__name__}({str(self)})"
 
     def __str__(self):
         """Makes this target into a string"""
@@ -105,7 +133,7 @@ class Target(ExecutableAction):
 
         Args:
             mnemonic: mnemonic of the target
-            flags: sset of flags to pair with mnemonic
+            flags: set of flags to pair with mnemonic
         Returns:
             string of format "mnemonic --flag1 --flag2 ..."
         """
@@ -118,7 +146,7 @@ class Target(ExecutableAction):
         """Gets list of all targets' flags used
 
         Returns:
-            List of targets's supported by the system
+            List of targets supported by the system
         """
         return functools.reduce(
             lambda agg, item: agg.union(item.flags), cls.get_all_targets(), set()
@@ -167,6 +195,32 @@ class CompositeTarget(Target):
         super().__init__(*args, **kwargs)
         self.targets = targets
 
+    def __repr__(self):
+        """ So we can see what it delegated to """
+        return f"{self.__class__.__name__}[{', '.join([target.__repr__() for target in self.targets])}]"
+
+    def is_supported(self, build_target_names: List[str]):
+        """ Is supported by the list of build target names
+
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
+
+        Args:
+            build_target_names: names of builds system targets
+        Return:
+            True if supported false otherwise
+        """
+        # Supported only if all steps supported
+        return functools.reduce(lambda sum, target: sum and target.is_supported(build_target_names), self.targets, True)
+
+    def allows_pass_args(self):
+        """ Pass args allowed if any child allows it """
+        return functools.reduce(lambda sum, target: sum or target.allows_pass_args(), self.targets, False)
+
+    def pass_handler(self):
+        """ Pass handler as , separated list """
+        handlers = [target.pass_handler() for target in self.targets if target.pass_handler()]
+        return ",".join(handlers)
+
     def execute(self, *args, **kwargs):
         """ Execute the composite target """
         for child in self.targets:
@@ -180,7 +234,7 @@ class BuildSystemTarget(Target):
         super().__init__(*args, **kwargs)
         self.build_target = build_target
 
-    def execute(self, builder: "Builder", context: Path, args: dict):
+    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the build system.
@@ -193,7 +247,19 @@ class BuildSystemTarget(Target):
         """
         # Global targets with build target "" must be mapped to "arg"
         build_target = self.build_target if self.build_target != "" or self.scope == TargetScope.LOCAL else "all"
-        builder.execute_build_target(build_target, context, self.scope == TargetScope.GLOBAL, args)
+        builder.execute_build_target(build_target, context, self.scope == TargetScope.GLOBAL, args[0])
+
+    def is_supported(self, build_target_names: List[str]):
+        """ Is supported by the list of build target names
+
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
+
+        Args:
+            build_target_names: names of builds system targets
+        Return:
+            True if supported false otherwise
+        """
+        return self.build_target in build_target_names
 
 
 class DelegatorTarget(Target):
@@ -206,6 +272,30 @@ class DelegatorTarget(Target):
         """ Constructor """
         super().__init__(*args, **kwargs)
         self.delegate = delegate
+
+    def __repr__(self):
+        """ So we can see what it delegated to """
+        return f"{self.__class__.__name__}[{self.delegate.__repr__()}]"
+
+    def is_supported(self, build_target_names: List[str]):
+        """ Is supported by the list of build target names
+
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
+
+        Args:
+            build_target_names: names of builds system targets
+        Return:
+            True if supported false otherwise
+        """
+        return self.delegate.is_supported(build_target_names)
+
+    def allows_pass_args(self):
+        """ Pass args allowed if any child allows it """
+        return self.delegate.allows_pass_args()
+
+    def pass_handler(self):
+        """ Pass handler from delegate """
+        return self.delegate.pass_handler()
 
     def execute(self, *args, **kwargs):
         """ Delegate the execution """

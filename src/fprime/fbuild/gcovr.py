@@ -3,8 +3,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from .target import ExecutableAction
+from typing import Dict, List, Tuple
 
+from .target import ExecutableAction, Target, CompositeTarget
 
 class GcovClean(ExecutableAction):
     """ Target used to scrub gcov files before a coverage run
@@ -15,7 +16,7 @@ class GcovClean(ExecutableAction):
     """
     REMOVAL_EXTENSIONS = [".gcna"]
 
-    def execute(self, builder: "Builder", context: Path, args: dict):
+    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
         """ Execute the clean using os.walk """
         print(f"[INFO] Scrubbing leftover { ', '.join(self.REMOVAL_EXTENSIONS)} files")
         self._recurse(builder.build_dir)
@@ -38,12 +39,25 @@ class Gcovr(ExecutableAction):
     directory. arguments are supplied into the `gcovr` execution, however; the default execution is always supplied the
     --txt coverage/summary.txt --txt stdout flags.
     """
-    def execute(self, builder: "Builder", context: Path, args: dict):
+    EXECUTABLE = "gcovr"
+
+    def is_supported(self, build_target_names: List[str]):
+        """ Is supported by the list of build target names
+
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
+
+        Args:
+            build_target_names: names of builds system targets
+        Return:
+            True if supported false otherwise
+        """
+        return bool(shutil.which(self.EXECUTABLE))
+
+    def execute(self, builder: "Builder", context: Path, args: Tuple[Dict[str,str], List[str]]):
         """ Executes the gcovr target """
-        for executable in ["gcovr"]:
-            if not shutil.which(executable):
-                print(f"[ERROR] Cannot find executable: {executable}. Unable to run coverage report.", file=sys.stderr)
-                return
+        if not shutil.which(self.EXECUTABLE):
+            print(f"[ERROR] Cannot find executable: {self.EXECUTABLE}. Unable to run coverage report.", file=sys.stderr)
+            return
         coverage_output_dir = (context / "coverage")
         coverage_output_dir.mkdir(exist_ok=True)
         project_root = builder.get_settings("project_root", builder.get_settings("framework_path", builder.build_dir.parent))
@@ -61,4 +75,23 @@ class Gcovr(ExecutableAction):
             "--txt",
             str(coverage_output_dir / "summary.txt"),
         ]
-        subprocess.call(cli_args, cwd=str(build_directory))
+        subprocess.call(cli_args + args[1], cwd=str(build_directory))
+
+    def allows_pass_args(self):
+        """ Gcovr allows pass-through arguments """
+        return True
+
+    def pass_handler(self):
+        """ Pass handler """
+        return self.EXECUTABLE
+
+
+class GcovrTarget(CompositeTarget):
+    """ Target specific to gcovr
+
+    The gcovr target is a composite target that builds upon an existing check target to perfrom gcovr work. In addition
+    it must support extra arguments as we pass these to the gcovr executable.
+    """
+    def __init__(self, clean_target: Target, *args, **kwargs):
+        """ Construct the gcovr target around an existing check target """
+        super().__init__([GcovClean(), clean_target, Gcovr()], *args, **kwargs)

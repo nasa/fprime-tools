@@ -4,9 +4,13 @@ Defines all the targets for fprime-util. Each target is a singleton that is regi
 as such, each target need only be instantiated but need not be assigned to anything.
 
 """
+import os
+import sys
 from .types import BuildType
-from .target import TargetScope, BuildSystemTarget, CompositeTarget
-from .gcovr import GcovClean, Gcovr
+from .target import TargetScope, BuildSystemTarget
+from .gcovr import GcovrTarget
+
+
 #### "build" targets for components, deployments, unittests for both normal and testing builds ####
 BuildSystemTarget("", mnemonic="build", desc="Build components, ports, and deployments", scope=TargetScope.BOTH)
 BuildSystemTarget("ut_exe", mnemonic="build", desc="Build unittests", scope=TargetScope.LOCAL, flags={"ut"},
@@ -26,26 +30,6 @@ check = BuildSystemTarget("check", mnemonic="check", desc="Build and run unittes
                   scope=TargetScope.BOTH)
 BuildSystemTarget("check_leak", mnemonic="check", desc="Build and run unittests with memory leak checking",
                   flags={"leak"}, build_type=BuildType.BUILD_TESTING, scope=TargetScope.BOTH)
+GcovrTarget(check, mnemonic="check", desc="Build run and calculate coverage of unittests",
+            build_type=BuildType.BUILD_TESTING, scope=TargetScope.BOTH, flags={"coverage"})
 
-
-#### Coverage targets ####
-CompositeTarget([GcovClean(), check, Gcovr()], mnemonic="check", desc="Build run and calculate coverage of unittests",
-                build_type=BuildType.BUILD_TESTING, scope=TargetScope.BOTH, flags={"coverage"})
-
-
-
-#     LocalTarget(
-#         "check",
-#         "Run unit tests with code coverage",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"coverage"},
-#         cmake="coverage",
-#     ),
-#     GlobalTarget(
-#         "check",
-#         "Run all deployment unit tests with code coverage",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"all", "coverage"},
-#         cmake="coverage",
-#     ),
-# ]

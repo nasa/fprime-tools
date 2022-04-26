@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 
 from fprime.common.error import FprimeException
+from fprime.fbuild.types import InvalidBuildCacheException
 from fprime.fbuild.target import Target, NoSuchTargetException
 from fprime.fbuild.builder import (
     Build,
@@ -27,11 +28,16 @@ from fprime.fbuild.builder import (
     GenerateException,
     UnableToDetectDeploymentException,
 )
+from .help_text import HelpText
 from fprime.fbuild.cli import add_fbuild_parsers, get_target
 #from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
+
+
+class ArgValidationException(Exception):
+    """ An exception used for argument validation """
 
 
 def validate(parsed, unknown):
@@ -44,17 +50,25 @@ def validate(parsed, unknown):
     """
     cmake_args = {}
     make_args = {}
+    extra_args = None
     # Check platforms for existing toolchain, unless the default is specified.
-    if parsed.command == "generate":
+    if not hasattr(parsed, "command") or parsed.command is None:
+        raise ArgValidationException("'fprime-util' not supplied sub-command argument")
+    elif parsed.command == "generate":
         d_args = {
             match.group(1): match.group(2)
             for match in [CMAKE_REG.match(arg) for arg in unknown]
         }
         cmake_args.update(d_args)
+        unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
     # Build type only for generate, jobs only for non-generate
     elif parsed.command in Target.get_all_targets():
         parsed.settings = None  # Force to load from cache if possible
         make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
+    # Check if any arguments are still unknown
+    if unknown:
+        runnable = f'{os.path.basename(sys.argv[0])} {parsed.command}'
+        raise ArgValidationException(f"'{runnable}' supplied invalid arguments: {','.join(unknown)}")
     parsed.build_cache = (
         None if parsed.build_cache is None else Path(parsed.build_cache)
     )
@@ -108,30 +122,33 @@ def parse_args(args):
     )
 
     # Main parser for the whole application
-    parser = argparse.ArgumentParser(description="F prime helper application.")
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=HelpText.long("global_help")
+    )
     subparsers = parser.add_subparsers(
-        description="F prime utility command line. Please run one of the commands. "
-        + "For help, run a command with the --help flag.",
+        description=HelpText.long("subparsers_description"),
         dest="command",
     )
 
     # Add all externally defined cli parser command to running functions
     runners = {}
-    runners.update(add_fbuild_parsers(subparsers, common_parser))
+    parsers = {}
+
+    fbuild_runners, fbuild_parsers = add_fbuild_parsers(subparsers, common_parser, HelpText)
+    runners.update(fbuild_runners)
+    parsers.update(fbuild_parsers)
     #runners.update(add_fpp_parsers(subparsers, common_parser))
-    runners.update(add_special_parsers(subparsers, common_parser))
+    runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
     parsed, unknown = parser.parse_known_args(args)
-    bad = [bad for bad in unknown if not CMAKE_REG.match(bad)]
-    if not hasattr(parsed, "command") or parsed.command is None:
-        parser.print_help()
+    try:
+        cmake_args, make_args = validate(parsed, unknown)
+    except ArgValidationException as exc:
+        print(f"[ERROR] {exc}", end="\n\n")
+        parsers.get(parsed.command, (parser,))[0].print_usage()
         sys.exit(1)
-    elif bad:
-        print(f'[ERROR] Unknown arguments: {", ".join(bad)}')
-        parser.print_help()
-        sys.exit(1)
-    cmake_args, make_args = validate(parsed, unknown)
     return parsed, cmake_args, make_args, parser, runners
 
 
@@ -157,10 +174,19 @@ def utility_entry(args):
         )
         build = Build(build_type, deployment, verbose=parsed.verbose)
 
-        # When not handling generate/purge we need a valid build cache and should load it
-        if parsed.command not in ["generate", "purge"]:
-            build.load(parsed.platform, parsed.build_cache)
-        runners[parsed.command](build, parsed, cmake_args, make_args)
+        # All commands need to load the build cache to setup the basic information for the build with the exception of
+        # generate, which is run before the creation of the build cache.
+        #
+        # Some commands, like purge and info, run on sets of directories an will attempt to load the sets later.
+        # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
+        # build caches related to that set.
+        if parsed.command not in ["generate"]:
+            try:
+                build.load(parsed.platform, parsed.build_cache)
+            except InvalidBuildCacheException:
+                if parsed.command not in ["purge", "info"]:
+                    raise
+        runners[parsed.command](build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", []))
     except GenerateException as genex:
         print(
             f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",

@@ -6,11 +6,11 @@ from typing import List
 from fprime.common.error import FprimeException
 
 
-
-
 class InvalidBuildCacheException(FprimeException):
     """An exception indicating a build cache"""
-
+    def __init__(self, message, build_cache=""):
+        super().__init__(message)
+        self.cache = build_cache
 
 class UnableToDetectDeploymentException(FprimeException):
     """An exception indicating a build cache"""

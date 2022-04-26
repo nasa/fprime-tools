@@ -15,7 +15,7 @@ from fprime.fbuild.interaction import new_component, new_port
 
 
 def print_info(
-    base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str]
+    base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
 ):
     """Builds and prints the informational output block
 
@@ -27,20 +27,23 @@ def print_info(
         parsed: parsed command namespace
         _: unused cmake arguments
         __: unused make arguments
+        ___: unused pass through arguments
     """
-    # Roll up targets for more concise display
+    # Roll up targets for more concise display. Dictionaries are used as their keys become a set and as of Python 3.7
+    # the native dictionary maintains ordering. Thus it acts as an "ordered set" for a nice predictable display order
+    # derived from the order of target definitions.
     build_infos = {}
-    local_generic_targets = set()
-    global_generic_targets = set()
+    local_generic_targets = {}
+    global_generic_targets = {}
     # Loop through available builds and harvest targets
     for build in Build.get_build_list(base, parsed.build_cache):
         build_info = build.get_build_info(Path(parsed.path))
         # Target list
         local_targets = {
-            f"'{target}'" for target in build_info.get("local_targets", [])
+            "'{target}'": "" for target in build_info.get("local_targets", [])
         }
         global_targets = {
-            f"'{target}'" for target in build_info.get("global_targets", [])
+            "'{target}'": "" for target in build_info.get("global_targets", [])
         }
         build_artifacts = (
             build_info.get("auto_location")
@@ -48,18 +51,18 @@ def print_info(
             else "N/A",
             build_info.get("build_dir", "Unknown"),
         )
-        local_generic_targets = local_generic_targets.union(local_targets)
-        global_generic_targets = global_generic_targets.union(global_targets)
+        local_generic_targets.update(local_targets)
+        global_generic_targets.update(global_targets)
         build_infos[build.build_type] = build_artifacts
 
     # Print out directory and deployment target sections
-    print("[INFO] Fprime build information:")
-    print(f"    Available directory targets: {' '.join(local_generic_targets)}")
-    print()
-    print(f"    Available deployment targets: {' '.join(global_generic_targets)}")
-
+    if local_generic_targets.keys() or global_generic_targets.keys():
+        print(f"[INFO] fprime build information:")
+        print(f"    Available directory targets: {' '.join(local_generic_targets.keys())}")
+        print()
+        print(f"    Available global targets: {' '.join(global_generic_targets.keys())}")
+        print("  ----------------------------------------------------------")
     # Artifact locations come afterwards
-    print("  ----------------------------------------------------------")
     for build_type, (
         build_artifact_location,
         global_build_cache,
@@ -74,7 +77,7 @@ def print_info(
 
 
 def hash_to_file(
-    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str]
+    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
 ):
     """Processes hash-to-file to locate file
 
@@ -83,6 +86,7 @@ def hash_to_file(
         parsed: parsed arguments for needed for parsed.hash
         _: unused cmake arguments
         __: unused make arguments
+        ___: unused pass through arguments
     """
     lines = build.find_hashed_file(parsed.hash)
     if not lines:
@@ -113,7 +117,7 @@ def template(
 
 
 def add_special_parsers(
-    subparsers, common: argparse.ArgumentParser
+    subparsers, common: argparse.ArgumentParser, help_text: "HelpText"
 ) -> Dict[str, Callable]:
     """Adds in CLI parsers for other commands
 
@@ -127,27 +131,36 @@ def add_special_parsers(
     # Add a search for hash function
     hash_parser = subparsers.add_parser(
         "hash-to-file",
-        help="Converts F prime build hash to filename.",
+        description=help_text.long("hash-to-file"),
+        help=help_text.short("hash-to-file"),
         parents=[common],
         add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     hash_parser.add_argument(
         "hash",
         type=lambda x: int(x, 0),
-        help="F prime assert hash to associate with a file.",
+        help="Assert hash value to convert to filename",
     )
 
     # Add a search for hash function
     subparsers.add_parser(
         "info",
-        help="Gets fprime-util contextual information.",
+        description=help_text.long("info"),
+        help=help_text.short("info"),
         parents=[common],
         add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     # New functionality
     new_parser = subparsers.add_parser(
-        "new", help="Generate a new component", parents=[common], add_help=False
+        "new",
+        description=help_text.long("new"),
+        help=help_text.short("new"),
+        parents=[common],
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     new_parser.add_argument(
         "--component",

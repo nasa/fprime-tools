@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Iterable, List, Set, Union
 
 from fprime.fbuild.types import BuildType, InvalidBuildCacheException, NoSuchToolchainException, AmbiguousToolchainException, UnableToDetectDeploymentException
-from fprime.fbuild.target import TargetScope, Target, BuildSystemTarget
+from fprime.fbuild.target import TargetScope, Target, BuildSystemTarget, DelegatorTarget
 from fprime.common.error import FprimeException
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
@@ -105,9 +105,15 @@ class Build:
             not self.build_dir.exists()
             or not (self.build_dir / "CMakeCache.txt").exists()
         ):
-            gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
+            # Message for hard-supplied --build-cache message
+            if build_dir is not None:
+                gen_args = f" --build-cache {build_dir}"
+            else:
+                gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
+                gen_args += " " + platform if platform is not None and platform != "native" and platform != "default" else ""
             raise InvalidBuildCacheException(
-                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args}'"
+                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args}'",
+                self.build_dir
             )
 
     def get_settings(
@@ -145,7 +151,8 @@ class Build:
         hashes_file = self.build_dir / "hashes.txt"
         if not hashes_file.exists():
             raise InvalidBuildCacheException(
-                f"Failed to find {hashes_file}, was the build generated."
+                f"Failed to find {hashes_file}, was the build generated.",
+                self.build_dir
             )
         with open(hashes_file) as file_handle:
             lines = filter(
@@ -184,11 +191,14 @@ class Build:
         valid_cmake_targets = self.cmake.get_available_targets(
             str(self.build_dir), context
         )
+        temp_targets = Target.get_all_targets()
+        # Remove targets that are not supported given the list of valid cmake targets
+        temp_targets = [target for target in temp_targets if target.is_supported(valid_cmake_targets)]
+        # Now filter for local scope
         local_targets = [
             target
-            for target in Target.get_all_targets()
-            if not isinstance(target, BuildSystemTarget) or target.build_target in valid_cmake_targets
-            and target.scope == TargetScope.LOCAL
+            for target in temp_targets
+            if target.scope in [TargetScope.LOCAL, TargetScope.BOTH]
         ]
         global_targets = [
             target for target in Target.get_all_targets() if target.scope == TargetScope.GLOBAL
@@ -423,7 +433,7 @@ class Build:
                 builds.append(build)
             except InvalidBuildCacheException as error:
                 if build_cache is None:
-                    print(f"[WARNING] No build cache found with error '{error}'.")
+                    print(f"[WARNING] Build cache '{error.cache}' invalid or not found. Skipping.")
                     continue
                 raise
         return builds
@@ -463,72 +473,3 @@ class GenerateException(FprimeException):
     def __init__(self, message, exit_code=1):
         super().__init__(message)
         self.exit_code = exit_code
-
-
-
-
-""" Defined set of build targets available to the system"""  # pylint: disable=W0105
-# BUILD_TARGETS_2 = [
-#     # Various "build" target
-#     LocalTarget("build", "Build components, ports, and deployments", cmake=""),
-#     GlobalTarget("build", "Build all deployment targets", flags={"all"}, cmake="all"),
-#     LocalTarget(
-#         "build",
-#         "Build unit tests",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"ut"},
-#         cmake="ut_exe",
-#     ),
-#     GlobalTarget(
-#         "build",
-#         "Build all unit tests",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"all", "ut"},
-#         cmake="all",
-#     ),
-#     # Implementation targets
-#     LocalTarget("impl", "Generate implementation template files"),
-#     LocalTarget(
-#         "impl",
-#         "Generate unit test files",
-#         flags={"ut"},
-#         cmake="testimpl",
-#         build_type=BuildType.BUILD_TESTING,
-#     ),
-#     # Check targets and unittest targets
-#     LocalTarget("check", "Run unit tests", build_type=BuildType.BUILD_TESTING),
-#     LocalTarget(
-#         "check",
-#         "Run unit tests with memory checking",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"leak"},
-#         cmake="check_leak",
-#     ),
-#     LocalTarget(
-#         "check",
-#         "Run unit tests with code coverage",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"coverage"},
-#         cmake="coverage",
-#     ),
-#     GlobalTarget(
-#         "check",
-#         "Run all deployment unit tests",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"all"},
-#     ),
-#     GlobalTarget(
-#         "check",
-#         "Run all deployment unit tests with memory checking",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"all", "leak"},
-#         cmake="check_leak",
-#     ),
-#     GlobalTarget(
-#         "check",
-#         "Run all deployment unit tests with code coverage",
-#         build_type=BuildType.BUILD_TESTING,
-#         flags={"all", "coverage"},
-#         cmake="coverage",
-#     ),
-# ]
