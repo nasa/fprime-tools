@@ -107,9 +107,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         print("Already added to CMakeLists.txt")
         return True
 
-    if not confirm(
-        f"Add component {comp_path} to {list_file} at end of file?"
-    ):
+    if not confirm(f"Add component {comp_path} to {list_file} at end of file?"):
         return False
 
     lines.append(addition)
@@ -197,9 +195,7 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     index += 1
     while "CMAKE_CURRENT_LIST_DIR" in lines[index]:
         index += 1
-    if not confirm(
-        f"Add port {comp_path} to {list_file} ports in CMakeLists.txt?"
-    ):
+    if not confirm(f"Add port {comp_path} to {list_file} ports in CMakeLists.txt?"):
         return False
 
     addition = '    "${{CMAKE_CURRENT_LIST_DIR}}/{}"\n'.format(comp_path)
@@ -368,9 +364,7 @@ def get_port_input(namespace):
     args_done = False
     arg_list = []
     port_name = get_valid_input(f'Port Name [{defaults["port_name"]}]: ')
-    short_description = input(
-        f'Short Description [{defaults["short_description"]}]: '
-    )
+    short_description = input(f'Short Description [{defaults["short_description"]}]: ')
     dir_name = get_valid_input(f'Directory Name [{defaults["dir_name"]}]: ')
     namespace = get_valid_input(f'Port Namespace [{defaults["namespace"]}]: ')
     while not args_done:
