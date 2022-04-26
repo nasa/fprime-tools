@@ -126,7 +126,7 @@ class Build:
                 )
             raise InvalidBuildCacheException(
                 f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'",
-                self.build_dir
+                self.build_dir,
             )
 
     def get_settings(
@@ -167,7 +167,7 @@ class Build:
         if not hashes_file.exists():
             raise InvalidBuildCacheException(
                 f"Failed to find {hashes_file}, was the build generated?",
-                self.build_dir
+                self.build_dir,
             )
         with open(hashes_file) as file_handle:
             lines = filter(

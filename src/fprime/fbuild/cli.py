@@ -139,7 +139,10 @@ def add_target_parser(
             else ""
         )
         parser.add_argument(
-            f"--{flag}", action="store_true", default=False, help=f"{target.desc}{extra_help}"
+            f"--{flag}",
+            action="store_true",
+            default=False,
+            help=f"{target.desc}{extra_help}",
         )
     # Allow pass through arguments
     if target.pass_handler() and "--pass-through" not in flags:
