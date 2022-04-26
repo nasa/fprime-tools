@@ -19,7 +19,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip fprime-fpp
+          python -m pip install --upgrade pip urllib3 setuptools_scm
+          python -m pip install fprime-fpp
           pip install -e .
       - name: clone fprime and gps-tutorial
         run: |
