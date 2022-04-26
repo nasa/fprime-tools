@@ -389,7 +389,7 @@ class Build:
             return None
         # Otherwise, find locations of toolchain files using the specified locations from settings.
         toolchains_paths = [
-            os.path.join(loc, "cmake", "toolchain", f'{self.platform}.cmake')
+            os.path.join(loc, "cmake", "toolchain", f"{self.platform}.cmake")
             for loc in toolchain_locations
             if loc is not None
         ]
