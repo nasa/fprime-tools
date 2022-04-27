@@ -24,14 +24,14 @@ def remove_line(filename, removal):
 def update_sdd(component_kind, commands, parameters, events, telemetry):
     ports = "## Port Descriptions\n| Name | Description |\n"
     if component_kind == "active":
-        ports = ports + textwrap.dedent(
+        ports += textwrap.dedent(
             """\
         | PingIn | Used for pinging other components |
         | PingOut | Used to receive ping signal |\n"""
         )
     elif component_kind == "queued":
-        ports = ports + ""
-        ports = ports + textwrap.dedent(
+        ports += ""
+        ports += textwrap.dedent(
             """\
             | PingIn | Used for pinging other components |
             | PingOut | Used to receive ping signal |
@@ -49,7 +49,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
         | ExampleCommand | Example of how a command is implemented |\n"""
             ),
         )
-        ports = ports + textwrap.dedent(
+        ports += textwrap.dedent(
             """\
             | cmdIn | Used to receive commands |
             | cmdRegOut | Used to register with the command dispatcher |
@@ -69,7 +69,7 @@ def update_sdd(component_kind, commands, parameters, events, telemetry):
         | ExampleParameter | Example of how a parameter is implemented |\n"""
             ),
         )
-        ports = ports + textwrap.dedent(
+        ports += textwrap.dedent(
             """\
             | prmGetOut | Used to get parameter value |
             | prmSetOut | Used to set parameter value |\n"""
