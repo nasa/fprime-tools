@@ -58,7 +58,9 @@ def run_fbuild_cli(
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
         build.platform = parsed.platform
-        for purge_build in Build.get_build_list(build, parsed.build_cache):
+        for purge_build in Build.get_build_list(
+            build, parsed.build_cache, ignore_invalid=parsed.force
+        ):
             print(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
             )

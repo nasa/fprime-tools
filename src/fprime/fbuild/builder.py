@@ -91,7 +91,7 @@ class Build:
         if self.build_dir.exists():
             raise InvalidBuildCacheException(f"{self.build_dir} already exists.")
 
-    def load(self, platform: str = None, build_dir: Path = None):
+    def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
 
         Sets this build up from an existing build cache. This can be used after a previous run that has generated a
@@ -101,12 +101,13 @@ class Build:
             platform:   name of platform to build against. None will use default from settings.ini or without this
                         setting, "native". Defaults to None.
             build_dir:  explicitly sets the build path to allow for user override of default
+            skip_validation: (optional) skip cache validation. Default: False, validate away!
 
         Raises:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
-        if (
+        if not skip_validation and (
             not self.build_dir.exists()
             or not (self.build_dir / "CMakeCache.txt").exists()
         ):
@@ -442,7 +443,7 @@ class Build:
         return Build.find_nearest_deployment(full_path.parent)
 
     @staticmethod
-    def get_build_list(base, build_cache=None):
+    def get_build_list(base, build_cache=None, ignore_invalid=False):
         """Returns a list of builds that the tool will process
 
         Will return a list of builds the tool will process. This will be a build for each public build type unless the
@@ -451,6 +452,7 @@ class Build:
         Args:
             base: base build identified from command line. Used to get: deployment, platform,
             build_cache: (optional) path to specified build cache.
+            ignore_invalid: (optional) ignore invalid build caches and add as long as they exist
 
         Returns:
             List of builds for public build types, or list of one for a custom build at build cache
@@ -464,9 +466,12 @@ class Build:
         for build_type in build_types:
             build = Build(build_type, base.deployment, verbose=base.cmake.verbose)
             try:
-                build.load(base.platform, build_dir=build_cache)
+                build.load(
+                    base.platform, build_dir=build_cache, skip_validation=ignore_invalid
+                )
                 builds.append(build)
             except InvalidBuildCacheException as error:
+                # Warnings only issued when not using an explicit build cache
                 if build_cache is None:
                     print(
                         f"[WARNING] Build cache '{error.cache}' invalid or not found. Skipping."
