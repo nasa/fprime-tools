@@ -4,11 +4,8 @@ build system handler underneath.
 """
 import os
 import re
-import functools
-from abc import ABC
-from enum import Enum
 from pathlib import Path
-from typing import Iterable, List, Set, Union
+from typing import Iterable, List, Union
 
 from fprime.fbuild.types import (
     BuildType,
@@ -17,12 +14,13 @@ from fprime.fbuild.types import (
     AmbiguousToolchainException,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.target import TargetScope, Target, BuildSystemTarget, DelegatorTarget
+from fprime.fbuild.target import TargetScope, Target
 from fprime.common.error import FprimeException
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
 
-import fprime.fbuild.target_definitions
+# Forces targets into existence
+import fprime.fbuild.target_definitions  # lgtm[py/unused-import]
 
 
 class Build:

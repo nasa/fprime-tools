@@ -1,6 +1,5 @@
 """ fprime.fbuild.gcovr: coverage target implementations """
 import atexit
-import filecmp
 import shutil
 import subprocess
 import sys
@@ -87,14 +86,14 @@ class GcovClean(ExecutableAction):
 class GcovrAcHelper(ExecutableAction):
     """Helps with AC file paths and gcovr reports
 
-    Autocoded files are created in the build cache, but not in the same directory as the .gdca and .gcno files. This
+    Autocoded files are created in the build cache, but not in the same directory as the .gcda and .gcno files. This
     causes the --html-details flag to fail to find these files when generating the detailed HTML w/ source output. This
     action will fix this by coping these files to a known working directory to work within.
 
     Specifically:
     - Create temporary directory
     - Register an at_exit handler to clean-up the directory
-    - For each .gdca file in build cache:
+    - For each .gcda file in build cache:
     -   Copy matching .cpp and .hpp file from two parent directories above to temporary directory
     """
 
@@ -122,7 +121,7 @@ class GcovrAcHelper(ExecutableAction):
             if _using_root(builder, context, self.scope)
             else cache_path
         )
-        # Recurse exclusing the autocoders directory which is filled with test codes
+        # Recurse excluding the autocoders directory which is filled with test codes
         self._recurse(
             recurse_path,
             temp_path,
@@ -136,7 +135,7 @@ class GcovrAcHelper(ExecutableAction):
         """Copy one file if it doesn't exist. Checking content if it does.
 
         Copy if the destination does not exist. If the content differs, add the offending file to a list to clean up
-        later such that it cannot explode gcovr. Defering removal prevents a third copy from winning.
+        later such that it cannot explode gcovr. Deferring removal prevents a third copy from winning.
 
         Args:
             source: source file
@@ -171,12 +170,12 @@ class GcovrAcHelper(ExecutableAction):
         print(f"[INFO] Removing temporary directory: {directory}")
         shutil.rmtree(directory)
 
-    def copy_gdca_pair(self, destination: Path, gdca: Path):
-        """Copy matching CPP and HPP files given an .gdca"""
-        base_name = gdca.name
+    def copy_gcda_pair(self, destination: Path, gcda: Path):
+        """Copy matching CPP and HPP files given an .gcda"""
+        base_name = gcda.name
         for extension in self.EXTENSION_TRIGGER:
             base_name = base_name.replace(extension, "")
-        ac_folder = gdca.parent.parent.parent
+        ac_folder = gcda.parent.parent.parent
 
         # Copy both possible AC files into the destination folder
         for possible in [base_name, base_name.replace(".cpp", ".hpp")]:
@@ -190,7 +189,7 @@ class GcovrAcHelper(ExecutableAction):
             if path.absolute() in excludes:
                 continue
             elif path.is_file() and path.suffix in self.EXTENSION_TRIGGER:
-                self.copy_gdca_pair(destination, path)
+                self.copy_gcda_pair(destination, path)
             elif path.is_file() and path.name.endswith("Ac.hpp"):
                 self.copy_safe(path, destination / path.name)
             elif path.is_dir():
@@ -232,7 +231,7 @@ class Gcovr(ExecutableAction):
                 file=sys.stderr,
             )
             return
-        ac_tmp_path = _get_ac_directory(builder, context, self.scope)
+        ac_temporary_path = _get_ac_directory(builder, context, self.scope)
         coverage_output_dir = context / f"coverage"
         coverage_output_dir.mkdir(exist_ok=True)
         project_root = builder.get_settings(
@@ -266,7 +265,7 @@ class Gcovr(ExecutableAction):
             "--filter",
             f"{filter_path}/*",
             "--filter",
-            f"{ac_tmp_path}",
+            f"{ac_temporary_path}",
             "--exclude",
             str(builder.build_dir),
             "--exclude",
@@ -284,8 +283,8 @@ class Gcovr(ExecutableAction):
 
         if builder.cmake.verbose:
             print(f"[INFO] Running '{' '.join(cli_args)}'")
-        # gcovr must run in the ac_tmp_path or html details cannot find the Ac files
-        subprocess.call(cli_args, cwd=str(ac_tmp_path))
+        # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
+        subprocess.call(cli_args, cwd=str(ac_temporary_path))
 
     def allows_pass_args(self):
         """Gcovr allows pass-through arguments"""
@@ -299,7 +298,7 @@ class Gcovr(ExecutableAction):
 class GcovrTarget(CompositeTarget):
     """Target specific to gcovr
 
-    The gcovr target is a composite target that builds upon an existing check target to perfrom gcovr work. In addition
+    The gcovr target is a composite target that builds upon an existing check target to perform gcovr work. In addition
     it must support extra arguments as we pass these to the gcovr executable.
     """
 

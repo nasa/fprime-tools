@@ -4,8 +4,6 @@ Defines all the targets for fprime-util. Each target is a singleton that is regi
 as such, each target need only be instantiated but need not be assigned to anything.
 
 """
-import os
-import sys
 from .types import BuildType
 from .target import TargetScope, BuildSystemTarget
 from .gcovr import GcovrTarget

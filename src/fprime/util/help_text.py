@@ -132,7 +132,7 @@ the component implementation as defined by the component's model.
 
 When the '--ut' flag is specified the unit test implementation templates are created instead. The user should use the
 Tester.cpp, Tester.hpp and TestMain.cpp files as their fill-in templates. Other files created can be safely removed as
-thet will be regenerated at build time.
+they will be regenerated at build time.
 
 Example:
 
@@ -153,11 +153,12 @@ deployments to run deployment unit tests, and with the '--all' flag to run all u
 '--leak' flag, valgrind is used to look for resource leaks.
 
 '{EXECUTABLE} check' can also be supplied the '--coverage' flag. When the '--coverage' flag is supplied, the unit test
-is run and 'gcovr' is run on the output to check coverage. The default flags to 'gcovr' are '--print-summary --txt'
-along with filters to restrict the coverage to the existing component/deployment. Outputs are put in a subdirectory of
-the component/deployment titled "coverage".  Additional arguments can be supplied after the '--pass-through' flag with
-several caveats: '--pass-through ...' must be the last arguments on the command line, and all paths supplied to 'gcovr'
-must be full paths.
+is run and 'gcovr' is run on the output to check coverage. The default flags to 'gcovr' are '--print-summary', '--txt',
+'--html-details' along with filters to restrict the coverage to the existing component/deployment. Outputs are put in a
+subdirectory of the component/deployment titled "coverage".  Additional arguments can be supplied after the
+'--pass-through' flag with several caveats: '--pass-through ...' must be the last arguments on the command line, and
+all paths supplied to 'gcovr' must be full paths. Users should purge the build cache when switching between
+'--coverage --all' and '--coverage' in a deployment cache.
 
 Examples:
 
@@ -175,7 +176,7 @@ Examples:
 
   -- Run Ref/SignalGen Unit Tests With Detailed HTML Coverage --
   cd Ref/SignalGen
-  {EXECUTABLE} check --coverage --pass-through --html-details `pwd`/coverage/signal-gen-coverage.html
+  {EXECUTABLE} check --coverage
 """,
     "generate": f"""Generate build caches for the specified deployment
 
@@ -199,7 +200,7 @@ The target platform for the build cache can be overridden using an optional posi
 build to target the supplied platform using a toolchain configuration and platform support files of the same name.
 {EXECUTABLE} searches for these named files in appropriate folders in following locations: cmake directory in the
 project's root folder, cmake directories in projects included fprime libraries, cmake directory in fprime framework.
-These locations are search in the above order with toolcahins expected in a 'toolchain' subfolder and platforms in a
+These locations are search in the above order with toolchains expected in a 'toolchain' sub folder and platforms in a
 'platform' subdirectory.
 
 Toolchain Example:

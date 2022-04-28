@@ -1,7 +1,7 @@
 """ fprime.fbuild.target: build target support
 
 Contains the supporting definitions for build targets. These targets are used to run various parts of the build and may
-contain build system targest (e.g. CMake target invokers), and miscellaneous targets that perform other actions.
+contain build system targets (e.g. CMake target invokers), and miscellaneous targets that perform other actions.
 
 @author lestarch
 """
@@ -249,7 +249,7 @@ class CompositeTarget(Target):
     def execute(self, *args, **kwargs):
         """Execute the composite target"""
         for child in self.targets:
-            # Composite actions must override scope as a delagator may have acted to change the scoper
+            # Composite actions must override scope as a delegator may have acted to change the scope
             old_scope = child.scope
             try:
                 child.scope = self.scope
@@ -275,6 +275,7 @@ class BuildSystemTarget(Target):
         Context is supplied such that the system can match local targets to the global target list.
 
         Args:
+            builder: builder to execute target with
             target: target to run
             context: context path for local targets
             make_args: make system arguments directly supplied

@@ -19,7 +19,6 @@ import re
 import sys
 from pathlib import Path
 
-from fprime.common.error import FprimeException
 from fprime.fbuild.types import InvalidBuildCacheException
 from fprime.fbuild.target import Target, NoSuchTargetException
 from fprime.fbuild.builder import (
@@ -31,7 +30,6 @@ from fprime.fbuild.builder import (
 from .help_text import HelpText
 from fprime.fbuild.cli import add_fbuild_parsers, get_target
 
-# from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
@@ -51,7 +49,6 @@ def validate(parsed, unknown):
     """
     cmake_args = {}
     make_args = {}
-    extra_args = None
     # Check platforms for existing toolchain, unless the default is specified.
     if not hasattr(parsed, "command") or parsed.command is None:
         raise ArgValidationException("'fprime-util' not supplied sub-command argument")

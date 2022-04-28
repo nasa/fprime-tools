@@ -7,14 +7,17 @@ argparse
 args
 argv
 ASer
+atexit
 autoapi
 autocoded
+autocode
 Autocoders
 autocoding
 autodoc
 autoescape
 autosectionlabel
 backport
+baremetal
 buf
 bytearray
 calcsize
@@ -77,6 +80,8 @@ favicon
 fbuild
 fds
 fh
+filecmp
+FILEID
 fileobj
 firest
 floordiv
@@ -87,6 +92,10 @@ fromkeys
 fromtimestamp
 func
 functools
+gcda
+gcno
+gcov
+gcovr
 genex
 getattr
 getcwd
@@ -109,6 +118,7 @@ isdir
 isfile
 isinstance
 isnumeric
+iterdir
 itertools
 itle
 IUF
@@ -120,7 +130,9 @@ JSO
 json
 jsonable
 kevin
+kwargs
 len
+lestarch
 LGTM
 lgtm
 Linux
@@ -153,6 +165,7 @@ Prm
 proj
 ptf
 py
+pydoc
 pyflakes
 pylama
 pylint
@@ -191,6 +204,7 @@ setuptools
 shutil
 someotherpath
 sphinxcontrib
+splitlines
 src
 sset
 stackoverflow
@@ -235,6 +249,7 @@ useconds
 usr
 utf
 Utils
+valgrind
 vals
 venv
 viewcode
