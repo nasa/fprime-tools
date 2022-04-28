@@ -60,7 +60,9 @@ class CMakeHandler:
             # newer CMake options that aren't used by older versions of CMake won't be set in the cache
             if actual is None:
                 continue
-            if str(expected) != actual:
+            expected = str(expected).strip()
+            actual = str(actual).strip()
+            if expected != actual:
                 raise CMakeInconsistentCacheException(key, expected, actual)
 
     def execute_known_target(
