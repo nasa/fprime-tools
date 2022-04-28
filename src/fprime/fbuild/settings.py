@@ -65,12 +65,13 @@ class IniSettings:
         return expanded
 
     @staticmethod
-    def load(settings_file: Path):
+    def load(settings_file: Path, platform: str = "fprime"):
         """
         Load settings from specified file or from specified build directory. Either a specific file or the build
         directory must be not None.
 
         :param settings_file: file to load settings from (in INI format). Must be specified if build_dir is not.
+        :param platform: platform to read platform specific settings
         :return: a dictionary of needed settings
         """
         settings_file = (
@@ -102,17 +103,17 @@ class IniSettings:
         proj_root = None if not proj_root else proj_root[0]
         # Read ac constants if it is available
         ac_consts = IniSettings.read_safe_path(
-            confparse, "fprime", "ac_constants", settings_file
+            confparse, platform, "ac_constants", settings_file
         )
         ac_consts = None if not ac_consts else ac_consts[0]
         # Read include constants if it is available
         config_dir = IniSettings.read_safe_path(
-            confparse, "fprime", "config_directory", settings_file
+            confparse, platform, "config_directory", settings_file
         )
         config_dir = None if not config_dir else config_dir[0]
 
         install_dest = IniSettings.read_safe_path(
-            confparse, "fprime", "install_dest", settings_file, False
+            confparse, platform, "install_dest", settings_file, False
         )
 
         if install_dest:
@@ -122,11 +123,11 @@ class IniSettings:
 
         # Read separate environment file if necessary
         env_file = IniSettings.read_safe_path(
-            confparse, "fprime", "environment_file", settings_file
+            confparse, platform, "environment_file", settings_file
         )
         env_file = settings_file if not env_file else env_file[0]
         libraries = IniSettings.read_safe_path(
-            confparse, "fprime", "library_locations", settings_file
+            confparse, platform, "library_locations", settings_file
         )
         environment = IniSettings.load_environment(env_file)
 
