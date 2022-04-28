@@ -593,7 +593,9 @@ class Build:
             self.platform = self.settings.get("default_ut_toolchain", "native")
         else:
             self.platform = self.settings.get("default_toolchain", "native")
-
+        self.settings.update(
+            IniSettings.load(self.deployment / "settings.ini", self.platform)
+        )
         self.build_dir = build_dir if build_dir is not None else self.get_build_cache()
 
 
