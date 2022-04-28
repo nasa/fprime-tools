@@ -203,15 +203,10 @@ class Build:
         Returns:
             Build information dictionary
         """
-        valid_cmake_targets = self.cmake.get_available_targets(
-            str(self.build_dir), context
-        )
         temp_targets = Target.get_all_targets()
-        # Remove targets that are not supported given the list of valid cmake targets
+        # Remove targets that are not supported given the builder and context
         temp_targets = [
-            target
-            for target in temp_targets
-            if target.is_supported(valid_cmake_targets)
+            target for target in temp_targets if target.is_supported(self, context)
         ]
         # Now filter for local scope
         local_targets = [
@@ -241,6 +236,21 @@ class Build:
             "auto_location": auto_location,
             "build_dir": self.build_dir,
         }
+
+    def is_deployment(self, context: Path) -> bool:
+        """Check if given path represents a deployment
+
+        Args:
+            context: contextual path to list various information about the build
+
+        Returns:
+            True if the context is a deployment, false otherwise
+        """
+        try:
+            self.cmake.cmake_validate_source_dir(context)
+            return True
+        except CMakeException:
+            return False
 
     def find_toolchain(self):
         """Locates a toolchain file in know locations

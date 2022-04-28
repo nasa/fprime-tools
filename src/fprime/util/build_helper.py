@@ -203,7 +203,7 @@ def utility_entry(args):
     except UnableToDetectDeploymentException:
         print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
         return 1
-    except FprimeException as exc:
+    except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
     return 0

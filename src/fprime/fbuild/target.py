@@ -35,13 +35,19 @@ class ExecutableAction(ABC):
     without generating all the normal target metadata.
     """
 
-    def is_supported(self, build_target_names: List[str]):
+    def __init__(self, scope: TargetScope):
+        """Set scope of this action"""
+        self.scope = scope
+
+    def is_supported(self, builder: "Build", context: Path):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
-            build_target_names: names of builds system targets
+            builder: builder to check if this action is supported
+            context: contextual path to check
+
         Return:
             True if supported false otherwise
         """
@@ -50,7 +56,7 @@ class ExecutableAction(ABC):
 
     @abstractmethod
     def execute(
-        self, builder: "Builder", context: Path, args: Tuple[Dict[str, str], List[str]]
+        self, builder: "Build", context: Path, args: Tuple[Dict[str, str], List[str]]
     ):
         """Executes the given target"""
 
@@ -106,13 +112,13 @@ class Target(ExecutableAction):
             flags:       flags used to uniquely identify build targets who share logical mnemonics. Defaults to None.
             cmake:       cmake target override to handle oddly named cmake targets
         """
+        super().__init__(scope)
         self.mnemonic = mnemonic
         self.desc = desc
         self.build_type = (
             build_type if build_type is not None else BuildType.BUILD_NORMAL
         )
         self.flags = flags if flags is not None else set()
-        self.scope = scope
 
         # Targets defined as either local or global scope are registered directly. "Both" targets are wrapped in a
         # delegator for both scopes and those end up being registered.
@@ -208,19 +214,21 @@ class CompositeTarget(Target):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{', '.join([target.__repr__() for target in self.targets])}]"
 
-    def is_supported(self, build_target_names: List[str]):
+    def is_supported(self, builder: "Build", context: Path):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
-            build_target_names: names of builds system targets
+            builder: builder to check if this action is supported
+            context: contextual path to check
+
         Return:
             True if supported false otherwise
         """
         # Supported only if all steps supported
         return functools.reduce(
-            lambda sum, target: sum and target.is_supported(build_target_names),
+            lambda sum, target: sum and target.is_supported(builder, context),
             self.targets,
             True,
         )
@@ -241,7 +249,13 @@ class CompositeTarget(Target):
     def execute(self, *args, **kwargs):
         """Execute the composite target"""
         for child in self.targets:
-            child.execute(*args, **kwargs)
+            # Composite actions must override scope as a delagator may have acted to change the scoper
+            old_scope = child.scope
+            try:
+                child.scope = self.scope
+                child.execute(*args, **kwargs)
+            finally:
+                child.scope = old_scope
 
 
 class BuildSystemTarget(Target):
@@ -253,7 +267,7 @@ class BuildSystemTarget(Target):
         self.build_target = build_target
 
     def execute(
-        self, builder: "Builder", context: Path, args: Tuple[Dict[str, str], List[str]]
+        self, builder: "Build", context: Path, args: Tuple[Dict[str, str], List[str]]
     ):
         """Execute a build target
 
@@ -275,16 +289,21 @@ class BuildSystemTarget(Target):
             build_target, context, self.scope == TargetScope.GLOBAL, args[0]
         )
 
-    def is_supported(self, build_target_names: List[str]):
+    def is_supported(self, builder: "Build", context: Path):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
-            build_target_names: names of builds system targets
+            builder: builder to check if this action is supported
+            context: contextual path to check
+
         Return:
             True if supported false otherwise
         """
+        build_target_names = builder.cmake.get_available_targets(
+            str(builder.build_dir), context
+        )
         return self.build_target in build_target_names
 
 
@@ -304,17 +323,19 @@ class DelegatorTarget(Target):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{self.delegate.__repr__()}]"
 
-    def is_supported(self, build_target_names: List[str]):
+    def is_supported(self, builder: "Build", context: Path):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
-            build_target_names: names of builds system targets
+            builder: builder to check if this action is supported
+            context: contextual path to check
+
         Return:
             True if supported false otherwise
         """
-        return self.delegate.is_supported(build_target_names)
+        return self.delegate.is_supported(builder, context)
 
     def allows_pass_args(self):
         """Pass args allowed if any child allows it"""

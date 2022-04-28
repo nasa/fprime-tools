@@ -40,10 +40,10 @@ def print_info(
         build_info = build.get_build_info(Path(parsed.path))
         # Target list
         local_targets = {
-            "'{target}'": "" for target in build_info.get("local_targets", [])
+            f"'{target}'": "" for target in build_info.get("local_targets", [])
         }
         global_targets = {
-            "'{target}'": "" for target in build_info.get("global_targets", [])
+            f"'{target}'": "" for target in build_info.get("global_targets", [])
         }
         build_artifacts = (
             build_info.get("auto_location")
