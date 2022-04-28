@@ -172,7 +172,7 @@ def utility_entry(args):
         deployment = (
             Path(parsed.deploy)
             if parsed.deploy is not None
-            else Build.find_nearest_deployment(cwd)
+            else Build.find_nearest_deployment(Path.cwd())  # Deployments look in CWD
         )
         build = Build(build_type, deployment, verbose=parsed.verbose)
 
