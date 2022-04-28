@@ -20,7 +20,7 @@ from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
 
 # Forces targets into existence
-import fprime.fbuild.target_definitions  # lgtm[py/unused-import]
+import fprime.fbuild.target_definitions # lgtm[py/unused-import]
 
 
 class Build:
