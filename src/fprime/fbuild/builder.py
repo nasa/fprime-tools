@@ -4,174 +4,23 @@ build system handler underneath.
 """
 import os
 import re
-import functools
-from abc import ABC
-from enum import Enum
 from pathlib import Path
-from typing import Iterable, List, Set, Union
+from typing import Iterable, List, Union
 
+from fprime.fbuild.types import (
+    BuildType,
+    InvalidBuildCacheException,
+    NoSuchToolchainException,
+    AmbiguousToolchainException,
+    UnableToDetectDeploymentException,
+)
+from fprime.fbuild.target import TargetScope, Target
 from fprime.common.error import FprimeException
 from fprime.fbuild.settings import IniSettings
 from fprime.fbuild.cmake import CMakeHandler, CMakeException
 
-
-class BuildType(Enum):
-    """
-    An enumeration used to represent the various build types used to build fprime. These types can support different
-    types of targets underneath. i.e. the unit-test build may build unit test executables.
-    """
-
-    """ Normal build normal binaries for a deployment mapping to CMake 'Release'"""  # pylint: disable=W0105
-    BUILD_NORMAL = (0,)
-    """ Testing build allowing unit testing mapping to CMake 'Testing'"""  # pylint: disable=W0105
-    BUILD_TESTING = 1
-    """ FPP locations build """
-    BUILD_FPP_LOCS = 2
-    """ User custom build """
-    BUILD_CUSTOM = 3
-
-    def get_suffix(self):
-        """Get the suffix of a directory supporting this build"""
-        if self == BuildType.BUILD_NORMAL:
-            return ""
-        if self == BuildType.BUILD_TESTING:
-            return "-ut"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
-
-    def get_cmake_build_type(self):
-        """Get the suffix of a directory supporting this build"""
-        if self == BuildType.BUILD_NORMAL:
-            return "Release"
-        if self == BuildType.BUILD_TESTING:
-            return "Testing"
-        if self == BuildType.BUILD_FPP_LOCS:
-            return "Release"
-        if self == BuildType.BUILD_CUSTOM:
-            return "Custom"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
-
-    @staticmethod
-    def get_public_types() -> List["BuildType"]:
-        """Returns public build types"""
-        return [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
-
-
-class Target(ABC):
-    """Generic build target base class
-
-    A target can be specified by the user using a mnemonic and flags. The mnemonic is the command typed in by the user,
-    and the flags allow the user to remember fewer mnemonics by changing the build target using a modifier. Each build
-    target is available in certain build types.
-
-    Targets can be global, using the GlobalTarget base class. Global targets don't use contextual information to modify
-    the target, but apply to the whole deployment. Note: global targets are also engaged at the deployment level should
-    that be the context.
-
-    Targets may also be local. These targets use context information to figure out what to build. This allows for one
-    target to represent a class of targets. i.e. build can be used as a local target to build any given sub directory.
-    """
-
-    def __init__(
-        self,
-        mnemonic: str,
-        desc: str,
-        build_type: BuildType = None,
-        flags: set = None,
-        cmake: str = None,
-    ):
-        """Constructs a build target
-
-        Args:
-            mnemonic:    mnemonic used to engage build targets. Is not unique, but mnemonic + flags must be.
-            desc:        help description of this build target
-            build_types: supported build types for target. Defaults to [BuildType.BUILD_NORMAL, BuildType.BUILD_TESTING]
-            flags:       flags used to uniquely identify build targets who share logical mnemonics. Defaults to None.
-            cmake:       cmake target override to handle oddly named cmake targets
-        """
-        self.mnemonic = mnemonic
-        self.desc = desc
-        self.build_type = (
-            build_type if build_type is not None else BuildType.BUILD_NORMAL
-        )
-        self.flags = flags if flags is not None else set()
-        self.cmake_target = cmake if cmake is not None else mnemonic
-
-    def __str__(self):
-        """Makes this target into a string"""
-        return self.config_string(self.mnemonic, self.flags)
-
-    @staticmethod
-    def config_string(mnemonic, flags):
-        """Converts a mnemonic and set of flags to string
-
-        Args:
-            mnemonic: mnemonic of the target
-            flags: sset of flags to pair with mnemonic
-        Returns:
-            string of format "mnemonic --flag1 --flag2 ..."
-        """
-        flag_string = " ".join([f"--{flag}" for flag in flags])
-        flag_string = f" {flag_string}" if flag_string else ""
-        return f"{mnemonic}{flag_string}"
-
-    @classmethod
-    def get_all_possible_flags(cls) -> Set[str]:
-        """Gets list of all targets' flags used
-
-        Returns:
-            List of targets's supported by the system
-        """
-        return functools.reduce(
-            lambda agg, item: agg.union(item.flags), cls.get_all_targets(), set()
-        )
-
-    @classmethod
-    def get_all_targets(cls) -> List["Target"]:
-        """Gets list of all targets registered
-
-        Returns:
-            List of targets supported by the system
-        """
-        return BUILD_TARGETS
-
-    @classmethod
-    def get_target(cls, mnemonic: str, flags: Set[str]) -> "Target":
-        """Gets the actual build target given the parsed namespace
-
-        Using the global list of build targets and the flags supplied to the namespace, attempt to determine which build
-        targets can be used. If more than one are found, then generate exception.
-
-        Args:
-            mnemonic: mnemonic of command to look for
-            flags:    flags to narrow down target
-
-        Returns:
-            single matching target
-        """
-        matching = []
-        for target in cls.get_all_targets():
-            if target.mnemonic == mnemonic and flags == target.flags:
-                matching.append(target)
-        if not matching:
-            raise NoSuchTargetException(
-                f"Could not find target '{cls.config_string(mnemonic, flags)}'"
-            )
-        assert len(matching) == 1, "Conflicting targets specified in code"
-        return matching[0]
-
-
-class GlobalTarget(Target):
-    """Represents a global build target
-
-    Build targets are global if they do not apply to a specific directory, but rather to a full deployment.
-    """
-
-
-class LocalTarget(Target):
-    """Represents a local build target
-
-    Build targets are local if they do  apply to a specific directory whose context drives the build setup.
-    """
+# Forces targets into existence
+import fprime.fbuild.target_definitions  # lgtm[py/unused-import]
 
 
 class Build:
@@ -242,7 +91,7 @@ class Build:
         if self.build_dir.exists():
             raise InvalidBuildCacheException(f"{self.build_dir} already exists.")
 
-    def load(self, platform: str = None, build_dir: Path = None):
+    def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
 
         Sets this build up from an existing build cache. This can be used after a previous run that has generated a
@@ -252,22 +101,37 @@ class Build:
             platform:   name of platform to build against. None will use default from settings.ini or without this
                         setting, "native". Defaults to None.
             build_dir:  explicitly sets the build path to allow for user override of default
+            skip_validation: (optional) skip cache validation. Default: False, validate away!
 
         Raises:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
-        if (
+        if not skip_validation and (
             not self.build_dir.exists()
             or not (self.build_dir / "CMakeCache.txt").exists()
         ):
-            gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
+            # Message for hard-supplied --build-cache message
+            if build_dir is not None:
+                gen_args = f" --build-cache {build_dir}"
+            else:
+                gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
+                gen_args += (
+                    " " + platform
+                    if platform is not None
+                    and platform != "native"
+                    and platform != "default"
+                    else ""
+                )
             raise InvalidBuildCacheException(
-                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args}'"
+                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'",
+                self.build_dir,
             )
 
     def get_settings(
-        self, setting: Union[str, Iterable[str]], default: Union[str, Iterable[str]]
+        self,
+        setting: Union[None, str, Iterable[Union[None, str]]],
+        default: Union[None, str, Iterable[Union[None, str]]],
     ) -> Union[str, Iterable[str]]:
         """Fetches settings in the settings file
 
@@ -301,7 +165,8 @@ class Build:
         hashes_file = self.build_dir / "hashes.txt"
         if not hashes_file.exists():
             raise InvalidBuildCacheException(
-                f"Failed to find {hashes_file}, was the build generated."
+                f"Failed to find {hashes_file}, was the build generated?",
+                self.build_dir,
             )
         with open(hashes_file) as file_handle:
             lines = filter(
@@ -337,17 +202,21 @@ class Build:
         Returns:
             Build information dictionary
         """
-        valid_cmake_targets = self.cmake.get_available_targets(
-            str(self.build_dir), context
-        )
+        temp_targets = Target.get_all_targets()
+        # Remove targets that are not supported given the builder and context
+        temp_targets = [
+            target for target in temp_targets if target.is_supported(self, context)
+        ]
+        # Now filter for local scope
         local_targets = [
             target
-            for target in BUILD_TARGETS
-            if target.cmake_target in valid_cmake_targets
-            and isinstance(target, LocalTarget)
+            for target in temp_targets
+            if target.scope in [TargetScope.LOCAL, TargetScope.BOTH]
         ]
         global_targets = [
-            target for target in BUILD_TARGETS if isinstance(target, GlobalTarget)
+            target
+            for target in Target.get_all_targets()
+            if target.scope == TargetScope.GLOBAL
         ]
 
         relative_path = self.cmake.get_project_relative_path(
@@ -366,6 +235,21 @@ class Build:
             "auto_location": auto_location,
             "build_dir": self.build_dir,
         }
+
+    def is_deployment(self, context: Path) -> bool:
+        """Check if given path represents a deployment
+
+        Args:
+            context: contextual path to list various information about the build
+
+        Returns:
+            True if the context is a deployment, false otherwise
+        """
+        try:
+            self.cmake.cmake_validate_source_dir(context)
+            return True
+        except CMakeException:
+            return False
 
     def find_toolchain(self):
         """Locates a toolchain file in know locations
@@ -453,24 +337,46 @@ class Build:
             cmake_args.update({"CMAKE_BUILD_TYPE": "Testing"})
         return cmake_args
 
-    def execute(self, target: Target, context: Path, make_args: dict):
+    def get_module_name(self, path: Path):
+        """Gets name of module from path"""
+        return self.cmake.get_cmake_module(path, self.build_dir)
+
+    def get_relative_path(self, path: Path, to_build_cache: bool = False) -> Path:
+        """Gets path relative to project"""
+        relative_path, include_root = self.cmake.get_include_info(path, self.build_dir)
+        relative_path = Path(relative_path)
+        fprime_root = Path(self.get_settings("framework_path", None))
+        # FPrime paths need special handling when relative to build cache, but still needs to handle Ref and RPI
+        if to_build_cache and fprime_root == Path(include_root):
+            cache_path = self.build_dir / relative_path
+            return (
+                relative_path
+                if cache_path.exists()
+                else Path("F-Prime") / relative_path
+            )
+        return relative_path
+
+    def execute_build_target(
+        self, build_target: str, context: Path, top: bool, make_args: dict
+    ):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the make system. Context
         is supplied such that the system can match local targets to the global target list.
 
         Args:
-            target: target to run
+            build_target: build system target to run as string
             context: context path for local targets
+            top: True if it is a top-level (global) target, False if it is a local target
             make_args: make system arguments directly supplied
         """
         self.cmake.execute_known_target(
-            target.cmake_target,
+            build_target,
             self.build_dir,
             context.absolute(),
             cmake_args=self.get_cmake_args(),
             make_args=make_args,
-            top_target=isinstance(target, GlobalTarget),
+            top_target=top,
             environment=self.settings.get("environment", None),
         )
 
@@ -537,7 +443,7 @@ class Build:
         return Build.find_nearest_deployment(full_path.parent)
 
     @staticmethod
-    def get_build_list(base, build_cache=None):
+    def get_build_list(base, build_cache=None, ignore_invalid=False):
         """Returns a list of builds that the tool will process
 
         Will return a list of builds the tool will process. This will be a build for each public build type unless the
@@ -546,6 +452,7 @@ class Build:
         Args:
             base: base build identified from command line. Used to get: deployment, platform,
             build_cache: (optional) path to specified build cache.
+            ignore_invalid: (optional) ignore invalid build caches and add as long as they exist
 
         Returns:
             List of builds for public build types, or list of one for a custom build at build cache
@@ -559,11 +466,16 @@ class Build:
         for build_type in build_types:
             build = Build(build_type, base.deployment, verbose=base.cmake.verbose)
             try:
-                build.load(base.platform, build_dir=build_cache)
+                build.load(
+                    base.platform, build_dir=build_cache, skip_validation=ignore_invalid
+                )
                 builds.append(build)
             except InvalidBuildCacheException as error:
+                # Warnings only issued when not using an explicit build cache
                 if build_cache is None:
-                    print(f"[WARNING] No build cache found with error '{error}'.")
+                    print(
+                        f"[WARNING] Build cache '{error.cache}' invalid or not found. Skipping."
+                    )
                     continue
                 raise
         return builds
@@ -603,94 +515,3 @@ class GenerateException(FprimeException):
     def __init__(self, message, exit_code=1):
         super().__init__(message)
         self.exit_code = exit_code
-
-
-class InvalidBuildTypeException(FprimeException):
-    """An exception indicating a build type do not exit"""
-
-
-class InvalidBuildCacheException(FprimeException):
-    """An exception indicating a build cache"""
-
-
-class UnableToDetectDeploymentException(FprimeException):
-    """An exception indicating a build cache"""
-
-
-class NoSuchTargetException(FprimeException):
-    """Could not find a matching build target"""
-
-
-class NoSuchToolchainException(FprimeException):
-    """Could not find a matching build target"""
-
-
-class AmbiguousToolchainException(FprimeException):
-    """Could not find a matching build target"""
-
-
-""" Defined set of build targets available to the system"""  # pylint: disable=W0105
-BUILD_TARGETS = [
-    # Various "build" target
-    LocalTarget("build", "Build components, ports, and deployments", cmake=""),
-    GlobalTarget("build", "Build all deployment targets", flags={"all"}, cmake="all"),
-    LocalTarget(
-        "build",
-        "Build unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"ut"},
-        cmake="ut_exe",
-    ),
-    GlobalTarget(
-        "build",
-        "Build all unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "ut"},
-        cmake="all",
-    ),
-    # Implementation targets
-    LocalTarget("impl", "Generate implementation template files"),
-    LocalTarget(
-        "impl",
-        "Generate unit test files",
-        flags={"ut"},
-        cmake="testimpl",
-        build_type=BuildType.BUILD_TESTING,
-    ),
-    # Check targets and unittest targets
-    LocalTarget("check", "Run unit tests", build_type=BuildType.BUILD_TESTING),
-    LocalTarget(
-        "check",
-        "Run unit tests with memory checking",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"leak"},
-        cmake="check_leak",
-    ),
-    LocalTarget(
-        "check",
-        "Run unit tests with code coverage",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"coverage"},
-        cmake="coverage",
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all"},
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests with memory checking",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "leak"},
-        cmake="check_leak",
-    ),
-    GlobalTarget(
-        "check",
-        "Run all deployment unit tests with code coverage",
-        build_type=BuildType.BUILD_TESTING,
-        flags={"all", "coverage"},
-        cmake="coverage",
-    ),
-]
