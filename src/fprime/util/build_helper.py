@@ -39,6 +39,27 @@ class ArgValidationException(Exception):
     """An exception used for argument validation"""
 
 
+def package_version_check():
+    """Checks the version of the packages installed match the expected packages of the fprime aggregate package"""
+    try:
+        import pkg_resources
+
+        fprime_distribution = pkg_resources.get_distribution("fprime")
+        tools_requirements = fprime_distribution.requires()
+
+        for requirement in tools_requirements:
+            try:
+                result = pkg_resources.working_set.find(requirement)
+                if not result:
+                    print(f"[WARNING] Expected package {requirement} not found")
+            except pkg_resources.VersionConflict as version_exception:
+                print(
+                    f"[WARNING] Expected package version {version_exception.req} but found {version_exception.dist}"
+                )
+    except (ImportError, pkg_resources.DistributionNotFound):
+        print("[WARNING] 'fprime' package not installed, skipping tools version check")
+
+
 def validate(parsed, unknown):
     """
     Validate rules to ensure that the args are properly consistent. This will also generate a set of validated arguments
@@ -156,6 +177,7 @@ def parse_args(args):
 
 def utility_entry(args):
     """Main interface to F prime utility"""
+    package_version_check()
     parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
