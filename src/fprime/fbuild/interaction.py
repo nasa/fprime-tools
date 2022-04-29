@@ -369,10 +369,11 @@ def get_port_input(namespace):
     dir_name = get_valid_input(f'Directory Name [{defaults["dir_name"]}]: ')
     namespace = get_valid_input(f'Port Namespace [{defaults["namespace"]}]: ')
     while not args_done:
-        if arg_list == []:
-            add_arg = confirm("Would you like to add an argument?: ")
-        else:
-            add_arg = confirm("Would you like to add another argument?: ")
+        add_arg = (
+            confirm("Would you like to add another argument?: ")
+            if arg_list
+            else confirm("Would you like to add an argument?: ")
+        )
         if add_arg:
             arg_name = get_valid_input("Argument name: ")
             arg_type = get_valid_input(

@@ -92,10 +92,11 @@ class IniSettings:
         fprime_location = IniSettings.read_safe_path(
             confparse, "fprime", "framework_path", settings_file
         )
-        if not fprime_location:
-            fprime_location = IniSettings.find_fprime(settings_file.parent)
-        else:
-            fprime_location = Path(fprime_location[0])
+        fprime_location = (
+            Path(fprime_location[0])
+            if fprime_location
+            else IniSettings.find_fprime(settings_file.parent)
+        )
         # Read project root if it is available
         proj_root = IniSettings.read_safe_path(
             confparse, "fprime", "project_root", settings_file
