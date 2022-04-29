@@ -152,9 +152,9 @@ class Target(ExecutableAction):
         Returns:
             string of format "mnemonic --flag1 --flag2 ..."
         """
-        flag_string = " ".join(["--{}".format(flag) for flag in flags])
-        flag_string = "" if flag_string == "" else " " + flag_string
-        return "{}{}".format(mnemonic, flag_string)
+        flag_string = " ".join([f"--{flag}" for flag in flags])
+        flag_string = f" {flag_string}" if flag_string else ""
+        return f"{mnemonic}{flag_string}"
 
     @classmethod
     def get_all_possible_flags(cls) -> Set[str]:
