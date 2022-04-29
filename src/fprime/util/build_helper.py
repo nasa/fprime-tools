@@ -40,7 +40,7 @@ class ArgValidationException(Exception):
 
 
 def package_version_check():
-    """Checks the version of the packages installed match the expected packages of the fprime metapackage"""
+    """Checks the version of the packages installed match the expected packages of the fprime aggregate package"""
     try:
         import pkg_resources
 
@@ -52,9 +52,9 @@ def package_version_check():
                 result = pkg_resources.working_set.find(requirement)
                 if not result:
                     print(f"[WARNING] Expected package {requirement} not found")
-            except pkg_resources.VersionConflict as vce:
+            except pkg_resources.VersionConflict as version_exception:
                 print(
-                    f"[WARNING] Expected package version {vce.req} but found {vce.dist}"
+                    f"[WARNING] Expected package version {version_exception.req} but found {version_exception.dist}"
                 )
     except (ImportError, pkg_resources.DistributionNotFound):
         print("[WARNING] 'fprime' package not installed, skipping tools version check")
