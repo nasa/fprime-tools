@@ -152,7 +152,7 @@ def add_target_parser(
             "--pass-through",
             nargs=argparse.REMAINDER,
             default=[],
-            help=f"If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
+            help="If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
         )
         flags.append("--pass-through")
     flags.extend(new_flags)

@@ -112,7 +112,7 @@ class GcovrAcHelper(ExecutableAction):
         print(f"[INFO] Making temporary directory: {temp_path}")
         temp_path.mkdir(exist_ok=False)
         atexit.register(self.removal, temp_path)
-        print(f"[INFO] Copying AC files into temporary directory")
+        print("[INFO] Copying AC files into temporary directory")
         cache_path = builder.build_dir / builder.get_relative_path(
             context, to_build_cache=True
         )
@@ -232,7 +232,7 @@ class Gcovr(ExecutableAction):
             )
             return
         ac_temporary_path = _get_ac_directory(builder, context, self.scope)
-        coverage_output_dir = context / f"coverage"
+        coverage_output_dir = context / "coverage"
         coverage_output_dir.mkdir(exist_ok=True)
         project_root = builder.get_settings(
             "project_root",
