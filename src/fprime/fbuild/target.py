@@ -196,7 +196,7 @@ class Target(ExecutableAction):
                 matching.append(target)
         if not matching:
             raise NoSuchTargetException(
-                "Could not find target '{}'".format(cls.config_string(mnemonic, flags))
+                f"Could not find target '{cls.config_string(mnemonic, flags)}'"
             )
         assert len(matching) == 1, "Conflicting targets specified in code"
         return matching[0]
