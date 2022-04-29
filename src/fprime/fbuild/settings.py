@@ -110,7 +110,7 @@ class IniSettings:
         config_dir = IniSettings.read_safe_path(
             confparse, platform, "config_directory", settings_file
         )
-        onfig_dir = config_dir[0] if config_dir else None
+        config_dir = config_dir[0] if config_dir else None
 
         install_dest = IniSettings.read_safe_path(
             confparse, platform, "install_dest", settings_file, False
