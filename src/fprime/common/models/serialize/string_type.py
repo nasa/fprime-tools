@@ -20,7 +20,7 @@ from .type_exceptions import (
 class StringType(type_base.DictionaryType):
     """
     String type representation for F prime. This is a type that stores a half-word first for representing the length of
-    this given string. Each sub stiring class defines the sub-type property max length that represents the maximum
+    this given string. Each sub string class defines the sub-type property max length that represents the maximum
     length of any string value stored to it.
 
     All string types follow this implementation, but have some specific type-based properties: MAX_LENGTH.
@@ -29,8 +29,10 @@ class StringType(type_base.DictionaryType):
     @classmethod
     def construct_type(cls, name, max_length=None):
         """Constructs a new string type with given name and maximum length"""
-        tmp = type_base.DictionaryType.construct_type(cls, name, MAX_LENGTH=max_length)
-        return tmp
+        temporary = type_base.DictionaryType.construct_type(
+            cls, name, MAX_LENGTH=max_length
+        )
+        return temporary
 
     def validate(self, val):
         """Validates that this is a string"""

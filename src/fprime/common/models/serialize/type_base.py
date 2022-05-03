@@ -93,10 +93,10 @@ class DictionaryType(ValueType, abc.ABC):
     """Type whose specification is defined in the dictionary
 
     Certain types in fprime (strings, serializables, enums) are defined in the dictionary. Where all projects have
-    access to primitave types (U8, F32, etc) and the definitions of theses types is global, other types complete
+    access to primitive types (U8, F32, etc) and the definitions of theses types is global, other types complete
     specification comes from the dictionary itself. String set max-lengths per project, serializable fields are defined,
-    and enumeration values are enumerated. This class is designed to take a baes framework (StringType, etc) and build
-    a dynamic subclass for the given dictionary defined type.
+    and enumeration values are enumerated. This class is designed to take base complex types (StringType, etc) and build
+    dynamic subclasses for the given dictionary defined type.
     """
 
     _CONSTRUCTS = {}
@@ -110,17 +110,17 @@ class DictionaryType(ValueType, abc.ABC):
 
         Args:
             name: name of the new sub type
-            **class_properties: properties to define on the subtype (e.g. max lenght for strings)
+            **class_properties: properties to define on the subtype (e.g. max length for strings)
         """
         assert (
             cls != DictionaryType
         ), "Cannot build dictionary type from dictionary type directly"
         construct = this_cls._CONSTRUCTS.get(name, type(name, (cls,), class_properties))
-        for attr, value in class_properties.items():
-            previous_value = getattr(construct, attr, None)
+        for attribute, value in class_properties.items():
+            previous_value = getattr(construct, attribute, None)
             assert (
                 previous_value == value
-            ), f"Class {name} differs by attribute {attr}. {previous_value} vs {value}"
+            ), f"Class {name} differs by attribute {attribute}. {previous_value} vs {value}"
         this_cls._CONSTRUCTS[name] = construct
         return construct
 

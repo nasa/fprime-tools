@@ -33,9 +33,9 @@ class SerializableType(DictionaryType):
 
     @classmethod
     def construct_type(cls, name, member_list=None):
-        """Consturct a new serializable sub-type
+        """Construct a new serializable sub-type
 
-        Constructs a new serializable subtype from the supplied member list and name. Member list may optionaly excluede
+        Constructs a new serializable subtype from the supplied member list and name. Member list may optionally exclude
         description keys, which will be filled with None.
 
         Args:
