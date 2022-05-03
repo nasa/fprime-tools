@@ -32,6 +32,10 @@ class InvalidBuildTypeException(FprimeException):
     """An exception indicating a build type do not exit"""
 
 
+class MissingBuildCachePath(FprimeException):
+    """An exception indicating that a path in the build cache is missing"""
+
+
 class BuildType(Enum):
     """
     An enumeration used to represent the various build types used to build fprime. These types can support different

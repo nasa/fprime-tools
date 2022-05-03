@@ -29,7 +29,7 @@ from fprime.fbuild.builder import (
 )
 from .help_text import HelpText
 from fprime.fbuild.cli import add_fbuild_parsers, get_target
-
+from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
@@ -159,9 +159,11 @@ def parse_args(args):
     fbuild_runners, fbuild_parsers = add_fbuild_parsers(
         subparsers, common_parser, HelpText
     )
-    runners.update(fbuild_runners)
+    fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
     parsers.update(fbuild_parsers)
-    # runners.update(add_fpp_parsers(subparsers, common_parser))
+    parsers.update(fpp_parsers)
+    runners.update(fbuild_runners)
+    runners.update(fpp_runners)
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
