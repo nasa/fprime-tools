@@ -10,6 +10,7 @@ from typing import Iterable, List, Union
 from fprime.fbuild.types import (
     BuildType,
     InvalidBuildCacheException,
+    MissingBuildCachePath,
     NoSuchToolchainException,
     AmbiguousToolchainException,
     UnableToDetectDeploymentException,
@@ -218,16 +219,9 @@ class Build:
             for target in Target.get_all_targets()
             if target.scope == TargetScope.GLOBAL
         ]
-
-        relative_path = self.cmake.get_project_relative_path(
-            str(context), self.build_dir
-        )
-
-        for possible in ["F-Prime", "."]:
-            auto_location = self.build_dir / possible / relative_path
-            if auto_location.exists():
-                break
-        else:
+        try:
+            auto_location = self.get_build_cache_path(context)
+        except MissingBuildCachePath:
             auto_location = None
         return {
             "local_targets": local_targets,
@@ -341,20 +335,26 @@ class Build:
         """Gets name of module from path"""
         return self.cmake.get_cmake_module(path, self.build_dir)
 
-    def get_relative_path(self, path: Path, to_build_cache: bool = False) -> Path:
+    def get_build_cache_path(self, context: Path) -> Path:
+        """Get the path within the build cache associated with the given context
+
+        Each contextual path has a matching path within the build cache that contains the outputs of the various build
+        commands executed in that context. This command will return a path to that context.
+
+        Args:
+            context: contextual path to return
+        """
+        project_relative_path = self.get_relative_path(context)
+        for possible in [".", "F-Prime"]:
+            possible_path = self.build_dir / possible / project_relative_path
+            if possible_path.exists():
+                return possible_path
+        raise MissingBuildCachePath(f"{context} has no associated build cache path")
+
+    def get_relative_path(self, path: Path) -> Path:
         """Gets path relative to project"""
-        relative_path, include_root = self.cmake.get_include_info(path, self.build_dir)
-        relative_path = Path(relative_path)
-        fprime_root = Path(self.get_settings("framework_path", None))
-        # FPrime paths need special handling when relative to build cache, but still needs to handle Ref and RPI
-        if to_build_cache and fprime_root == Path(include_root):
-            cache_path = self.build_dir / relative_path
-            return (
-                relative_path
-                if cache_path.exists()
-                else Path("F-Prime") / relative_path
-            )
-        return relative_path
+        relative_path, _ = self.cmake.get_include_info(path, self.build_dir)
+        return Path(relative_path)
 
     def execute_build_target(
         self, build_target: str, context: Path, top: bool, make_args: dict
