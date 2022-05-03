@@ -7,7 +7,11 @@ Created on Dec 18, 2014
 import copy
 
 from .type_base import BaseType, DictionaryType
-from .type_exceptions import MissingMemberException, NotInitializedException, TypeMismatchException
+from .type_exceptions import (
+    MissingMemberException,
+    NotInitializedException,
+    TypeMismatchException,
+)
 
 from . import array_type
 from fprime.util.string_util import format_string_template
@@ -29,7 +33,7 @@ class SerializableType(DictionaryType):
 
     @classmethod
     def construct_type(cls, name, member_list=None):
-        """ Consturct a new serializable sub-type
+        """Consturct a new serializable sub-type
 
         Constructs a new serializable subtype from the supplied member list and name. Member list may optionaly excluede
         description keys, which will be filled with None.
@@ -39,7 +43,10 @@ class SerializableType(DictionaryType):
             member_list: list of member definitions in form list of tuples (name, type, format string, description)
         """
         if member_list:
-            member_list = [item if len(item) == 4 else (item[0], item[1], item[2], None) for item in member_list]
+            member_list = [
+                item if len(item) == 4 else (item[0], item[1], item[2], None)
+                for item in member_list
+            ]
             # Check that we are dealing with a list
             if not isinstance(member_list, list):
                 raise TypeMismatchException(list, type(member_list))
@@ -95,7 +102,10 @@ class SerializableType(DictionaryType):
         :param val: dictionary containing python types to key names. This
         """
         self.validate(val)
-        self.__val = {member_name: member_type(val.get(member_name)) for member_name, member_type, _, _, in self.MEMBER_LIST}
+        self.__val = {
+            member_name: member_type(val.get(member_name))
+            for member_name, member_type, _, _, in self.MEMBER_LIST
+        }
 
     @property
     def formatted_val(self) -> dict:
@@ -121,7 +131,10 @@ class SerializableType(DictionaryType):
         if self.MEMBER_LIST is None:
             raise NotInitializedException(type(self))
         return b"".join(
-            [self.__val.get(member_name).serialize() for member_name, _, _, _ in self.MEMBER_LIST]
+            [
+                self.__val.get(member_name).serialize()
+                for member_name, _, _, _ in self.MEMBER_LIST
+            ]
         )
 
     def deserialize(self, data, offset):

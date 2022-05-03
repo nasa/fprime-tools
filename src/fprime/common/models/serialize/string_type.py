@@ -16,6 +16,7 @@ from .type_exceptions import (
     TypeMismatchException,
 )
 
+
 class StringType(type_base.DictionaryType):
     """
     String type representation for F prime. This is a type that stores a half-word first for representing the length of
@@ -27,10 +28,9 @@ class StringType(type_base.DictionaryType):
 
     @classmethod
     def construct_type(cls, name, max_length=None):
-        """ Constructs a new string type with given name and maximum length """
+        """Constructs a new string type with given name and maximum length"""
         tmp = type_base.DictionaryType.construct_type(cls, name, MAX_LENGTH=max_length)
         return tmp
-
 
     def validate(self, val):
         """Validates that this is a string"""
@@ -47,9 +47,7 @@ class StringType(type_base.DictionaryType):
         if self.val is None:
             raise NotInitializedException(type(self))
         # Check string size before serializing
-        elif (
-            self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH
-        ):
+        elif self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH:
             raise StringSizeException(len(self.val), self.MAX_LENGTH)
         # Pack the string size first then return the encoded data
         buff = struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)

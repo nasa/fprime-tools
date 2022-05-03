@@ -24,7 +24,7 @@ class ArrayType(DictionaryType):
 
     @classmethod
     def construct_type(cls, name, member_type, length, format):
-        """ Constructs a sub-array type
+        """Constructs a sub-array type
 
         Constructs a new sub-type of array to represent an array of the given name, member type, length, and format
         string.
@@ -35,7 +35,9 @@ class ArrayType(DictionaryType):
             length: length of the array subtype
             format: format string for members of the array subtype
         """
-        return DictionaryType.construct_type(cls, name, MEMBER_TYPE=member_type, LENGTH=length, FORMAT=format)
+        return DictionaryType.construct_type(
+            cls, name, MEMBER_TYPE=member_type, LENGTH=length, FORMAT=format
+        )
 
     def validate(self, val):
         """Validates the values of the array"""

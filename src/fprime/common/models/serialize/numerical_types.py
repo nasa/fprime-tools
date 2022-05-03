@@ -18,7 +18,7 @@ from .type_exceptions import (
     TypeRangeException,
 )
 
-#BITS_RE = re.compile(r"[IUF](\d\d?)")
+# BITS_RE = re.compile(r"[IUF](\d\d?)")
 
 
 class NumericalType(ValueType, abc.ABC):
@@ -32,7 +32,7 @@ class NumericalType(ValueType, abc.ABC):
     @classmethod
     def getSize(cls):
         """Gets the size of the integer based on the size specified in the class name"""
-        return int(cls.get_bits() >> 3) # Divide by 8 quickly
+        return int(cls.get_bits() >> 3)  # Divide by 8 quickly
 
     @staticmethod
     @abc.abstractmethod
@@ -90,7 +90,7 @@ class I8Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 8
 
     @staticmethod
@@ -114,9 +114,8 @@ class I16Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 16
-
 
     @staticmethod
     def get_serialize_format():
@@ -139,7 +138,7 @@ class I32Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 32
 
     @staticmethod
@@ -163,9 +162,8 @@ class I64Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 64
-
 
     @staticmethod
     def get_serialize_format():
@@ -188,9 +186,8 @@ class U8Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 8
-
 
     @staticmethod
     def get_serialize_format():
@@ -213,7 +210,7 @@ class U16Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 16
 
     @staticmethod
@@ -237,7 +234,7 @@ class U32Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 32
 
     @staticmethod
@@ -261,9 +258,8 @@ class U64Type(IntegerType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 32
-
 
     @staticmethod
     def get_serialize_format():
@@ -276,7 +272,7 @@ class F32Type(FloatType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 32
 
     @staticmethod
@@ -290,7 +286,7 @@ class F64Type(FloatType):
 
     @classmethod
     def get_bits(cls):
-        """ Get the bit count of this type """
+        """Get the bit count of this type"""
         return 64
 
     @staticmethod

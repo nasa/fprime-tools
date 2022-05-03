@@ -24,17 +24,16 @@ class EnumType(DictionaryType):
     """
 
     def __init__(self, val="UNDEFINED"):
-        """ Construct the enumeration value, called through sub-type constructor
+        """Construct the enumeration value, called through sub-type constructor
 
         Args:
             val: (optional) value this instance of enumeration is set to. Default: "UNDEFINED"
         """
         super().__init__(val)
 
-
     @classmethod
     def construct_type(cls, name, enum_dict=None):
-        """ Construct the custom enum type
+        """Construct the custom enum type
 
         Constructs the custom enumeration type, with the supplied enumeration dictionary.
 

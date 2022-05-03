@@ -90,7 +90,7 @@ class ValueType(BaseType):
 
 
 class DictionaryType(ValueType, abc.ABC):
-    """ Type whose specification is defined in the dictionary
+    """Type whose specification is defined in the dictionary
 
     Certain types in fprime (strings, serializables, enums) are defined in the dictionary. Where all projects have
     access to primitave types (U8, F32, etc) and the definitions of theses types is global, other types complete
@@ -98,11 +98,12 @@ class DictionaryType(ValueType, abc.ABC):
     and enumeration values are enumerated. This class is designed to take a baes framework (StringType, etc) and build
     a dynamic subclass for the given dictionary defined type.
     """
+
     _CONSTRUCTS = {}
 
     @classmethod
     def construct_type(this_cls, cls, name, **class_properties):
-        """ Construct a new dictionary type
+        """Construct a new dictionary type
 
         Construct a new dynamic subtype of the given base type. This type will be named with the name parameter, define
         the supplied class properties, and will be a subtype of the class.
@@ -111,11 +112,15 @@ class DictionaryType(ValueType, abc.ABC):
             name: name of the new sub type
             **class_properties: properties to define on the subtype (e.g. max lenght for strings)
         """
-        assert cls != DictionaryType, "Cannot build dictionary type from dictionary type directly"
+        assert (
+            cls != DictionaryType
+        ), "Cannot build dictionary type from dictionary type directly"
         construct = this_cls._CONSTRUCTS.get(name, type(name, (cls,), class_properties))
         for attr, value in class_properties.items():
             previous_value = getattr(construct, attr, None)
-            assert previous_value == value, f"Class {name} differs by attribute {attr}. {previous_value} vs {value}"
+            assert (
+                previous_value == value
+            ), f"Class {name} differs by attribute {attr}. {previous_value} vs {value}"
         this_cls._CONSTRUCTS[name] = construct
         return construct
 
