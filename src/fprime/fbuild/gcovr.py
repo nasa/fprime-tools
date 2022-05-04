@@ -302,9 +302,10 @@ class GcovrTarget(CompositeTarget):
 
     def __init__(self, check_target: Target, scope: TargetScope, *args, **kwargs):
         """Construct the gcovr target around an existing check target"""
-        assert (
-            check_target.scope == scope or check_target.scope == TargetScope.BOTH
-        ), "Cannot create composite target from incompatible target"
+        assert check_target.scope in [
+            scope,
+            TargetScope.BOTH,
+        ], "Cannot create composite target from incompatible target"
         super().__init__(
             [GcovClean(scope), check_target, GcovrAcHelper(scope), Gcovr(scope)],
             scope=scope,
