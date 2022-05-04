@@ -5,55 +5,16 @@ Processing and command line functions for FPP tools wrappers in fprime-util.
 @mstarch
 """
 import argparse
-from pathlib import Path
-from typing import Dict, Callable
-from fprime.fbuild.builder import Build
-from fprime.fpp.common import fpp_get_locations_file, fpp_dependencies, run_fpp_util
-
-
-def run_fpp_locs(
-    build: Build,
-    parsed: argparse.Namespace,
-    _: Dict[str, str],
-    make_args: Dict[str, str],
-):
-    """Runs the fpp_locs command
-
-    Args:
-        build: build cache
-        parsed: parsed arguments object
-        _: cmake args, not used
-        make_args: make arguments passed to the fpp-locs target
-    """
-    print(
-        f"fpp Locations File: {fpp_get_locations_file(Path(parsed.path), build, make_args=make_args)}"
-    )
-
-
-def run_fpp_deps(
-    build: Build,
-    parsed: argparse.Namespace,
-    _: Dict[str, str],
-    make_args: Dict[str, str],
-):
-    """Runs the fpp_deps command
-
-    Args:
-        build: build cache
-        parsed: parsed arguments object
-        _: cmake args, not used
-        make_args: make arguments passed to the fpp-locs target
-    """
-    print(
-        f"fpp dependencies of {parsed.path}:\n{' '.join(str(item) for item in fpp_dependencies(parsed.path, build, make_args))}"
-    )
+from typing import Dict, List, Tuple, Callable
+from fprime.fpp.common import FppUtility
 
 
 def run_fpp_check(
-    build: Build,
+    build: "Build",
     parsed: argparse.Namespace,
     _: Dict[str, str],
-    make_args: Dict[str, str],
+    __: Dict[str, str],
+    ___: List[str],
 ):
     """Run fpp check application
 
@@ -63,21 +24,19 @@ def run_fpp_check(
         build: build directory output
         parsed: parsed input arguments
         _: unused cmake_args
-        make_args: unused make_args
-
-    Returns:
-
+        __: unused make_args
+        ___: unused pass-through arguments
     """
-    run_fpp_util(
-        parsed.path,
+    FppUtility("fpp-check").execute(
         build,
-        make_args,
-        "fpp-check",
-        ["-u", parsed.unconnected] if parsed.unconnected else [],
+        parsed.path,
+        args=({}, ["-u", parsed.unconnected] if parsed.unconnected else []),
     )
 
 
-def add_fpp_parsers(subparsers, common: argparse.ArgumentParser) -> Dict[str, Callable]:
+def add_fpp_parsers(
+    subparsers, common: argparse.ArgumentParser
+) -> Tuple[Dict[str, Callable], Dict[str, argparse.ArgumentParser]]:
     """Sets up the fpp command line parsers
 
     Creates command line parsers for fpp commands and associates these commands to processing functions for those fpp
@@ -88,20 +47,8 @@ def add_fpp_parsers(subparsers, common: argparse.ArgumentParser) -> Dict[str, Ca
         common: common parser for all fprime-util commands
 
     Returns:
-        Dictionary mapping command name to processor of that command
+        Tuple of dictionary mapping command name to processor, and command to parser
     """
-    subparsers.add_parser(
-        "fpp-locs",
-        help="Regenerates the FPP locations file and prints the location",
-        parents=[common],
-        add_help=False,
-    )
-    subparsers.add_parser(
-        "fpp-depends",
-        help="Regenerates the build cache and prints located fpp dependencies",
-        parents=[common],
-        add_help=False,
-    )
     check_parser = subparsers.add_parser(
         "fpp-check",
         help="Runs fpp-check utility",
@@ -115,7 +62,5 @@ def add_fpp_parsers(subparsers, common: argparse.ArgumentParser) -> Dict[str, Ca
         help="write unconnected ports to file",
     )
     return {
-        "fpp-locs": run_fpp_locs,
-        "fpp-depends": run_fpp_deps,
         "fpp-check": run_fpp_check,
-    }
+    }, {"fpp-check": check_parser}

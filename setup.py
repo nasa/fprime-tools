@@ -83,6 +83,7 @@ to interact with the data coming from the FSW.
     install_requires=[
         "lxml==4.6.3",
         "Markdown==3.3.4",
+        "MarkupSafe<2.0.0",
         "pexpect==4.8.0",
         "pytest==6.2.4",
         "Cheetah3==3.2.6",

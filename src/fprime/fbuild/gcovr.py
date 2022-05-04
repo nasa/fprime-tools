@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from .target import ExecutableAction, Target, TargetScope, CompositeTarget
-
+from .types import MissingBuildCachePath
 
 TEMPORARY_DIRECTORY = "{{AUTOCODE}}"
 
@@ -113,9 +113,7 @@ class GcovrAcHelper(ExecutableAction):
         temp_path.mkdir(exist_ok=False)
         atexit.register(self.removal, temp_path)
         print("[INFO] Copying AC files into temporary directory")
-        cache_path = builder.build_dir / builder.get_relative_path(
-            context, to_build_cache=True
-        )
+        cache_path = builder.build_dir / builder.get_build_cache_path(context)
         recurse_path = (
             Path(builder.build_dir)
             if _using_root(builder, context, self.scope)
@@ -246,7 +244,7 @@ class Gcovr(ExecutableAction):
         build_offset = (
             ""
             if _using_root(builder, context, self.scope)
-            else builder.get_relative_path(context, True)
+            else builder.get_build_cache_path(context)
         )
 
         # gcovr is an unhappy beast (but it is *much* better than the raw gcov executable

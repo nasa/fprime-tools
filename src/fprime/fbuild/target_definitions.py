@@ -8,7 +8,6 @@ from .types import BuildType
 from .target import TargetScope, BuildSystemTarget
 from .gcovr import GcovrTarget
 
-
 #### "build" targets for components, deployments, unittests for both normal and testing builds ####
 BuildSystemTarget(
     "",

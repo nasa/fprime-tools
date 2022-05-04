@@ -1,113 +1,118 @@
-"""
-Common implementations for FPP tool wrapping
+""" fprime.fpp.common:
+
+Common implementations for FPP tool wrapping.
 
 @author mstarch
 """
+import itertools
 import subprocess
-import sys
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from pathlib import Path
 
 from fprime.common.error import FprimeException
-from fprime.fbuild.builder import Build, BuildType, GlobalTarget
-from fprime.fbuild.cmake import CMakeExecutionException
-
-FPP_TARGETS = [GlobalTarget("fpp-locs", "Generate/regenerate the fpp-locs file")]
-FPP_LOCS_DIR = "fpp-locs"
+from fprime.fbuild.builder import Build
+from fprime.fbuild.target import ExecutableAction, TargetScope
 
 
-def fpp_get_locations_file(
-    cwd: Path, build: Build, make_args: Dict[str, str], refresh: bool = True
-) -> Path:
-    """
-    Refreshes the fpp locations file and returns the path to it
+class FppMissingSupportFiles(FprimeException):
+    """FPP is missing its support files and cannot run"""
 
-    Given a build setup, this will update the FPP locations file to ensure it is accurate and then returns the path of
-    the FPP locations file.
-
-    Args:
-        cwd: current working directory
-        build: build cache of the current directory
-        make_args: arguments to pass to the make system
-        refresh: force an update to the fpp locs file
-    Returns:
-        path to the fpp locations file
-    """
-    fpp_build_cache_path = build.build_dir / FPP_LOCS_DIR
-    if refresh:
-        locs_cache = Build(
-            BuildType.BUILD_FPP_LOCS, build.deployment, build.cmake.verbose
+    def __init__(self, file):
+        super().__init__(
+            f"fpp-* commands require fprime v3.1.0+. Assumed older version because {file} not found"
         )
-        locs_cache.load(build.platform, build_dir=fpp_build_cache_path)
-        print("[INFO] Updating fpp locations file. This may take some time.")
-        locs_cache.execute(FPP_TARGETS[0], context=Path(cwd), make_args=make_args)
-    return fpp_build_cache_path / "locs.fpp"
 
 
-def fpp_dependencies(cwd: Path, build: Build, make_args: Dict[str, str]) -> List[Path]:
+class FppUtility(ExecutableAction):
+    """Action built around executing FPP
+
+    When executing FPP, the utilities often require a set of input or dependency FPP files as well as a locations file
+    that represents the location of the FPP constructs in the system. These inputs are then supplied to the FPP utility
+    in a similar order across utilities. This action executes these utilities via a subprocess using the command line
+    format:
+
+    <utility> <user supplied args> <locations file> <fpp inputs>
     """
-    Gets a list of FPP paths that are dependencies of the current module
 
-    Mines the dependencies from the memo file within the build cache. This is done because there is no clean way to get
-    a list of autocoder sources from within the build system for external use, however; the memo file acts like an
-    export of the information we do need. This function extracts that.
+    def __init__(self, name):
+        """Construct this utility with the supplied name
 
-    Args:
-        cwd: current working directory
-        build: build cache used for work
-        make_args: make arguments
+        Args:
+            name: name of the fpp utility to run
+        """
+        super().__init__(TargetScope.LOCAL)
+        self.utility = name
 
-    Returns:
-        List of paths to fpp file dependencies of the given directory
-    """
-    # Force a refresh of the cache, to ensure the memo file is updated and as a by-product the locs file is updated
-    print(
-        "[INFO] Updating fpp locations file and build cache. This may take some time."
-    )
-    try:
-        build.cmake.cmake_refresh_cache(build.build_dir)
-        build_info = build.get_build_info(cwd)
-    except CMakeExecutionException as error:
-        print("".join(error.stderr), file=sys.stderr)
-        raise
+    @staticmethod
+    def get_locations_file(builder: Build) -> Path:
+        """Returns the location of the FPP locations file
 
-    directory_info = build_info.get("auto_location")
-    if not directory_info:
-        raise FppCannotException(
-            "Could not find build cache folder. Perhaps directory is outside build?"
+        Returns a path to the FPP locations index within the build cache managed by the supplied build object.
+
+        Args:
+            builder: build object to use
+
+        Return:
+            path to the locations index
+        """
+        locations_path = Path(builder.build_dir) / "locs.fpp"
+        if not locations_path.exists():
+            raise FppMissingSupportFiles(locations_path)
+        return locations_path
+
+    @staticmethod
+    def get_fpp_inputs(builder: Build, context: Path) -> List[Path]:
+        """Return the necessary inputs to an FPP run to forward to fpp utilities
+
+        Returns two types of FPP files input into FPP utilities: the FPP files associated with the given module and the
+        FPP files included by those files (e.g. commands.fpp). These files are output in a file in the build cache
+        directory.
+
+        Args:
+            builder: build object used to look for output file
+            context: context path of module containing the FPP files
+
+        Return:
+            list of module FPP files and included FPP files
+        """
+        cache_location = builder.get_build_cache_path(context)
+        input_file = cache_location / "fpp-input-list"
+        if not input_file.exists():
+            raise FppMissingSupportFiles(input_file)
+        with open(input_file, "r") as file_handle:
+            return [
+                Path(token) for token in file_handle.read().split(";") if token != ""
+            ]
+
+    def execute(
+        self, builder: Build, context: Path, args: Tuple[Dict[str, str], List[str]]
+    ):
+        """Execute the fpp utility
+
+        Executes the FPP utility wrapped by this class. Executes it with respect to the context path supplied and using
+        the builder object. Supplies arguments in args to the utility.
+
+        Args:
+            builder: build object to run the utility with
+            context: context path of module FPP is running on
+            args: extra arguments to supply to the utility
+        """
+        # First refresh the cache but only if it detects it needs too
+        builder.cmake.cmake_refresh_cache(builder.build_dir, False)
+
+        # Read files and arguments
+        locations = self.get_locations_file(builder)
+        inputs = self.get_fpp_inputs(builder, context)
+
+        if not inputs:
+            print("[WARNING] No FPP inputs found in this module.")
+
+        user_args = args[1]
+        app_args = (
+            [self.utility]
+            + user_args
+            + [str(item) for item in itertools.chain([locations] + inputs)]
         )
-    deps_file = directory_info / "autocoder" / "fpp.multiple.dep"
-    if not deps_file.exists():
-        raise FppCannotException(
-            "No fpp dependency memo found. Perhaps directory is outside build?"
-        )
-    with open(deps_file, "r") as file_handle:
-        lines = file_handle.readlines()
-    if len(lines) < 4:
-        raise FppCannotException(
-            "No fpp dependency memo malformed. Purge and regenerate?"
-        )
-    make_paths = lambda line: [
-        Path(item) for item in line.strip().split(";") if item.endswith(".fpp")
-    ]
-    all_paths = make_paths(lines[2]) + make_paths(lines[3])
-    return all_paths
-
-
-def run_fpp_util(
-    cwd: Path, build: Build, make_args: Dict[str, str], util: str, util_args: List[str]
-):
-
-    dependencies = fpp_dependencies(cwd, build, make_args)
-    locs_file = fpp_get_locations_file(
-        cwd, build, make_args, False
-    )  # Avoid refresh iff after fpp_dependencies
-
-    app_args = [util] + util_args + [str(item) for item in ([locs_file] + dependencies)]
-    if build.cmake.verbose:
-        print(f"[FPP] '{' '.join(app_args)}'")
-    return subprocess.run(app_args, capture_output=False)
-
-
-class FppCannotException(FprimeException):
-    """Cannot run fpp"""
+        if builder.cmake.verbose:
+            print(f"[FPP] '{' '.join(app_args)}'")
+        subprocess.run(app_args, capture_output=False)
