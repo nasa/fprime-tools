@@ -101,32 +101,29 @@ class IniSettings:
         proj_root = IniSettings.read_safe_path(
             confparse, "fprime", "project_root", settings_file
         )
-        proj_root = None if not proj_root else proj_root[0]
+        proj_root = proj_root[0] if proj_root else None
         # Read ac constants if it is available
         ac_consts = IniSettings.read_safe_path(
             confparse, platform, "ac_constants", settings_file
         )
-        ac_consts = None if not ac_consts else ac_consts[0]
+        ac_consts = ac_consts[0] if ac_consts else None
         # Read include constants if it is available
         config_dir = IniSettings.read_safe_path(
             confparse, platform, "config_directory", settings_file
         )
-        config_dir = None if not config_dir else config_dir[0]
+        config_dir = config_dir[0] if config_dir else None
 
         install_dest = IniSettings.read_safe_path(
             confparse, platform, "install_dest", settings_file, False
         )
 
-        if install_dest:
-            install_dest = Path(install_dest[0])
-        else:
-            install_dest = dfl_install_dest
+        install_dest = Path(install_dest[0]) if install_dest else dfl_install_dest
 
         # Read separate environment file if necessary
         env_file = IniSettings.read_safe_path(
             confparse, platform, "environment_file", settings_file
         )
-        env_file = settings_file if not env_file else env_file[0]
+        env_file = env_file[0] if env_file else settings_file
         libraries = IniSettings.read_safe_path(
             confparse, platform, "library_locations", settings_file
         )

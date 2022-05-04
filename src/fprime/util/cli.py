@@ -57,7 +57,7 @@ def print_info(
 
     # Print out directory and deployment target sections
     if local_generic_targets.keys() or global_generic_targets.keys():
-        print(f"[INFO] fprime build information:")
+        print("[INFO] fprime build information:")
         print(
             f"    Available directory targets: {' '.join(local_generic_targets.keys())}"
         )
