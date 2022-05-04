@@ -125,10 +125,7 @@ def main():
     cwd = Path(os.getcwd())
     deployment = Build.find_nearest_deployment(cwd)
     settings = IniSettings.load(Path(deployment, "settings.ini"))
-    if settings.get("project_root") is None:
-        proj_root_found = False
-    else:
-        proj_root_found = True
+    proj_root_found = settings.get("project_root") is not None
     today = datetime.date.today()
     replace_contents(join("docs", "sdd.md"), "<TODAY>", today.strftime("%m/%d/%Y"))
     update_sdd(

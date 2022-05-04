@@ -31,15 +31,11 @@ def confirm(msg):
 
 
 def replace_contents(filename, what, replacement, count=1):
-    with open(filename) as fh:
-        changelog = fh.read()
+    changelog = Path(filename).read_text()
     with open(filename, "w") as fh:
         new_file = changelog.replace(what, replacement, count)
         fh.write(new_file)
-        if new_file != changelog:
-            return True
-        else:
-            return False
+        return new_file != changelog
 
 
 def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
