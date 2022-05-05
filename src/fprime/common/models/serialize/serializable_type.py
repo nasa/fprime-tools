@@ -43,10 +43,7 @@ class SerializableType(DictionaryType):
             member_list: list of member definitions in form list of tuples (name, type, format string, description)
         """
         if member_list:
-            member_list = [
-                item if len(item) == 4 else (item[0], item[1], item[2], None)
-                for item in member_list
-            ]
+            member_list = [list(item) + ([None] * (4 -len(item))) for item in member_list]
             # Check that we are dealing with a list
             if not isinstance(member_list, list):
                 raise TypeMismatchException(list, type(member_list))
@@ -57,27 +54,26 @@ class SerializableType(DictionaryType):
                     raise TypeMismatchException(str, type(member_name))
                 elif not issubclass(member_type, BaseType):
                     raise TypeMismatchException(BaseType, member_type)
-                elif not isinstance(format_string, str):
+                elif format_string is not None and not isinstance(format_string, str):
                     raise TypeMismatchException(str, type(format_string))
-                elif not isinstance(description, (type(None), str)):
+                elif description is not None and not isinstance(description, str):
                     raise TypeMismatchException(str, type(description))
         return DictionaryType.construct_type(cls, name, MEMBER_LIST=member_list)
 
-    def validate(self, val=None):
+    @classmethod
+    def validate(cls, val):
         """Validate this object including member list and values"""
-        if not self.MEMBER_LIST or not val:
+        if not cls.MEMBER_LIST:
             return
         # Ensure that the supplied value is a dictionary
         if not isinstance(val, dict):
             raise TypeMismatchException(dict, type(val))
         # Now validate each field as defined via the value
-        for member_name, member_type, _, _ in self.MEMBER_LIST:
+        for member_name, member_type, _, _ in cls.MEMBER_LIST:
             member_val = val.get(member_name, None)
             if not member_val:
                 raise MissingMemberException(member_name)
-            elif not isinstance(member_val, member_type):
-                raise TypeMismatchException(type(member_val), member_type)
-            member_val.validate(member_val.val)
+            member_type.validate(member_val)
 
     @property
     def val(self) -> dict:

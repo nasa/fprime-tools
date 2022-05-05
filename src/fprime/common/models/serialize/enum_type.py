@@ -51,16 +51,18 @@ class EnumType(DictionaryType):
                 raise TypeMismatchException(int, enum_dict[member])
         return DictionaryType.construct_type(cls, name, ENUM_DICT=enum_dict)
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validate the value passed into the enumeration"""
-        if val != "UNDEFINED" and val not in self.keys():
-            raise EnumMismatchException(self.__class__.__name__, val)
+        if val != "UNDEFINED" and val not in cls.keys():
+            raise EnumMismatchException(cls.__class__.__name__, val)
 
-    def keys(self):
+    @classmethod
+    def keys(cls):
         """
         Return all the enum key values.
         """
-        return list(self.ENUM_DICT.keys())
+        return list(cls.ENUM_DICT.keys())
 
     def serialize(self):
         """

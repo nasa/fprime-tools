@@ -34,12 +34,13 @@ class StringType(type_base.DictionaryType):
         )
         return temporary
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validates that this is a string"""
         if not isinstance(val, str):
             raise TypeMismatchException(str, type(val))
-        elif self.MAX_LENGTH is not None and len(val) > self.MAX_LENGTH:
-            raise StringSizeException(len(val), self.MAX_LENGTH)
+        elif cls.MAX_LENGTH is not None and len(val) > cls.MAX_LENGTH:
+            raise StringSizeException(len(val), cls.MAX_LENGTH)
 
     def serialize(self):
         """

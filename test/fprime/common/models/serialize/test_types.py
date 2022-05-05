@@ -33,6 +33,7 @@ from fprime.common.models.serialize.type_exceptions import (
     AbstractMethodException,
     DeserializeException,
     NotInitializedException,
+    StringSizeException,
     TypeMismatchException,
     TypeRangeException,
 )
@@ -220,9 +221,10 @@ def test_enum_type():
     Tests the EnumType serialization and deserialization
     """
     members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
-    val1 = EnumType("SomeEnum", members, "MEMB3")
+    enum_class = EnumType.construct_type("SomeEnum", members)
+    val1 = enum_class("MEMB3")
     buff = val1.serialize()
-    val2 = EnumType("SomeEnum", members)
+    val2 = enum_class()
     val2.deserialize(buff, 0)
     assert val1.val == val2.val
 
@@ -236,52 +238,52 @@ def check_cloned_member_list(members1, members2):
         assert tuple1[1].val == tuple2[1].val, "Values don't match"
 
 
-def test_serializable_type():
+def test_string_type():
+    """ Tests named string types """
+    py_string = "ABC123DEF456"
+    string_type = StringType.construct_type("MyFancyString", max_length=10)
+
+    # Test a bad string
+    with pytest.raises(StringSizeException):
+        string_val1 = string_type(py_string)
+    string_val1 = string_type(py_string[:10])
+
+    string_val2 = string_type()
+    serialized = string_val1.serialize()
+    string_val2.deserialize(serialized, 0)
+    assert string_val2.val == py_string[:10]
+
+
+def test_serializable_basic():
+    """ Serializable type with basic member types """
+    member_list = [("member1", U32Type, "%d"),("member2", U32Type, "%lu"),("member3", I64Type, "%lld")]
+    serializable_type = SerializableType.construct_type("BasicSerializable", member_list)
+    serializable1 = serializable_type({"member1": 123, "member2": 456, "member3": -234})
+    bytes1 = serializable1.serialize()
+    serializable2 = serializable_type()
+    serializable2.deserialize(bytes1, 0)
+    assert serializable1 == serializable2, "Serializable not equal"
+
+
+
+def test_serializable_advanced():
     """
     Tests the SerializableType serialization and deserialization
     """
-    u32Mem = U32Type(1000000)
-    stringMem = StringType("something to say")
-    members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
-    enumMem = EnumType("SomeEnum", members, "MEMB3")
-    memList = [
-        ("mem1", u32Mem, ">i"),
-        ("mem2", stringMem, ">H"),
-        ("mem3", enumMem, ">i"),
-    ]
-    serType1 = SerializableType("ASerType", memList)
-    buff = serType1.serialize()
-    serType2 = SerializableType("ASerType", memList)
-    serType2.deserialize(buff, 0)
-    check_cloned_member_list(serType1.mem_list, serType2.mem_list)
 
-    assert serType1.val == serType2.val
+    # First setup some classes to represent various member types ensuring that the serializable can handle them
+    string_member_class = StringType.construct_type("StringMember")
+    enum_member_class = EnumType.construct_type("EnumMember", {"Option1": 0, "Option2": 6, "Option3": 9})
+    array_member_class = ArrayType.construct_type("ArrayMember", string_member_class, 3, "%s")
 
-    i32Mem = I32Type(-1000000)
-    stringMem = StringType("something else to say")
-    members = {"MEMB1": 4, "MEMB2": 2, "MEMB3": 0}
-    enumMem = EnumType("SomeEnum", members, "MEMB3")
-    memList = [
-        ("mem1", i32Mem, ">i"),
-        ("mem2", stringMem, ">H"),
-        ("mem3", enumMem, ">i"),
-    ]
-    serType1 = SerializableType("ASerType", memList)
-    buff = serType1.serialize()
-    serType2 = SerializableType("ASerType", memList)
-    serType2.deserialize(buff, 0)
-    check_cloned_member_list(serType1.mem_list, serType2.mem_list)
+    field_data = [("field1", string_member_class), ("field2", U32Type), ("field3", enum_member_class), ("field4", array_member_class)]
+    serializable_class = SerializableType.construct_type("AdvancedSerializable", field_data)
 
-    value_dict = {"mem1": 3, "mem2": "abc 123", "mem3": "MEMB1"}
-    serType1.val = value_dict
-    assert serType1.val == value_dict
-    mem_list = serType1.mem_list
-    memList = [(a, b, c, None) for a, b, c in memList]
-    check_cloned_member_list(mem_list, memList)
+    serializable1 = serializable_class({"field1": "abc", "field2": 123, "field3": "Option2", "field4": ["abc", "123", "456"]})
+    bytes1 = serializable1.serialize()
+    serializable2 = serializable_class()
+    assert serializable1 == serializable2, "Serializables do not match"
 
-    serTypeEmpty = SerializableType("ASerType", [])
-    assert serTypeEmpty.val == {}
-    assert serTypeEmpty.mem_list == []
 
 
 # def test_array_type():

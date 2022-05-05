@@ -61,15 +61,24 @@ class ValueType(BaseType):
         if val is not None:
             self.val = val
 
+    @classmethod
     @abc.abstractmethod
-    def validate(self, val):
+    def validate(cls, val):
         """
         Checks the val for validity with respect to the current type. This will raise TypeMismatchException when the
-        validation fails of the val's type fails. It will raise TypeRangeException when val is out of range.
+        validation fails of the val's type fails. It will raise TypeRangeException when val is out of range. Concrete
+        implementations will raise other exceptions based on type. For example, serializable types raise exceptions for
+        missing members.
 
         :param val: value to validate
         :raises TypeMismatchException: value has incorrect type, TypeRangeException: val is out of range
         """
+
+    def __eq__(self, other):
+        """ Check equality between types """
+        if type(other) != type(self):
+            return False
+        return self.__val == other.__val
 
     @property
     def val(self):

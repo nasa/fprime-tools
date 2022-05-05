@@ -62,11 +62,12 @@ class IntegerType(NumericalType, abc.ABC):
     def range(cls):
         """Gets signed/unsigned of this type"""
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validates the given integer."""
         if not isinstance(val, int):
             raise TypeMismatchException(int, type(val))
-        min_val, max_val = self.range()
+        min_val, max_val = cls.range()
         if val < min_val or val > max_val:
             raise TypeRangeException(val)
 
@@ -74,7 +75,8 @@ class IntegerType(NumericalType, abc.ABC):
 class FloatType(NumericalType, abc.ABC):
     """Base class that represents all float common functions"""
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validates the given integer."""
         if not isinstance(val, (float, int)):
             raise TypeMismatchException(float, type(val))
@@ -259,7 +261,7 @@ class U64Type(IntegerType):
     @classmethod
     def get_bits(cls):
         """Get the bit count of this type"""
-        return 32
+        return 64
 
     @staticmethod
     def get_serialize_format():

@@ -39,14 +39,13 @@ class ArrayType(DictionaryType):
             cls, name, MEMBER_TYPE=member_type, LENGTH=length, FORMAT=format
         )
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validates the values of the array"""
-        if len(val) != self.LENGTH:
-            raise ArrayLengthException(self.MEMBER_TYPE, self.LENGTH, len(val))
-        for i in range(self.LENGTH):
-            if not isinstance(val[i], self.MEMBER_TYPE):
-                raise TypeMismatchException(self.MEMBER_TYPE, type(val[i]))
-            val[i].validate(val)
+        if len(val) != cls.LENGTH:
+            raise ArrayLengthException(cls.MEMBER_TYPE, cls.LENGTH, len(val))
+        for i in range(cls.LENGTH):
+            cls.MEMBER_TYPE.validate(val[i])
 
     @property
     def val(self) -> list:
@@ -83,8 +82,8 @@ class ArrayType(DictionaryType):
 
         :param val: dictionary containing python types to key names. This
         """
-        items = [self.MEMBER_TYPE(val) for item in val]
         self.validate(val)
+        items = [self.MEMBER_TYPE(item) for item in val]
         self.__val = items
 
     def to_jsonable(self):
@@ -106,7 +105,7 @@ class ArrayType(DictionaryType):
         """Serialize the array by serializing the elements one by one"""
         if self.val is None:
             raise NotInitializedException(type(self))
-        return b"".join([item.serialize() for item in self.val])
+        return b"".join([item.serialize() for item in self.__val])
 
     def deserialize(self, data, offset):
         """Deserialize the members of the array"""
