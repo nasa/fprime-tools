@@ -84,7 +84,7 @@ class SerializableType(DictionaryType):
         :return dictionary of member names to python values of member keys
         """
         return {
-            member_name: self.__val.get(member_name).val
+            member_name: self._val.get(member_name).val
             for member_name, _, _, _ in self.MEMBER_LIST
         }
 
@@ -98,7 +98,7 @@ class SerializableType(DictionaryType):
         :param val: dictionary containing python types to key names. This
         """
         self.validate(val)
-        self.__val = {
+        self._val = {
             member_name: member_type(val.get(member_name))
             for member_name, member_type, _, _, in self.MEMBER_LIST
         }
@@ -113,7 +113,7 @@ class SerializableType(DictionaryType):
         """
         result = dict()
         for member_name, _, member_format, _ in self.MEMBER_LIST:
-            value_object = self.__val[member_name]
+            value_object = self._val[member_name]
             if isinstance(value_object, (array_type.ArrayType, SerializableType)):
                 result[member_name] = value_object.formatted_val
             else:
@@ -128,7 +128,7 @@ class SerializableType(DictionaryType):
             raise NotInitializedException(type(self))
         return b"".join(
             [
-                self.__val.get(member_name).serialize()
+                self._val.get(member_name).serialize()
                 for member_name, _, _, _ in self.MEMBER_LIST
             ]
         )
@@ -141,11 +141,11 @@ class SerializableType(DictionaryType):
             new_member.deserialize(data, offset)
             new_value[member_name] = new_member
             offset += new_member.getSize()
-        self.__val = new_value
+        self._val = new_value
 
     def getSize(self):
         """The size of a struct is the size of all the members"""
-        return sum(self.__val.get(name).getSize() for name, _, _, _ in self.MEMBER_LIST)
+        return sum(self._val.get(name).getSize() for name, _, _, _ in self.MEMBER_LIST)
 
     def to_jsonable(self):
         """
@@ -154,5 +154,5 @@ class SerializableType(DictionaryType):
         members = {}
         for member_name, member_value, member_format, member_desc in self.mem_list:
             members[member_name] = {"format": member_format, "description": member_desc}
-            members[member_name].update(self.__val.get(member_name).to_jsonable())
+            members[member_name].update(self._val.get(member_name).to_jsonable())
         return members

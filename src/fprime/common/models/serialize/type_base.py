@@ -56,7 +56,7 @@ class ValueType(BaseType):
 
     def __init__(self, val=None):
         """Defines the single value"""
-        self.__val = None
+        self._val = None
         # Run full setter
         if val is not None:
             self.val = val
@@ -78,18 +78,18 @@ class ValueType(BaseType):
         """ Check equality between types """
         if type(other) != type(self):
             return False
-        return self.__val == other.__val
+        return self._val == other._val
 
     @property
     def val(self):
         """Getter for .val"""
-        return self.__val
+        return self._val
 
     @val.setter
     def val(self, val):
         """Setter for .val calls validate internally"""
         self.validate(val)
-        self.__val = val
+        self._val = val
 
     def to_jsonable(self):
         """

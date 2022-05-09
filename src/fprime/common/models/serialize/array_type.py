@@ -55,7 +55,9 @@ class ArrayType(DictionaryType):
 
         :return dictionary of member names to python values of member keys
         """
-        return [item.val for item in self.__val]
+        if self._val is None:
+            return None
+        return [item.val for item in self._val]
 
     @property
     def formatted_val(self) -> list:
@@ -66,7 +68,7 @@ class ArrayType(DictionaryType):
         :return a formatted array
         """
         result = []
-        for item in self.__val:
+        for item in self._val:
             if isinstance(item, (serializable_type.SerializableType, ArrayType)):
                 result.append(item.formatted_val)
             else:
@@ -84,7 +86,7 @@ class ArrayType(DictionaryType):
         """
         self.validate(val)
         items = [self.MEMBER_TYPE(item) for item in val]
-        self.__val = items
+        self._val = items
 
     def to_jsonable(self):
         """
@@ -96,8 +98,8 @@ class ArrayType(DictionaryType):
             "size": self.LENGTH,
             "format": self.FORMAT,
             "values": None
-            if self.__val is None
-            else [member.to_jsonable() for member in self.__val],
+            if self._val is None
+            else [member.to_jsonable() for member in self._val],
         }
         return members
 
@@ -105,17 +107,18 @@ class ArrayType(DictionaryType):
         """Serialize the array by serializing the elements one by one"""
         if self.val is None:
             raise NotInitializedException(type(self))
-        return b"".join([item.serialize() for item in self.__val])
+        return b"".join([item.serialize() for item in self._val])
 
     def deserialize(self, data, offset):
         """Deserialize the members of the array"""
         values = []
         for i in range(self.LENGTH):
             item = self.MEMBER_TYPE()
-            item.deserialize(data, offset + i * item.getSize())
+            item.deserialize(data, offset)
+            offset += item.getSize()
             values.append(item.val)
         self.val = values
 
     def getSize(self):
         """Return the size of the array"""
-        return sum([item.getSize() for item in self.__val])
+        return sum([item.getSize() for item in self._val])

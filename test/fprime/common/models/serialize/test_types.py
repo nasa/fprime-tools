@@ -27,11 +27,12 @@ from fprime.common.models.serialize.numerical_types import (
 from fprime.common.models.serialize.serializable_type import SerializableType
 from fprime.common.models.serialize.string_type import StringType
 from fprime.common.models.serialize.time_type import TimeBase, TimeType
-from fprime.common.models.serialize.type_base import BaseType, ValueType
+from fprime.common.models.serialize.type_base import BaseType, ValueType, DictionaryType
 
 from fprime.common.models.serialize.type_exceptions import (
     AbstractMethodException,
     DeserializeException,
+    EnumMismatchException,
     NotInitializedException,
     StringSizeException,
     TypeMismatchException,
@@ -59,14 +60,12 @@ PYTHON_TESTABLE_TYPES = [
 ]
 
 
-def valid_values_test(type_input, valid_values, sizes, extras=None):
+def valid_values_test(type_input, valid_values, sizes):
     """Tests to be run on all types"""
     if not isinstance(sizes, Iterable):
         sizes = [sizes] * len(valid_values)
-    # Should be able to instantiate a blank type, but not serialize it until a value has been supplied
-    if not extras:
-        extras = [[]] * len(valid_values)
-    instantiation = type_input(*extras[0])
+
+    instantiation = type_input()
     with pytest.raises(NotInitializedException):
         instantiation.serialize()
     # Should be able to get a JSONable object that is dumpable to a JSON string
@@ -74,13 +73,13 @@ def valid_values_test(type_input, valid_values, sizes, extras=None):
     json.loads(json.dumps(jsonable))
 
     # Run on valid values
-    for value, size, extra in zip(valid_values, sizes, extras):
-        instantiation = type_input(*extra, val=value)
+    for value, size in zip(valid_values, sizes):
+        instantiation = type_input(val=value)
         assert instantiation.val == value
         assert instantiation.getSize() == size
 
         # Check assignment by value
-        by_value = type_input(*extra)
+        by_value = type_input()
         by_value.val = value
         assert by_value.val == instantiation.val, "Assignment by value has failed"
         assert by_value.getSize() == size
@@ -88,7 +87,7 @@ def valid_values_test(type_input, valid_values, sizes, extras=None):
         # Check serialization and deserialization
         serialized = instantiation.serialize()
         for offset in [0, 10, 50]:
-            deserializer = type_input(*extra)
+            deserializer = type_input()
             deserializer.deserialize((b" " * offset) + serialized, offset)
             assert instantiation.val == deserializer.val, "Deserialization has failed"
             assert deserializer.getSize() == size
@@ -216,42 +215,39 @@ def test_float_types_off_nominal():
     )
 
 
-def test_enum_type():
+def test_enum_nominal():
     """
     Tests the EnumType serialization and deserialization
     """
     members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
     enum_class = EnumType.construct_type("SomeEnum", members)
-    val1 = enum_class("MEMB3")
-    buff = val1.serialize()
-    val2 = enum_class()
-    val2.deserialize(buff, 0)
-    assert val1.val == val2.val
+    valid = ["MEMB1", "MEMB2", "MEMB3"]
+    valid_values_test(enum_class, valid, [4] * len(valid))
 
 
-def check_cloned_member_list(members1, members2):
-    """Check member list knowing direct compares don't work"""
-    for tuple1, tuple2 in zip(members1, members2):
-        assert tuple1[0] == tuple2[0], "Names do not match"
-        assert tuple1[2] == tuple2[2], "Format strings do not match"
-        assert tuple1[3] == tuple2[3], "Descriptions do not match"
-        assert tuple1[1].val == tuple2[1].val, "Values don't match"
+def test_enum_off_nominal():
+    """
+    Tests the EnumType serialization and deserialization
+    """
+    members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
+    enum_class = EnumType.construct_type("SomeEnum", members)
+    valid = ["MEMB12", "MEMB22", "MEMB23"]
+    invalid_values_test(enum_class, valid, EnumMismatchException)
 
 
-def test_string_type():
+def test_string_nominal():
     """ Tests named string types """
     py_string = "ABC123DEF456"
     string_type = StringType.construct_type("MyFancyString", max_length=10)
+    valid_values_test(string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9])
 
-    # Test a bad string
-    with pytest.raises(StringSizeException):
-        string_val1 = string_type(py_string)
-    string_val1 = string_type(py_string[:10])
 
-    string_val2 = string_type()
-    serialized = string_val1.serialize()
-    string_val2.deserialize(serialized, 0)
-    assert string_val2.val == py_string[:10]
+def test_string_off_nominal():
+    """ Tests named string types """
+    py_string = "ABC123DEF456"
+    string_type = StringType.construct_type("MyFancyString", max_length=10)
+    invalid_values_test(string_type, [py_string], StringSizeException)
+
 
 
 def test_serializable_basic():
@@ -263,7 +259,6 @@ def test_serializable_basic():
     serializable2 = serializable_type()
     serializable2.deserialize(bytes1, 0)
     assert serializable1 == serializable2, "Serializable not equal"
-
 
 
 def test_serializable_advanced():
@@ -282,20 +277,21 @@ def test_serializable_advanced():
     serializable1 = serializable_class({"field1": "abc", "field2": 123, "field3": "Option2", "field4": ["abc", "123", "456"]})
     bytes1 = serializable1.serialize()
     serializable2 = serializable_class()
+    serializable2.deserialize(bytes1, 0)
     assert serializable1 == serializable2, "Serializables do not match"
 
 
-
-# def test_array_type():
-#    """
-#    Tests the ArrayType serialization and deserialization
-#    """
-#    extra_ctor_args = [("TestArray", (I32Type, 2, "I DON'T KNOW")), ("TestArray2", (U8Type, 4, "I DON'T KNOW")),
-#               ("TestArray3", (StringType, 1, "I DON'T KNOW"))]
-#    values = [[32, 1], [0, 1, 2, 3], ["one"]]
-#    sizes = [8, 4, 3]
-#
-#    valid_values_test(ArrayType, values, sizes, extra_ctor_args)
+def test_array_type():
+    """
+    Tests the ArrayType serialization and deserialization
+    """
+    extra_ctor_args = [("TestArray", I32Type, 2, "%d"), ("TestArray2", U8Type, 4, "%d"),
+               ("TestArray3", StringType.construct_type("TestArrayString", max_length=3), 1, "%s")]
+    values = [[32, 1], [0, 1, 2, 3], ["one"]]
+    sizes = [8, 4, 5]
+    for ctor_args, values, size in zip(extra_ctor_args, values, sizes):
+        type_input = ArrayType.construct_type(*ctor_args)
+        valid_values_test(type_input, [values], [size])
 
 
 def test_time_type():
