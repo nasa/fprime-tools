@@ -7,7 +7,6 @@ that map to stdint.h integer sizes, that is, 8-bit, 16-bit, 32-bit, and 64-bit s
 @author mstarch
 """
 import abc
-import re
 import struct
 
 from .type_base import ValueType
@@ -17,8 +16,6 @@ from .type_exceptions import (
     TypeMismatchException,
     TypeRangeException,
 )
-
-# BITS_RE = re.compile(r"[IUF](\d\d?)")
 
 
 class NumericalType(ValueType, abc.ABC):
@@ -42,14 +39,14 @@ class NumericalType(ValueType, abc.ABC):
 
     def serialize(self):
         """Serializes this type using struct and the val property"""
-        if self.val is None:
+        if self._val is None:
             raise NotInitializedException(type(self))
-        return struct.pack(self.get_serialize_format(), self.val)
+        return struct.pack(self.get_serialize_format(), self._val)
 
     def deserialize(self, data, offset):
         """Serializes this type using struct and the val property"""
         try:
-            self.val = struct.unpack_from(self.get_serialize_format(), data, offset)[0]
+            self._val = struct.unpack_from(self.get_serialize_format(), data, offset)[0]
         except struct.error as err:
             raise DeserializeException(str(err))
 

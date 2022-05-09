@@ -4,8 +4,6 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
-import copy
-
 from .type_base import BaseType, DictionaryType
 from .type_exceptions import (
     MissingMemberException,

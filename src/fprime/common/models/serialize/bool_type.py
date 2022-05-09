@@ -32,7 +32,7 @@ class BoolType(ValueType):
         """Serialize a boolean value"""
         if self.val is None:
             raise NotInitializedException(type(self))
-        return struct.pack("B", self.TRUE if self.val else self.FALSE)
+        return struct.pack("B", self.TRUE if self._val else self.FALSE)
 
     def deserialize(self, data, offset):
         """Deserialize boolean value"""

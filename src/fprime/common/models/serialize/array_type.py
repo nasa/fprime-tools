@@ -3,13 +3,10 @@
 Created on May 29, 2020
 @author: jishii
 """
-import copy
-
 from .type_base import DictionaryType
 from .type_exceptions import (
     ArrayLengthException,
     NotInitializedException,
-    TypeMismatchException,
 )
 
 from . import serializable_type
