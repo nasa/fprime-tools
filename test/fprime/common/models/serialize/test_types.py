@@ -236,24 +236,31 @@ def test_enum_off_nominal():
 
 
 def test_string_nominal():
-    """ Tests named string types """
+    """Tests named string types"""
     py_string = "ABC123DEF456"
     string_type = StringType.construct_type("MyFancyString", max_length=10)
-    valid_values_test(string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9])
+    valid_values_test(
+        string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9]
+    )
 
 
 def test_string_off_nominal():
-    """ Tests named string types """
+    """Tests named string types"""
     py_string = "ABC123DEF456"
     string_type = StringType.construct_type("MyFancyString", max_length=10)
     invalid_values_test(string_type, [py_string], StringSizeException)
 
 
-
 def test_serializable_basic():
-    """ Serializable type with basic member types """
-    member_list = [("member1", U32Type, "%d"),("member2", U32Type, "%lu"),("member3", I64Type, "%lld")]
-    serializable_type = SerializableType.construct_type("BasicSerializable", member_list)
+    """Serializable type with basic member types"""
+    member_list = [
+        ("member1", U32Type, "%d"),
+        ("member2", U32Type, "%lu"),
+        ("member3", I64Type, "%lld"),
+    ]
+    serializable_type = SerializableType.construct_type(
+        "BasicSerializable", member_list
+    )
     serializable1 = serializable_type({"member1": 123, "member2": 456, "member3": -234})
     bytes1 = serializable1.serialize()
     serializable2 = serializable_type()
@@ -268,13 +275,31 @@ def test_serializable_advanced():
 
     # First setup some classes to represent various member types ensuring that the serializable can handle them
     string_member_class = StringType.construct_type("StringMember")
-    enum_member_class = EnumType.construct_type("EnumMember", {"Option1": 0, "Option2": 6, "Option3": 9})
-    array_member_class = ArrayType.construct_type("ArrayMember", string_member_class, 3, "%s")
+    enum_member_class = EnumType.construct_type(
+        "EnumMember", {"Option1": 0, "Option2": 6, "Option3": 9}
+    )
+    array_member_class = ArrayType.construct_type(
+        "ArrayMember", string_member_class, 3, "%s"
+    )
 
-    field_data = [("field1", string_member_class), ("field2", U32Type), ("field3", enum_member_class), ("field4", array_member_class)]
-    serializable_class = SerializableType.construct_type("AdvancedSerializable", field_data)
+    field_data = [
+        ("field1", string_member_class),
+        ("field2", U32Type),
+        ("field3", enum_member_class),
+        ("field4", array_member_class),
+    ]
+    serializable_class = SerializableType.construct_type(
+        "AdvancedSerializable", field_data
+    )
 
-    serializable1 = serializable_class({"field1": "abc", "field2": 123, "field3": "Option2", "field4": ["abc", "123", "456"]})
+    serializable1 = serializable_class(
+        {
+            "field1": "abc",
+            "field2": 123,
+            "field3": "Option2",
+            "field4": ["abc", "123", "456"],
+        }
+    )
     bytes1 = serializable1.serialize()
     serializable2 = serializable_class()
     serializable2.deserialize(bytes1, 0)
@@ -285,8 +310,16 @@ def test_array_type():
     """
     Tests the ArrayType serialization and deserialization
     """
-    extra_ctor_args = [("TestArray", I32Type, 2, "%d"), ("TestArray2", U8Type, 4, "%d"),
-               ("TestArray3", StringType.construct_type("TestArrayString", max_length=3), 1, "%s")]
+    extra_ctor_args = [
+        ("TestArray", I32Type, 2, "%d"),
+        ("TestArray2", U8Type, 4, "%d"),
+        (
+            "TestArray3",
+            StringType.construct_type("TestArrayString", max_length=3),
+            1,
+            "%s",
+        ),
+    ]
     values = [[32, 1], [0, 1, 2, 3], ["one"]]
     sizes = [8, 4, 5]
     for ctor_args, values, size in zip(extra_ctor_args, values, sizes):

@@ -43,7 +43,9 @@ class SerializableType(DictionaryType):
             member_list: list of member definitions in form list of tuples (name, type, format string, description)
         """
         if member_list:
-            member_list = [list(item) + ([None] * (4 -len(item))) for item in member_list]
+            member_list = [
+                list(item) + ([None] * (4 - len(item))) for item in member_list
+            ]
             # Check that we are dealing with a list
             if not isinstance(member_list, list):
                 raise TypeMismatchException(list, type(member_list))

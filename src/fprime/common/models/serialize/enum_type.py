@@ -70,7 +70,9 @@ class EnumType(DictionaryType):
         """
         # for enums, take the string value and convert it to
         # the numeric equivalent
-        if self._val is None or (self._val == "UNDEFINED" and "UNDEFINED" not in self.ENUM_DICT):
+        if self._val is None or (
+            self._val == "UNDEFINED" and "UNDEFINED" not in self.ENUM_DICT
+        ):
             raise NotInitializedException(type(self))
         return struct.pack(">i", self.ENUM_DICT[self.val])
 
