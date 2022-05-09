@@ -138,6 +138,7 @@ lestarch
 LGTM
 lgtm
 Linux
+lld
 locs
 lstrip
 lxml
