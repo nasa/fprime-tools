@@ -30,7 +30,7 @@ class BoolType(ValueType):
 
     def serialize(self):
         """Serialize a boolean value"""
-        if self.val is None:
+        if self._val is None:
             raise NotInitializedException(type(self))
         return struct.pack("B", self.TRUE if self._val else self.FALSE)
 

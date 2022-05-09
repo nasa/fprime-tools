@@ -183,8 +183,6 @@ def utility_entry(args):
     parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
-        cwd = Path(parsed.path)
-
         try:
             target = get_target(parsed)
             build_type = target.build_type

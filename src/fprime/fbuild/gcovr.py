@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from .target import ExecutableAction, Target, TargetScope, CompositeTarget
-from .types import MissingBuildCachePath
 
 TEMPORARY_DIRECTORY = "{{AUTOCODE}}"
 
