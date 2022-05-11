@@ -289,7 +289,7 @@ def test_serializable_basic():
     ]
     valid_values = [
         ({"member1": 123, "member2": 456, "member3": -234}, 4 + 4 + 8),
-        ({"member4": "345", "member5": "abcd", "member6": 213}, 5 + 6 + 8),
+        ({"member4": "345", "member5": "abc1", "member6": 213}, 5 + 6 + 8),
     ]
 
     for index, (members, (valid, size)) in enumerate(zip(member_list, valid_values)):
@@ -339,7 +339,7 @@ def test_serializable_advanced():
     array_member_class = ArrayType.construct_type(
         "ArrayMember", string_member_class, 3, "%s"
     )
-    subserializable_class = SerializableType.construct_type(
+    sub_serializable_class = SerializableType.construct_type(
         "AdvancedSubSerializable",
         [("subfield1", U32Type), ("subfield2", array_member_class)],
     )
@@ -349,7 +349,7 @@ def test_serializable_advanced():
         ("field2", U32Type),
         ("field3", enum_member_class),
         ("field4", array_member_class),
-        ("field5", subserializable_class),
+        ("field5", sub_serializable_class),
     ]
     serializable_class = SerializableType.construct_type(
         "AdvancedSerializable", field_data
@@ -480,7 +480,7 @@ def test_base_type():
 
 def test_dictionary_type_errors():
     """Ensure the dictionary type is preventing errors"""
-    # Check no raw calls passing in DictionayType
+    # Check no raw calls passing in DictionaryType
     with pytest.raises(AssertionError):
         DictionaryType.construct_type(
             DictionaryType, "MyNewString", PROPERTY="one", PROPERTY2="two"
