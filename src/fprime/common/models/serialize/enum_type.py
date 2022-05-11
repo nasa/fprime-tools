@@ -23,16 +23,8 @@ class EnumType(DictionaryType):
     containing code based on C enum rules
     """
 
-    def __init__(self, val="UNDEFINED"):
-        """Construct the enumeration value, called through sub-type constructor
-
-        Args:
-            val: (optional) value this instance of enumeration is set to. Default: "UNDEFINED"
-        """
-        super().__init__(val)
-
     @classmethod
-    def construct_type(cls, name, enum_dict=None):
+    def construct_type(cls, name, enum_dict):
         """Construct the custom enum type
 
         Constructs the custom enumeration type, with the supplied enumeration dictionary.
@@ -41,7 +33,6 @@ class EnumType(DictionaryType):
             name: name of the enumeration type
             enum_dict: enumeration: value dictionary defining the enumeration
         """
-        enum_dict = enum_dict if enum_dict is not None else {"UNDEFINED": 0}
         if not isinstance(enum_dict, dict):
             raise TypeMismatchException(dict, type(enum_dict))
         for member in enum_dict.keys():
@@ -54,7 +45,9 @@ class EnumType(DictionaryType):
     @classmethod
     def validate(cls, val):
         """Validate the value passed into the enumeration"""
-        if val != "UNDEFINED" and val not in cls.keys():
+        if not isinstance(val, str):
+            raise TypeMismatchException(str, type(val))
+        if val not in cls.keys():
             raise EnumMismatchException(cls.__class__.__name__, val)
 
     @classmethod
@@ -74,7 +67,7 @@ class EnumType(DictionaryType):
             self._val == "UNDEFINED" and "UNDEFINED" not in self.ENUM_DICT
         ):
             raise NotInitializedException(type(self))
-        return struct.pack(">i", self.ENUM_DICT[self.val])
+        return struct.pack(">i", self.ENUM_DICT[self._val])
 
     def deserialize(self, data, offset):
         """
@@ -82,13 +75,13 @@ class EnumType(DictionaryType):
         """
         try:
             int_val = struct.unpack_from(">i", data, offset)[0]
-        except:
+        except struct.error:
             raise DeserializeException(
                 f"Could not deserialize enum value. Needed: {self.getSize()} bytes Found: {len(data[offset:])}"
             )
         for key, val in self.ENUM_DICT.items():
             if int_val == val:
-                self.val = key
+                self._val = key
                 break
         # Value not found, invalid enumeration value
         else:

@@ -7,6 +7,7 @@ from .type_base import DictionaryType
 from .type_exceptions import (
     ArrayLengthException,
     NotInitializedException,
+    TypeMismatchException,
 )
 
 from . import serializable_type
@@ -39,7 +40,9 @@ class ArrayType(DictionaryType):
     @classmethod
     def validate(cls, val):
         """Validates the values of the array"""
-        if len(val) != cls.LENGTH:
+        if not isinstance(val, (tuple, list)):
+            raise TypeMismatchException(list, type(val))
+        elif len(val) != cls.LENGTH:
             raise ArrayLengthException(cls.MEMBER_TYPE, cls.LENGTH, len(val))
         for i in range(cls.LENGTH):
             cls.MEMBER_TYPE.validate(val[i])

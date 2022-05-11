@@ -107,11 +107,6 @@ class I16Type(IntegerType):
         return (-32768, 32767)
 
     @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return True
-
-    @classmethod
     def get_bits(cls):
         """Get the bit count of this type"""
         return 16
@@ -129,11 +124,6 @@ class I32Type(IntegerType):
     def range(cls):
         """Gets signed/unsigned of this type"""
         return (-2147483648, 2147483647)
-
-    @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return True
 
     @classmethod
     def get_bits(cls):
@@ -155,11 +145,6 @@ class I64Type(IntegerType):
         return (-9223372036854775808, 9223372036854775807)
 
     @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return True
-
-    @classmethod
     def get_bits(cls):
         """Get the bit count of this type"""
         return 64
@@ -177,11 +162,6 @@ class U8Type(IntegerType):
     def range(cls):
         """Gets signed/unsigned of this type"""
         return (0, 0xFF)
-
-    @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return False
 
     @classmethod
     def get_bits(cls):
@@ -203,11 +183,6 @@ class U16Type(IntegerType):
         return (0, 0xFFFF)
 
     @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return False
-
-    @classmethod
     def get_bits(cls):
         """Get the bit count of this type"""
         return 16
@@ -227,11 +202,6 @@ class U32Type(IntegerType):
         return (0, 0xFFFFFFFF)
 
     @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return False
-
-    @classmethod
     def get_bits(cls):
         """Get the bit count of this type"""
         return 32
@@ -249,11 +219,6 @@ class U64Type(IntegerType):
     def range(cls):
         """Gets signed/unsigned of this type"""
         return (0, 0xFFFFFFFFFFFFFFFF)
-
-    @classmethod
-    def is_signed(cls):
-        """Gets signed/unsigned of this type"""
-        return False
 
     @classmethod
     def get_bits(cls):

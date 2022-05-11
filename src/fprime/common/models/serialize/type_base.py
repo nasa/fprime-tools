@@ -5,7 +5,6 @@ Created on Dec 18, 2014
 Replaced type base class with decorators
 """
 import abc
-import struct
 
 from .type_exceptions import AbstractMethodException
 
@@ -95,7 +94,7 @@ class ValueType(BaseType):
         """
         Converts this type to a JSON serializable object
         """
-        return {"value": self.val, "type": str(self)}
+        return {"value": self.val, "type": str(self.__class__)}
 
 
 class DictionaryType(ValueType, abc.ABC):
@@ -111,42 +110,36 @@ class DictionaryType(ValueType, abc.ABC):
     _CONSTRUCTS = {}
 
     @classmethod
-    def construct_type(this_cls, cls, name, **class_properties):
+    def construct_type(cls, parent_class, name, **class_properties):
         """Construct a new dictionary type
 
         Construct a new dynamic subtype of the given base type. This type will be named with the name parameter, define
-        the supplied class properties, and will be a subtype of the class.
+        the supplied class properties, and will be a subtype of the parent class. This function registers these new
+        types by name in the DictionaryType._CONSTRUCTS dictionary. When a type is defined a second or more times, the
+        originally constructed sub type is used and the newly supplied class properties are validated for equality
+        against the original definition. It is an error to define the type multiple times with inconsistent class
+        properties.
 
         Args:
+            cls: DictionaryType, used to access the class property _CONSTRUCTS
+            parent_class: class used as parent to the new sub type
             name: name of the new sub type
             **class_properties: properties to define on the subtype (e.g. max length for strings)
         """
         assert (
-            cls != DictionaryType
+            parent_class != DictionaryType
         ), "Cannot build dictionary type from dictionary type directly"
-        construct = this_cls._CONSTRUCTS.get(name, type(name, (cls,), class_properties))
+        construct, original_properties = cls._CONSTRUCTS.get(
+            name, (type(name, (parent_class,), class_properties), class_properties)
+        )
+        # Validate both new properties against original properties and against what is set on original class
+        assert (
+            original_properties == class_properties
+        ), "Different class properties specified"
         for attribute, value in class_properties.items():
             previous_value = getattr(construct, attribute, None)
             assert (
                 previous_value == value
             ), f"Class {name} differs by attribute {attribute}. {previous_value} vs {value}"
-        this_cls._CONSTRUCTS[name] = construct
+        cls._CONSTRUCTS[name] = (construct, class_properties)
         return construct
-
-
-#
-#
-def showBytes(byteBuffer):
-    """
-    Routine to show bytes in buffer for testing.
-    """
-    print("Byte buffer size: %d" % len(byteBuffer))
-    for entry in range(0, len(byteBuffer)):
-        print(
-            "Byte %d: 0x%02X (%c)"
-            % (
-                entry,
-                struct.unpack("B", bytes([byteBuffer[entry]]))[0],
-                struct.unpack("B", bytes([byteBuffer[entry]]))[0],
-            )
-        )

@@ -72,6 +72,13 @@ class MissingMemberException(TypeException):
         super().__init__(f"Value does not define required field: {field}")
 
 
+class IncorrectMembersException(TypeException):
+    """Members incorrectly defined on type (too many, too few)"""
+
+    def __init__(self, fields):
+        super().__init__(f"Value does not define required fields: {fields}")
+
+
 class DeserializeException(TypeException):
     """Exception during deserialization"""
 
