@@ -104,7 +104,10 @@ def valid_values_test(type_input, valid_values, sizes):
             # Check another get/set pair and serialization of the post-deserialized object
             deserializer.val = deserializer.val
             new_serialized_bytes = deserializer.serialize()
-            assert serialized == new_serialized_bytes, "Repeated serialization has failed"
+            assert (
+                serialized == new_serialized_bytes
+            ), "Repeated serialization has failed"
+
 
 def invalid_values_test(
     type_input, invalid_values, exception_class=TypeMismatchException
