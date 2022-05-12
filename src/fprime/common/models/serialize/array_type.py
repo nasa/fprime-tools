@@ -116,8 +116,8 @@ class ArrayType(DictionaryType):
             item = self.MEMBER_TYPE()
             item.deserialize(data, offset)
             offset += item.getSize()
-            values.append(item.val)
-        self.val = values
+            values.append(item)
+        self._val = values
 
     def getSize(self):
         """Return the size of the array"""
