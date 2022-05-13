@@ -12,6 +12,7 @@ autoapi
 autocoded
 autocode
 Autocoders
+autocoders
 autocoding
 autodoc
 autoescape
@@ -118,6 +119,7 @@ isdir
 isfile
 isinstance
 isnumeric
+issubclass
 iterdir
 itertools
 itle
@@ -136,6 +138,7 @@ lestarch
 LGTM
 lgtm
 Linux
+lld
 locs
 lstrip
 lxml
@@ -200,6 +203,7 @@ SCLK
 scm
 sdd
 Serializables
+serializables
 setuptools
 shutil
 someotherpath

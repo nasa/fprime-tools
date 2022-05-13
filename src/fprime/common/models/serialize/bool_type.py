@@ -22,16 +22,17 @@ class BoolType(ValueType):
     TRUE = 0xFF
     FALSE = 0x00
 
-    def validate(self, val):
+    @classmethod
+    def validate(cls, val):
         """Validate the given class"""
         if not isinstance(val, bool):
             raise TypeMismatchException(bool, type(val))
 
     def serialize(self):
         """Serialize a boolean value"""
-        if self.val is None:
+        if self._val is None:
             raise NotInitializedException(type(self))
-        return struct.pack("B", 0xFF if self.val else 0x00)
+        return struct.pack("B", self.TRUE if self._val else self.FALSE)
 
     def deserialize(self, data, offset):
         """Deserialize boolean value"""
@@ -39,7 +40,7 @@ class BoolType(ValueType):
             int_val = struct.unpack_from("B", data, offset)[0]
             if int_val not in [self.TRUE, self.FALSE]:
                 raise TypeRangeException(int_val)
-            self.val = int_val == self.TRUE
+            self._val = int_val == self.TRUE
         except struct.error:
             raise DeserializeException("Not enough bytes to deserialize bool.")
 

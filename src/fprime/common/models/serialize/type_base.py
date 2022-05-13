@@ -5,7 +5,6 @@ Created on Dec 18, 2014
 Replaced type base class with decorators
 """
 import abc
-import struct
 
 from .type_exceptions import AbstractMethodException
 
@@ -56,52 +55,91 @@ class ValueType(BaseType):
 
     def __init__(self, val=None):
         """Defines the single value"""
-        self.__val = None
+        self._val = None
         # Run full setter
         if val is not None:
             self.val = val
 
+    @classmethod
     @abc.abstractmethod
-    def validate(self, val):
+    def validate(cls, val):
         """
         Checks the val for validity with respect to the current type. This will raise TypeMismatchException when the
-        validation fails of the val's type fails. It will raise TypeRangeException when val is out of range.
+        validation fails of the val's type fails. It will raise TypeRangeException when val is out of range. Concrete
+        implementations will raise other exceptions based on type. For example, serializable types raise exceptions for
+        missing members.
 
         :param val: value to validate
         :raises TypeMismatchException: value has incorrect type, TypeRangeException: val is out of range
         """
 
+    def __eq__(self, other):
+        """Check equality between types"""
+        if type(other) != type(self):
+            return False
+        return self._val == other._val
+
     @property
     def val(self):
         """Getter for .val"""
-        return self.__val
+        return self._val
 
     @val.setter
     def val(self, val):
         """Setter for .val calls validate internally"""
         self.validate(val)
-        self.__val = val
+        self._val = val
 
     def to_jsonable(self):
         """
         Converts this type to a JSON serializable object
         """
-        return {"value": self.val, "type": str(self)}
+        return {"value": self.val, "type": str(self.__class__)}
 
 
-#
-#
-def showBytes(byteBuffer):
+class DictionaryType(ValueType, abc.ABC):
+    """Type whose specification is defined in the dictionary
+
+    Certain types in fprime (strings, serializables, enums) are defined in the dictionary. Where all projects have
+    access to primitive types (U8, F32, etc) and the definitions of theses types is global, other types complete
+    specification comes from the dictionary itself. String set max-lengths per project, serializable fields are defined,
+    and enumeration values are enumerated. This class is designed to take base complex types (StringType, etc) and build
+    dynamic subclasses for the given dictionary defined type.
     """
-    Routine to show bytes in buffer for testing.
-    """
-    print("Byte buffer size: %d" % len(byteBuffer))
-    for entry in range(0, len(byteBuffer)):
-        print(
-            "Byte %d: 0x%02X (%c)"
-            % (
-                entry,
-                struct.unpack("B", bytes([byteBuffer[entry]]))[0],
-                struct.unpack("B", bytes([byteBuffer[entry]]))[0],
-            )
+
+    _CONSTRUCTS = {}
+
+    @classmethod
+    def construct_type(cls, parent_class, name, **class_properties):
+        """Construct a new dictionary type
+
+        Construct a new dynamic subtype of the given base type. This type will be named with the name parameter, define
+        the supplied class properties, and will be a subtype of the parent class. This function registers these new
+        types by name in the DictionaryType._CONSTRUCTS dictionary. When a type is defined a second or more times, the
+        originally constructed sub type is used and the newly supplied class properties are validated for equality
+        against the original definition. It is an error to define the type multiple times with inconsistent class
+        properties.
+
+        Args:
+            cls: DictionaryType, used to access the class property _CONSTRUCTS
+            parent_class: class used as parent to the new sub type
+            name: name of the new sub type
+            **class_properties: properties to define on the subtype (e.g. max length for strings)
+        """
+        assert (
+            parent_class != DictionaryType
+        ), "Cannot build dictionary type from dictionary type directly"
+        construct, original_properties = cls._CONSTRUCTS.get(
+            name, (type(name, (parent_class,), class_properties), class_properties)
         )
+        # Validate both new properties against original properties and against what is set on original class
+        assert (
+            original_properties == class_properties
+        ), "Different class properties specified"
+        for attribute, value in class_properties.items():
+            previous_value = getattr(construct, attribute, None)
+            assert (
+                previous_value == value
+            ), f"Class {name} differs by attribute {attribute}. {previous_value} vs {value}"
+        cls._CONSTRUCTS[name] = (construct, class_properties)
+        return construct

@@ -27,12 +27,17 @@ from fprime.common.models.serialize.numerical_types import (
 from fprime.common.models.serialize.serializable_type import SerializableType
 from fprime.common.models.serialize.string_type import StringType
 from fprime.common.models.serialize.time_type import TimeBase, TimeType
-from fprime.common.models.serialize.type_base import BaseType, ValueType
+from fprime.common.models.serialize.type_base import BaseType, DictionaryType, ValueType
 
 from fprime.common.models.serialize.type_exceptions import (
     AbstractMethodException,
+    ArrayLengthException,
     DeserializeException,
+    EnumMismatchException,
+    IncorrectMembersException,
+    MissingMemberException,
     NotInitializedException,
+    StringSizeException,
     TypeMismatchException,
     TypeRangeException,
 )
@@ -58,39 +63,50 @@ PYTHON_TESTABLE_TYPES = [
 ]
 
 
-def valid_values_test(type_input, valid_values, sizes, extras=None):
+def valid_values_test(type_input, valid_values, sizes):
     """Tests to be run on all types"""
     if not isinstance(sizes, Iterable):
         sizes = [sizes] * len(valid_values)
-    # Should be able to instantiate a blank type, but not serialize it until a value has been supplied
-    if not extras:
-        extras = [[]] * len(valid_values)
-    instantiation = type_input(*extras[0])
+
+    instantiation = type_input()
     with pytest.raises(NotInitializedException):
         instantiation.serialize()
+    assert instantiation.val is None
+    # Setting to None is invalid
+    with pytest.raises(TypeMismatchException):
+        instantiation.val = None
     # Should be able to get a JSONable object that is dumpable to a JSON string
     jsonable = instantiation.to_jsonable()
     json.loads(json.dumps(jsonable))
 
     # Run on valid values
-    for value, size, extra in zip(valid_values, sizes, extras):
-        instantiation = type_input(*extra, val=value)
+    for value, size in zip(valid_values, sizes):
+        instantiation = type_input(val=value)
         assert instantiation.val == value
         assert instantiation.getSize() == size
 
         # Check assignment by value
-        by_value = type_input(*extra)
+        by_value = type_input()
         by_value.val = value
         assert by_value.val == instantiation.val, "Assignment by value has failed"
         assert by_value.getSize() == size
 
+        # Check that the value returned by .val is also assignable to .val
+        by_value.val = by_value.val
+
         # Check serialization and deserialization
         serialized = instantiation.serialize()
         for offset in [0, 10, 50]:
-            deserializer = type_input(*extra)
+            deserializer = type_input()
             deserializer.deserialize((b" " * offset) + serialized, offset)
             assert instantiation.val == deserializer.val, "Deserialization has failed"
             assert deserializer.getSize() == size
+            # Check another get/set pair and serialization of the post-deserialized object
+            deserializer.val = deserializer.val
+            new_serialized_bytes = deserializer.serialize()
+            assert (
+                serialized == new_serialized_bytes
+            ), "Repeated serialization has failed"
 
 
 def invalid_values_test(
@@ -215,85 +231,187 @@ def test_float_types_off_nominal():
     )
 
 
-def test_enum_type():
+def test_enum_nominal():
     """
     Tests the EnumType serialization and deserialization
     """
     members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
-    val1 = EnumType("SomeEnum", members, "MEMB3")
-    buff = val1.serialize()
-    val2 = EnumType("SomeEnum", members)
-    val2.deserialize(buff, 0)
-    assert val1.val == val2.val
+    enum_class = EnumType.construct_type("SomeEnum", members)
+    valid = ["MEMB1", "MEMB2", "MEMB3"]
+    valid_values_test(enum_class, valid, [4] * len(valid))
 
 
-def check_cloned_member_list(members1, members2):
-    """Check member list knowing direct compares don't work"""
-    for tuple1, tuple2 in zip(members1, members2):
-        assert tuple1[0] == tuple2[0], "Names do not match"
-        assert tuple1[2] == tuple2[2], "Format strings do not match"
-        assert tuple1[3] == tuple2[3], "Descriptions do not match"
-        assert tuple1[1].val == tuple2[1].val, "Values don't match"
+def test_enum_off_nominal():
+    """
+    Tests the EnumType serialization and deserialization
+    """
+    members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
+    enum_class = EnumType.construct_type("SomeEnum", members)
+    invalid = ["MEMB12", "MEMB22", "MEMB23"]
+    invalid_values_test(enum_class, invalid, EnumMismatchException)
+    invalid_values_test(
+        enum_class,
+        filter(lambda item: not isinstance(item, str), PYTHON_TESTABLE_TYPES),
+    )
 
 
-def test_serializable_type():
+def test_string_nominal():
+    """Tests named string types"""
+    py_string = "ABC123DEF456"
+    string_type = StringType.construct_type("MyFancyString", max_length=10)
+    valid_values_test(
+        string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9]
+    )
+
+
+def test_string_off_nominal():
+    """Tests named string types"""
+    py_string = "ABC123DEF456"
+    string_type = StringType.construct_type("MyFancyString", max_length=10)
+    invalid_values_test(string_type, [py_string], StringSizeException)
+    invalid_values_test(
+        string_type,
+        filter(lambda item: not isinstance(item, str), PYTHON_TESTABLE_TYPES),
+    )
+
+
+def test_serializable_basic():
+    """Serializable type with basic member types"""
+    member_list = [
+        [
+            ("member1", U32Type, "%d"),
+            ("member2", U32Type, "%lu"),
+            ("member3", I64Type, "%lld"),
+        ],
+        [
+            (
+                "member4",
+                StringType.construct_type("StringMember1", max_length=10),
+                "%s",
+            ),
+            ("member5", StringType.construct_type("StringMember2", max_length=4), "%s"),
+            ("member6", I64Type, "%lld"),
+        ],
+    ]
+    valid_values = [
+        ({"member1": 123, "member2": 456, "member3": -234}, 4 + 4 + 8),
+        ({"member4": "345", "member5": "abc1", "member6": 213}, 5 + 6 + 8),
+    ]
+
+    for index, (members, (valid, size)) in enumerate(zip(member_list, valid_values)):
+        serializable_type = SerializableType.construct_type(
+            f"BasicSerializable{index}", members
+        )
+        valid_values_test(serializable_type, [valid], [size])
+
+
+def test_serializable_basic_off_nominal():
+    """Serializable type with basic member types"""
+    member_list = [
+        ("member1", U32Type, "%d"),
+        ("member2", StringType.construct_type("StringMember1", max_length=10), "%s"),
+    ]
+    serializable_type = SerializableType.construct_type(
+        f"BasicInvalidSerializable", member_list
+    )
+
+    invalid_values = [
+        ({"member5": 123, "member6": 456}, MissingMemberException),
+        ({"member1": "345", "member2": 123}, TypeMismatchException),
+        (
+            {"member1": 345, "member2": "234", "member3": "Something"},
+            IncorrectMembersException,
+        ),
+    ]
+
+    for valid, exception_class in invalid_values:
+        invalid_values_test(serializable_type, [valid], exception_class)
+    invalid_values_test(
+        serializable_type,
+        filter(lambda item: not isinstance(item, dict), PYTHON_TESTABLE_TYPES),
+    )
+
+
+def test_serializable_advanced():
     """
     Tests the SerializableType serialization and deserialization
     """
-    u32Mem = U32Type(1000000)
-    stringMem = StringType("something to say")
-    members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
-    enumMem = EnumType("SomeEnum", members, "MEMB3")
-    memList = [
-        ("mem1", u32Mem, ">i"),
-        ("mem2", stringMem, ">H"),
-        ("mem3", enumMem, ">i"),
+
+    # First setup some classes to represent various member types ensuring that the serializable can handle them
+    string_member_class = StringType.construct_type("StringMember", max_length=3)
+    enum_member_class = EnumType.construct_type(
+        "EnumMember", {"Option1": 0, "Option2": 6, "Option3": 9}
+    )
+    array_member_class = ArrayType.construct_type(
+        "ArrayMember", string_member_class, 3, "%s"
+    )
+    sub_serializable_class = SerializableType.construct_type(
+        "AdvancedSubSerializable",
+        [("subfield1", U32Type), ("subfield2", array_member_class)],
+    )
+
+    field_data = [
+        ("field1", string_member_class),
+        ("field2", U32Type),
+        ("field3", enum_member_class),
+        ("field4", array_member_class),
+        ("field5", sub_serializable_class),
     ]
-    serType1 = SerializableType("ASerType", memList)
-    buff = serType1.serialize()
-    serType2 = SerializableType("ASerType", memList)
-    serType2.deserialize(buff, 0)
-    check_cloned_member_list(serType1.mem_list, serType2.mem_list)
+    serializable_class = SerializableType.construct_type(
+        "AdvancedSerializable", field_data
+    )
 
-    assert serType1.val == serType2.val
+    serializable1 = {
+        "field1": "abc",
+        "field2": 123,
+        "field3": "Option2",
+        "field4": ["", "123", "6"],
+        "field5": {"subfield1": 3234, "subfield2": ["abc", "def", "abc"]},
+    }
+    valid_values_test(
+        serializable_class,
+        [serializable1],
+        [5 + 4 + 4 + (2 + 5 + 3) + (4 + (5 + 5 + 5))],
+    )
 
-    i32Mem = I32Type(-1000000)
-    stringMem = StringType("something else to say")
-    members = {"MEMB1": 4, "MEMB2": 2, "MEMB3": 0}
-    enumMem = EnumType("SomeEnum", members, "MEMB3")
-    memList = [
-        ("mem1", i32Mem, ">i"),
-        ("mem2", stringMem, ">H"),
-        ("mem3", enumMem, ">i"),
+
+def test_array_type():
+    """
+    Tests the ArrayType serialization and deserialization
+    """
+    extra_ctor_args = [
+        ("TestArray", I32Type, 2, "%d"),
+        ("TestArray2", U8Type, 4, "%d"),
+        (
+            "TestArray3",
+            StringType.construct_type("TestArrayString", max_length=18),
+            3,
+            "%s",
+        ),
     ]
-    serType1 = SerializableType("ASerType", memList)
-    buff = serType1.serialize()
-    serType2 = SerializableType("ASerType", memList)
-    serType2.deserialize(buff, 0)
-    check_cloned_member_list(serType1.mem_list, serType2.mem_list)
-
-    value_dict = {"mem1": 3, "mem2": "abc 123", "mem3": "MEMB1"}
-    serType1.val = value_dict
-    assert serType1.val == value_dict
-    mem_list = serType1.mem_list
-    memList = [(a, b, c, None) for a, b, c in memList]
-    check_cloned_member_list(mem_list, memList)
-
-    serTypeEmpty = SerializableType("ASerType", [])
-    assert serTypeEmpty.val == {}
-    assert serTypeEmpty.mem_list == []
+    values = [[32, 1], [0, 1, 2, 3], ["one", "1234", "1"]]
+    sizes = [8, 4, 14]
+    for ctor_args, values, size in zip(extra_ctor_args, values, sizes):
+        type_input = ArrayType.construct_type(*ctor_args)
+        valid_values_test(type_input, [values], [size])
 
 
-# def test_array_type():
-#    """
-#    Tests the ArrayType serialization and deserialization
-#    """
-#    extra_ctor_args = [("TestArray", (I32Type, 2, "I DON'T KNOW")), ("TestArray2", (U8Type, 4, "I DON'T KNOW")),
-#               ("TestArray3", (StringType, 1, "I DON'T KNOW"))]
-#    values = [[32, 1], [0, 1, 2, 3], ["one"]]
-#    sizes = [8, 4, 3]
-#
-#    valid_values_test(ArrayType, values, sizes, extra_ctor_args)
+def test_array_type_off_nominal():
+    """
+    Test the array type for invalid values etc
+    """
+    type_input = ArrayType.construct_type("TestArrayPicky", I32Type, 4, "%d")
+    invalid_inputs = [
+        ([1, 2, 3], ArrayLengthException),
+        ([1, 2, 3, 4, 5, 6], ArrayLengthException),
+        (["one", "two", "three", "four"], TypeMismatchException),
+    ]
+    for invalid, exception_class in invalid_inputs:
+        invalid_values_test(type_input, [invalid], exception_class)
+    invalid_values_test(
+        type_input,
+        filter(lambda item: not isinstance(item, (list, tuple)), PYTHON_TESTABLE_TYPES),
+    )
 
 
 def test_time_type():
@@ -364,3 +482,31 @@ def test_base_type():
         # raw abstract method, which is the only way to
         # raise an `AbstractMethodException`.
         d.deserialize("a", 0)
+
+
+def test_dictionary_type_errors():
+    """Ensure the dictionary type is preventing errors"""
+    # Check no raw calls passing in DictionaryType
+    with pytest.raises(AssertionError):
+        DictionaryType.construct_type(
+            DictionaryType, "MyNewString", PROPERTY="one", PROPERTY2="two"
+        )
+
+    # Check consistent field definitions: field values
+    DictionaryType.construct_type(str, "MyNewString1", PROPERTY="one", PROPERTY2="two")
+    with pytest.raises(AssertionError):
+        DictionaryType.construct_type(
+            str, "MyNewString1", PROPERTY="three", PROPERTY2="four"
+        )
+
+    # Check consistent field definitions: field names
+    DictionaryType.construct_type(str, "MyNewString2", PROPERTY1="one", PROPERTY2="two")
+    with pytest.raises(AssertionError):
+        DictionaryType.construct_type(
+            str, "MyNewString2", PROPERTY="one", PROPERTY3="two"
+        )
+
+    # Check consistent field definitions: missing field
+    DictionaryType.construct_type(str, "MyNewString3", PROPERTY1="one", PROPERTY2="two")
+    with pytest.raises(AssertionError):
+        DictionaryType.construct_type(str, "MyNewString3", PROPERTY1="one")

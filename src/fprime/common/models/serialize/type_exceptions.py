@@ -65,6 +65,20 @@ class EnumMismatchException(TypeException):
         super().__init__(f"Invalid enum member {bad_member} set in {enum} enum!")
 
 
+class MissingMemberException(TypeException):
+    """Member was not defined on type"""
+
+    def __init__(self, field):
+        super().__init__(f"Value does not define required field: {field}")
+
+
+class IncorrectMembersException(TypeException):
+    """Members incorrectly defined on type (too many, too few)"""
+
+    def __init__(self, fields):
+        super().__init__(f"Value does not define required fields: {fields}")
+
+
 class DeserializeException(TypeException):
     """Exception during deserialization"""
 
