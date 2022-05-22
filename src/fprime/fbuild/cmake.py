@@ -107,7 +107,7 @@ class CMakeHandler:
             module = self.get_cmake_module(path, build_dir)
             cmake_target = (
                 module
-                if target == ""
+                if not target:
                 else (f"{module}_{target}".lstrip("_") if not top_target else target)
             )
         run_args = ["--build", build_dir]
@@ -556,7 +556,7 @@ class CMakeHandler:
                 appendable.append(line)
                 # Streams are EOF when the line returned is empty. Once this occurs, we are responsible for closing the
                 # stream and thus closing the select loop. Empty strings need not be printed.
-                if line == "":
+                if not line:
                     key.fileobj.close()
                     continue
                 # Forwards output to screen.  Assuming a PTY is used, then coloring highlights should be automatically
