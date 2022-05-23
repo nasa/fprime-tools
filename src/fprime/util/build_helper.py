@@ -83,7 +83,7 @@ def validate(parsed, unknown):
     # Build type only for generate, jobs only for non-generate
     elif parsed.command in Target.get_all_targets():
         parsed.settings = None  # Force to load from cache if possible
-        make_args.update({"--jobs": (1 if parsed.jobs <= 0 else parsed.jobs)})
+        make_args["--jobs"] = 1 if parsed.jobs <= 0 else parsed.jobs
     # Check if any arguments are still unknown
     if unknown:
         runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"
