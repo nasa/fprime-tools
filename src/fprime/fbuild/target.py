@@ -190,10 +190,11 @@ class Target(ExecutableAction):
         Returns:
             single matching target
         """
-        matching = []
-        for target in cls.get_all_targets():
-            if target.mnemonic == mnemonic and flags == target.flags:
-                matching.append(target)
+        matching = [
+            target
+            for target in cls.get_all_targets()
+            if target.mnemonic == mnemonic and flags == target.flags
+        ]
         if not matching:
             raise NoSuchTargetException(
                 f"Could not find target '{cls.config_string(mnemonic, flags)}'"
