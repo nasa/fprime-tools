@@ -55,9 +55,7 @@ class ArrayType(DictionaryType):
 
         :return dictionary of member names to python values of member keys
         """
-        if self._val is None:
-            return None
-        return [item.val for item in self._val]
+        return None if self._val is None else [item.val for item in self._val]
 
     @property
     def formatted_val(self) -> list:

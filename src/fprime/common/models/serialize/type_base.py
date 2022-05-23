@@ -75,9 +75,7 @@ class ValueType(BaseType):
 
     def __eq__(self, other):
         """Check equality between types"""
-        if type(other) != type(self):
-            return False
-        return self._val == other._val
+        return False if type(other) != type(self) else self._val == other._val
 
     @property
     def val(self):
