@@ -91,7 +91,8 @@ class TimeType(type_base.BaseType):
         self.__secs = fprime.common.models.serialize.numerical_types.U32Type(seconds)
         self.__usecs = fprime.common.models.serialize.numerical_types.U32Type(useconds)
 
-    def _check_useconds(self, useconds):
+    @staticmethod
+    def _check_useconds(useconds):
         """
         Checks if a given microsecond value is valid.
 
@@ -104,7 +105,8 @@ class TimeType(type_base.BaseType):
         if (useconds < 0) or (useconds > 999999):
             raise TypeRangeException(useconds)
 
-    def _check_time_base(self, time_base):
+    @staticmethod
+    def _check_time_base(time_base):
         """
         Checks if a given TimeBase value is valid.
 

@@ -39,7 +39,8 @@ class ExecutableAction(ABC):
         """Set scope of this action"""
         self.scope = scope
 
-    def is_supported(self, builder: "Build", context: Path):
+    @staticmethod
+    def is_supported(builder: "Build", context: Path):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -60,11 +61,13 @@ class ExecutableAction(ABC):
     ):
         """Executes the given target"""
 
-    def allows_pass_args(self):
+    @staticmethod
+    def allows_pass_args():
         """Target allows pass-through arguments"""
         return False
 
-    def pass_handler(self):
+    @staticmethod
+    def pass_handler():
         """Handler of pass-through args"""
         return None
 
