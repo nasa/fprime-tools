@@ -185,7 +185,7 @@ class GcovrAcHelper(ExecutableAction):
         for path in parent_path.iterdir():
             if path.absolute() in excludes:
                 continue
-            elif path.is_file() and path.suffix in self.EXTENSION_TRIGGER:
+            if path.is_file() and path.suffix in self.EXTENSION_TRIGGER:
                 self.copy_gcda_pair(destination, path)
             elif path.is_file() and path.name.endswith("Ac.hpp"):
                 self.copy_safe(path, destination / path.name)
