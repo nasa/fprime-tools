@@ -391,7 +391,7 @@ def get_port_input(namespace):
 
     # Fill in blank values with defaults
     for key in values:
-        if not values[key]:
+        if values[key] == "":
             values[key] = defaults[key]
     return values
 

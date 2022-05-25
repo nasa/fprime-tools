@@ -107,7 +107,7 @@ class CMakeHandler:
             module = self.get_cmake_module(path, build_dir)
             cmake_target = (
                 module
-                if not target
+                if target == ""
                 else (f"{module}_{target}".lstrip("_") if not top_target else target)
             )
         run_args = ["--build", build_dir]
