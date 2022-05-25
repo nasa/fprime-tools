@@ -73,7 +73,7 @@ def validate(parsed, unknown):
     # Check platforms for existing toolchain, unless the default is specified.
     if not hasattr(parsed, "command") or parsed.command is None:
         raise ArgValidationException("'fprime-util' not supplied sub-command argument")
-    elif parsed.command == "generate":
+    if parsed.command == "generate":
         d_args = {
             match.group(1): match.group(2)
             for match in [CMAKE_REG.match(arg) for arg in unknown]

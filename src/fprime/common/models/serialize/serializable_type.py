@@ -50,11 +50,11 @@ class SerializableType(DictionaryType):
             # Check each of these members for correct types
             if not isinstance(member_name, str):
                 raise TypeMismatchException(str, type(member_name))
-            elif not issubclass(member_type, BaseType):
+            if not issubclass(member_type, BaseType):
                 raise TypeMismatchException(BaseType, member_type)
-            elif format_string is not None and not isinstance(format_string, str):
+            if format_string is not None and not isinstance(format_string, str):
                 raise TypeMismatchException(str, type(format_string))
-            elif description is not None and not isinstance(description, str):
+            if description is not None and not isinstance(description, str):
                 raise TypeMismatchException(str, type(description))
         return DictionaryType.construct_type(cls, name, MEMBER_LIST=member_list)
 
@@ -64,7 +64,7 @@ class SerializableType(DictionaryType):
         # Ensure that the supplied value is a dictionary
         if not isinstance(val, dict):
             raise TypeMismatchException(dict, type(val))
-        elif len(val) != len(cls.MEMBER_LIST):
+        if len(val) != len(cls.MEMBER_LIST):
             raise IncorrectMembersException([name for name, _, _, _ in cls.MEMBER_LIST])
         # Now validate each field as defined via the value
         for member_name, member_type, _, _ in cls.MEMBER_LIST:

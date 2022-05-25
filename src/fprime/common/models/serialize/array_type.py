@@ -42,7 +42,7 @@ class ArrayType(DictionaryType):
         """Validates the values of the array"""
         if not isinstance(val, (tuple, list)):
             raise TypeMismatchException(list, type(val))
-        elif len(val) != cls.LENGTH:
+        if len(val) != cls.LENGTH:
             raise ArrayLengthException(cls.MEMBER_TYPE, cls.LENGTH, len(val))
         for i in range(cls.LENGTH):
             cls.MEMBER_TYPE.validate(val[i])
