@@ -20,15 +20,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip urllib3 setuptools_scm
-          python -m pip install fprime-fpp
-          pip install -e .
       - name: clone fprime and gps-tutorial
         run: |
           git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
           git clone --recurse-submodules https://github.com/fprime-community/gps-tutorial.git
+          pip install fprime/ || true # Attempt to install fprime package when available
       - name: Generate correct fprime version in gps-tutorial
         working-directory: gps-tutorial
         run: git submodule update --recursive
+      - name: Install Current fpp-tools
+        run: pip install -U .
       # 0x72ad3277 is Fw/Types/Assert.cpp, a file that should be consistent across releases
       - name: Test generation and building on Ref
         working-directory: fprime/Ref
