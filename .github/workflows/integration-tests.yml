@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
-        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
+        fprime-version: [NASA-v1.5.3, v2.0.0, v3.0.0, devel]
 
     steps:
       - uses: actions/checkout@v2
@@ -20,24 +20,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip urllib3 setuptools_scm
-          python -m pip install fprime-fpp
           pip install -e .
-      - name: clone fprime and gps-tutorial
+      - name: clone fprime
         run: |
-          git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
-          git clone --recurse-submodules https://github.com/fprime-community/gps-tutorial.git
-      - name: Generate correct fprime version in gps-tutorial
-        working-directory: gps-tutorial
-        run: git submodule update --recursive
+          git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
+          pip install fprime/
       # 0x72ad3277 is Fw/Types/Assert.cpp, a file that should be consistent across releases
       - name: Test generation and building on Ref
         working-directory: fprime/Ref
-        run: |
-          fprime-util generate
-          fprime-util build
-          fprime-util hash-to-file 0x72ad3277
-      - name: Test generation and building on gps-tutorial
-        working-directory: gps-tutorial/GpsApp
         run: |
           fprime-util generate
           fprime-util build
