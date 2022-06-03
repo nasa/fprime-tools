@@ -54,7 +54,7 @@ class IniSettings:
         all_paths = parser.get(section, key, fallback="").split(":")
         expanded = []
         for path in all_paths:
-            if path == "" or path is None:
+            if not path:
                 continue
             full_path = os.path.abspath(os.path.normpath(os.path.join(base_dir, path)))
             if exists and not os.path.exists(full_path):
