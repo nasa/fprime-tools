@@ -39,7 +39,7 @@ class StringType(type_base.DictionaryType):
         """Validates that this is a string"""
         if not isinstance(val, str):
             raise TypeMismatchException(str, type(val))
-        elif cls.MAX_LENGTH is not None and len(val) > cls.MAX_LENGTH:
+        if cls.MAX_LENGTH is not None and len(val) > cls.MAX_LENGTH:
             raise StringSizeException(len(val), cls.MAX_LENGTH)
 
     def serialize(self):
@@ -68,7 +68,7 @@ class StringType(type_base.DictionaryType):
                     f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2 :])}"
                 )
             # Deal with a string that is larger than max string
-            elif self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:
+            if self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:
                 raise StringSizeException(val_size, self.MAX_LENGTH)
             self.val = data[offset + 2 : offset + 2 + val_size].decode(DATA_ENCODING)
         except struct.error:

@@ -38,7 +38,7 @@ class EnumType(DictionaryType):
         for member in enum_dict.keys():
             if not isinstance(member, str):
                 raise TypeMismatchException(str, type(member))
-            elif not isinstance(enum_dict[member], int):
+            if not isinstance(enum_dict[member], int):
                 raise TypeMismatchException(int, enum_dict[member])
         return DictionaryType.construct_type(cls, name, ENUM_DICT=enum_dict)
 
