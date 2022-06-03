@@ -81,22 +81,20 @@ to interact with the data coming from the FSW.
     # Requires Python 3.6+
     python_requires=">=3.6",
     install_requires=[
-        "lxml==4.6.3",
-        "Markdown==3.3.4",
-        "MarkupSafe<2.0.0",
-        "pexpect==4.8.0",
-        "pytest==6.2.4",
-        "Cheetah3==3.2.6",
-        "setuptools-scm==6.0.1",
-        "cookiecutter==1.7.2",
-        "gcovr==5.0",
+        "lxml",
+        "Markdown",
+        "pexpect",
+        "pytest",
+        "Cheetah3",
+        "cookiecutter",
+        "gcovr",
     ],
     extras_require={
         "dev": [
             "black==21.5b1",
-            "pylama==7.7.1",
-            "pylint==2.8.2",
-            "pre-commit==2.12.1",
+            "pylama",
+            "pylint",
+            "pre-commit",
             "sphinx",
             "sphinxcontrib.mermaid",
             "sphinx-rtd-theme",
@@ -106,7 +104,7 @@ to interact with the data coming from the FSW.
         ]
     },
     # Setup and test requirements, not needed by normal install
-    setup_requires=["pytest-runner==5.3.0", "setuptools_scm==6.0.1"],
+    setup_requires=["pytest-runner", "setuptools_scm"],
     tests_require=["pytest"],
     # Create a set of executable entry-points for running directly from the package
     entry_points={
