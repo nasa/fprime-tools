@@ -312,7 +312,7 @@ def test_serializable_basic_off_nominal():
         ("member2", StringType.construct_type("StringMember1", max_length=10), "%s"),
     ]
     serializable_type = SerializableType.construct_type(
-        f"BasicInvalidSerializable", member_list
+        "BasicInvalidSerializable", member_list
     )
 
     invalid_values = [
