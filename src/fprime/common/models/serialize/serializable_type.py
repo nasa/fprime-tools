@@ -112,7 +112,7 @@ class SerializableType(DictionaryType):
         Note 2: If a member is an array will call array formatted_val
         :return a formatted dict
         """
-        result = dict()
+        result = {}
         for member_name, _, member_format, _ in self.MEMBER_LIST:
             value_object = self._val[member_name]
             if isinstance(value_object, (array_type.ArrayType, SerializableType)):
