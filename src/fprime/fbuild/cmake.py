@@ -108,7 +108,9 @@ class CMakeHandler:
             cmake_target = (
                 module
                 if target == ""
-                else (f"{module}_{target}".lstrip("_") if not top_target else target)
+                else target
+                if top_target
+                else f"{module}_{target}".lstrip("_")
             )
         run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
