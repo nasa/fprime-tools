@@ -110,7 +110,7 @@ class ArrayType(DictionaryType):
     def deserialize(self, data, offset):
         """Deserialize the members of the array"""
         values = []
-        for i in range(self.LENGTH):
+        for _ in range(self.LENGTH):
             item = self.MEMBER_TYPE()
             item.deserialize(data, offset)
             offset += item.getSize()
