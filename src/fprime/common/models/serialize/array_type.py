@@ -88,9 +88,9 @@ class ArrayType(DictionaryType):
 
     def to_jsonable(self):
         """
-        JSONable type
+        JSONable array object format
         """
-        members = {
+        return {
             "name": self.__class__.__name__,
             "type": self.__class__.__name__,
             "size": self.LENGTH,
@@ -99,7 +99,6 @@ class ArrayType(DictionaryType):
             if self._val is None
             else [member.to_jsonable() for member in self._val],
         }
-        return members
 
     def serialize(self):
         """Serialize the array by serializing the elements one by one"""

@@ -29,10 +29,9 @@ class StringType(type_base.DictionaryType):
     @classmethod
     def construct_type(cls, name, max_length=None):
         """Constructs a new string type with given name and maximum length"""
-        temporary = type_base.DictionaryType.construct_type(
+        return type_base.DictionaryType.construct_type(
             cls, name, MAX_LENGTH=max_length
         )
-        return temporary
 
     @classmethod
     def validate(cls, val):
@@ -52,9 +51,8 @@ class StringType(type_base.DictionaryType):
         # Check string size before serializing
         elif self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH:
             raise StringSizeException(len(self.val), self.MAX_LENGTH)
-        # Pack the string size first then return the encoded data
-        buff = struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)
-        return buff
+        # Pack the string size first then return the encoded data buffer
+        return struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)
 
     def deserialize(self, data, offset):
         """
