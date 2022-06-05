@@ -119,4 +119,4 @@ class ArrayType(DictionaryType):
 
     def getSize(self):
         """Return the size of the array"""
-        return sum([item.getSize() for item in self._val])
+        return sum(item.getSize() for item in self._val)
