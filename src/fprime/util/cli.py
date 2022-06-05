@@ -67,9 +67,9 @@ def print_info(
         )
         print("  ----------------------------------------------------------")
     # Artifact locations come afterwards
-    for build_type, (
-        build_artifact_location,
-        global_build_cache,
+    for (
+        build_type,
+        (build_artifact_location, global_build_cache),
     ) in build_infos.items():
         print(
             f"    {build_type.get_cmake_build_type()} build cache module directory: {build_artifact_location}"

@@ -148,8 +148,7 @@ def parse_args(args):
         description=HelpText.long("global_help"),
     )
     subparsers = parser.add_subparsers(
-        description=HelpText.long("subparsers_description"),
-        dest="command",
+        description=HelpText.long("subparsers_description"), dest="command"
     )
 
     # Add all externally defined cli parser command to running functions

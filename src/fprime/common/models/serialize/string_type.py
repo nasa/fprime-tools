@@ -29,9 +29,7 @@ class StringType(type_base.DictionaryType):
     @classmethod
     def construct_type(cls, name, max_length=None):
         """Constructs a new string type with given name and maximum length"""
-        return type_base.DictionaryType.construct_type(
-            cls, name, MAX_LENGTH=max_length
-        )
+        return type_base.DictionaryType.construct_type(cls, name, MAX_LENGTH=max_length)
 
     @classmethod
     def validate(cls, val):
