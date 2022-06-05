@@ -16,8 +16,8 @@ class TimeTypeTestCases(unittest.TestCase):
         self.t15 = TimeType(0, 0, 1, 500000)
 
     def test_LessThan(self):
-        assert not self.t0 < self.t0, "0 is not less than 0"
-        assert not self.t0 < 0, "0 is not less than 0"
+        assert self.t0 >= self.t0, "0 is not less than 0"
+        assert self.t0 >= 0, "0 is not less than 0"
         assert self.t0 < self.t1, "0 is less than 1"
         assert self.t0 < 1, "0 is less than 1"
         assert self.t0 < self.t15, "0 is less than 1.5"
@@ -34,15 +34,15 @@ class TimeTypeTestCases(unittest.TestCase):
     def test_EqualTo(self):
         assert self.t0 == self.t0, "0 is equal to 0"
         assert self.t0 == 0, "0 is equal to 0"
-        assert not self.t0 == self.t1, "0 is not equal to 1"
-        assert not self.t0 == 1, "0 is not equal to 1"
-        assert not self.t0 == self.t15, "0 is not equal to 1.5"
-        assert not self.t0 == 1.5, "0 is not equal to 1.5"
+        assert self.t0 != self.t1, "0 is not equal to 1"
+        assert self.t0 != 1, "0 is not equal to 1"
+        assert self.t0 != self.t15, "0 is not equal to 1.5"
+        assert self.t0 != 1.5, "0 is not equal to 1.5"
         assert self.t15 == 1.5, "1.5 is not equal to 1.5"
 
     def test_NotEqualTo(self):
-        assert not self.t0 != self.t0, "0 is not equal to 0"
-        assert not self.t0 != 0, "0 is not equal to 0"
+        assert self.t0 == self.t0, "0 is not equal to 0"
+        assert self.t0 == 0, "0 is not equal to 0"
         assert self.t0 != self.t1, "0 is equal to 1"
         assert self.t0 != 1, "0 is equal to 1"
         assert self.t0 != self.t15, "0 is equal to 1.5"
@@ -53,8 +53,8 @@ class TimeTypeTestCases(unittest.TestCase):
         assert self.t15 > 0, "1.5 is greater than 0"
         assert self.t15 > self.t1, "1.5 is greater than 1"
         assert self.t15 > 1, "1.5 is greater than 1"
-        assert not self.t15 > self.t15, "1.5 is not greater than 1.5"
-        assert not self.t15 > 1.5, "1.5 is not greater than 1.5"
+        assert self.t15 <= self.t15, "1.5 is not greater than 1.5"
+        assert self.t15 <= 1.5, "1.5 is not greater than 1.5"
 
     def test_GreaterThanEqualTo(self):
         assert self.t15 >= self.t0, "1.5 is greater than 0"
