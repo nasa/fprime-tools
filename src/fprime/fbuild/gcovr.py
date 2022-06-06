@@ -26,8 +26,7 @@ def _get_project_path(builder: "Build", module: Union[str, Path]) -> Path:
         return module
     # Calculate the project path from the module name
     project_root = builder.get_settings(
-        "project_root",
-        builder.get_settings("framework_path", builder.build_dir.parent),
+        "project_root", builder.get_settings("framework_path", builder.build_dir.parent)
     )
     return Path(project_root) / module.replace("_", "/")
 

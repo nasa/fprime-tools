@@ -50,17 +50,9 @@ def add_fpp_parsers(
         Tuple of dictionary mapping command name to processor, and command to parser
     """
     check_parser = subparsers.add_parser(
-        "fpp-check",
-        help="Runs fpp-check utility",
-        parents=[common],
-        add_help=False,
+        "fpp-check", help="Runs fpp-check utility", parents=[common], add_help=False
     )
     check_parser.add_argument(
-        "-u",
-        "--unconnected",
-        default=None,
-        help="write unconnected ports to file",
+        "-u", "--unconnected", default=None, help="write unconnected ports to file"
     )
-    return {
-        "fpp-check": run_fpp_check,
-    }, {"fpp-check": check_parser}
+    return {"fpp-check": run_fpp_check}, {"fpp-check": check_parser}

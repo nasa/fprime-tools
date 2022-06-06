@@ -319,7 +319,7 @@ class CMakeHandler:
             This code might not work on non-GNU makefile variants of CMake as it depends on the "help" target
 
         Returns:
-            list of CMake make targets
+            list of contextual CMake make targets
         """
         if not self.cached_help_targets:
             run_args = ["--build", build_dir, "--target", "help"]
@@ -333,12 +333,11 @@ class CMakeHandler:
             ]
 
         prefix = self.get_cmake_module(path, build_dir)
-        contextual_make_targets = [
+        return [
             make.replace(prefix, "").strip("_")
             for make in self.cached_help_targets
             if make.startswith(prefix)
         ]
-        return contextual_make_targets
 
     @staticmethod
     def purge(build_dir):
