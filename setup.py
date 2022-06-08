@@ -71,23 +71,23 @@ to interact with the data coming from the FSW.
         "Operating System :: POSIX",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
-    # Requires Python 3.6+
-    python_requires=">=3.6",
+    # Requires Python 3.7+
+    python_requires=">=3.7",
     install_requires=[
-        "lxml",
-        "Markdown",
-        "pexpect",
-        "pytest",
-        "Cheetah3",
-        "cookiecutter",
-        "gcovr",
+        "lxml>=4.6.3, <5.0.0",
+        "Markdown>=3.3.4, <4.0.0",
+        "pexpect>=4.8.0, <5.0.0",
+        "pytest>=6.2.4, <7.0.0",
+        "Cheetah3>=3.2.6, <4.0.0",
+        "cookiecutter>=1.7.2, <2.0.0",
+        "gcovr>=5.0, <6.0",
     ],
     extras_require={
         "dev": [
