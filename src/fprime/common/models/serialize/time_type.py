@@ -294,6 +294,7 @@ class TimeType(type_base.BaseType):
             self.__usecs.val,
             self.__timeContext.val,
         )
+
     def get_datetime(self, tz=None):
         """
         Returns the python datetime object for UTC time
