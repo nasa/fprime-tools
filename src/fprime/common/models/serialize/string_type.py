@@ -47,7 +47,7 @@ class StringType(type_base.DictionaryType):
         if self.val is None:
             raise NotInitializedException(type(self))
         # Check string size before serializing
-        elif self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH:
+        if self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH:
             raise StringSizeException(len(self.val), self.MAX_LENGTH)
         # Pack the string size first then return the encoded data buffer
         return struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)
