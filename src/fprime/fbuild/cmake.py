@@ -111,7 +111,7 @@ class CMakeHandler:
                 cmake_target = target
             else:
                 cmake_target = f"{module}_{target}".lstrip("_")
-            
+
         run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
