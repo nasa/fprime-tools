@@ -18,7 +18,6 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Union
 
 from fprime.fbuild.types import InvalidBuildCacheException
 from fprime.fbuild.target import Target, NoSuchTargetException
