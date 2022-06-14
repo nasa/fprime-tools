@@ -256,6 +256,7 @@ Utils
 valgrind
 vals
 venv
+versioning
 viewcode
 whitelist
 workdir

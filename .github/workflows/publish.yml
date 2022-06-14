@@ -1,0 +1,23 @@
+name: Build Package
+on:
+  release:
+    types: [published]
+jobs:
+  Build-PyPI-Package:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test PyPI
+      uses: fprime-community/publish-pypi@main
+      env:
+        TWINE_PASSWORD: ${{ secrets.TESTPYPI_CREDENTIAL }}
+      with:
+        package: "fprime-tools"
+        steps: "sdist"
+    - name: PyPI
+      uses: fprime-community/publish-pypi@main
+      env:
+        TWINE_PASSWORD: ${{ secrets.PYPI_CREDENTIAL }}
+      with:
+        repo: "pypi"
+        package: "fprime-tools"
+        steps: "sdist"

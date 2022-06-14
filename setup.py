@@ -108,7 +108,10 @@ to interact with the data coming from the FSW.
     tests_require=["pytest"],
     # Create a set of executable entry-points for running directly from the package
     entry_points={
-        "console_scripts": ["fprime-util = fprime.util.__main__:main"],
+        "console_scripts": [
+            "fprime-util = fprime.util.__main__:main",
+            "fprime-version-check = fprime.util.versioning:main",
+        ],
         "gui_scripts": [],
     },
 )

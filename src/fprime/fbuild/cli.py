@@ -48,7 +48,6 @@ def run_fbuild_cli(
         make_args: arguments to the make system
     """
     if parsed.command == "generate":
-        build.invent(parsed.platform, build_dir=parsed.build_cache)
         toolchain = build.find_toolchain()
         print(f"[INFO] Generating build directory at: {build.build_dir}")
         print(f"[INFO] Using toolchain file {toolchain} for platform {parsed.platform}")
