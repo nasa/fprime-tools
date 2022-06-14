@@ -12,7 +12,6 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.TESTPYPI_CREDENTIAL }}
       with:
         package: "fprime-tools"
-        steps: "sdist"
     - name: PyPI
       uses: fprime-community/publish-pypi@main
       env:
@@ -20,4 +19,3 @@ jobs:
       with:
         repo: "pypi"
         package: "fprime-tools"
-        steps: "sdist"
