@@ -6,6 +6,10 @@ jobs:
   Build-PyPI-Package:
     runs-on: ubuntu-latest
     steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Test PyPI
       uses: fprime-community/publish-pypi@main
       env:
