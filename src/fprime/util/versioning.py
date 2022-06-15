@@ -32,7 +32,7 @@ def get_version(package: str, requirements: Path):
         )
 
     # Collapse versions that match
-    versions = list(set(line.split("==")[-1].split("@")[-1] for line in valid_lines))
+    versions = list({line.split("==")[-1].split("@")[-1] for line in valid_lines})
     if len(versions) != 1:
         raise VersionException(
             f"Conflicting versions specified for {package}: {versions}"
