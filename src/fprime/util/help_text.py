@@ -276,7 +276,7 @@ and components in fprime. The code has not been updated to use FPP models. Pleas
 }
 
 
-class HelpText(object):
+class HelpText:
     """
     There are two styles of help text: short (for argument descriptions) and long for full descriptions. This function
     will take a context key (command name, mnemonic, or other string) to lookup the full help text. The short help text
