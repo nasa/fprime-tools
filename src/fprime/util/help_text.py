@@ -19,9 +19,18 @@ import os
 import sys
 
 
+# Attempt to get pkg_resources from "setuptools"
+try:
+    import pkg_resources
+
+    VERSION = pkg_resources.get_distribution("fprime-tools").version
+except ImportError:
+    VERSION = "(unknown version)"
+
+
 EXECUTABLE = os.path.basename(sys.argv[0])
 MNEMONIC_HELP_MAP = {
-    "global_help": f"""Utility supporting fprime development patterns
+    "global_help": f"""{EXECUTABLE} ({VERSION}): Utility supporting fprime development patterns.
 
 '{EXECUTABLE}' wraps the fprime build system enabling developers to follow standard patterns when developing fprime
 applications. Specifically it translates between the developer's context (working directory and supplied flags) to the
@@ -94,13 +103,13 @@ Contextual Examples:
   {EXECUTABLE} build --all
 
 """,
-    "subparsers_description": f"""Commands supported by {EXECUTABLE}
+    "subparsers_description": f"""Commands supported by {EXECUTABLE} ({VERSION})
 
 These are the commands that may be run as part of {EXECUTABLE}. These commands wrap various functions of the
 development process. One of these commands should be the first argument to an invocation of {EXECUTABLE}. For more
 explanation on an individual command, please run '{EXECUTABLE} <command> --help>'.
 """,
-    "build": f"""Build fprime components, deployments, and unit tests
+    "build": f"""{EXECUTABLE} build ({VERSION}): Build fprime components, deployments, and unit tests
 
 '{EXECUTABLE} build' builds in the selected directory ('-p/--path' or current working directory). When the selected
 directory contains a component, the component is built. When the current directory contains a deployment, the deployment
@@ -123,7 +132,7 @@ Examples:
   {EXECUTABLE} build
 
 """,
-    "impl": f"""Generate fprime implementation templates
+    "impl": f"""{EXECUTABLE} impl ({VERSION}): Generate fprime implementation templates.
 
 '{EXECUTABLE} impl' generates the implementation templates for the specified directory ('-p/--path' or current working
 directory). Implementation generation is only available for component directories and should not be used on deployments.
@@ -145,7 +154,7 @@ Example:
   {EXECUTABLE} impl --ut
 
 """,
-    "check": f"""Run fprime unit tests
+    "check": f"""{EXECUTABLE} check ({VERSION}): Run fprime unit tests with optional leak checking and test coverage.
 
 '{EXECUTABLE} check' handles the running of unit tests. It can be used on components to run the component's unit tests,
 deployments to run deployment unit tests, and with the '--all' flag to run all unit tests found in the build system.
@@ -178,7 +187,7 @@ Examples:
   cd Ref/SignalGen
   {EXECUTABLE} check --coverage
 """,
-    "generate": f"""Generate build caches for the specified deployment
+    "generate": f"""{EXECUTABLE} generate ({VERSION}): Generate build caches for the specified deployment
 
 '{EXECUTABLE} generate' is used to setup a build cache to support other commands run by {EXECUTABLE}. Without additional
 arguments a build cache will be created for the deployment in the specified directory ('-p/--path', or current working
@@ -228,7 +237,7 @@ CMake Flag Examples:
   {EXECUTABLE} generate --build-cache `pwd`/build-ref-with-baremetal -DFPRIME_USE_BAREMETAL_SCHEDULER=ON
 
 """,
-    "purge": f"""Removes build caches for specified deployment
+    "purge": f"""{EXECUTABLE} purge ({VERSION}): Removes build caches for specified deployment
     
 '{EXECUTABLE} purge' removes build caches for the specified deployment. It also removes the build_artifacts directory
 in that deployment as well. Caches are searched in pairs: normal build cache, paired unit testing build cache. The
@@ -250,7 +259,7 @@ outputs, etc.
 '{EXECUTABLE} info' will print information for both normal and unit testing builds when possible. If '--build-cache' is
 specified then only the information for that build cache will be printed.
 """,
-    "hash-to-file": f"""Convert FW_ASSERT file id hash to file path
+    "hash-to-file": f"""{EXECUTABLE} hash-to-file ({VERSION}): Convert FW_ASSERT file id hash to file path
 
 When a project compiles fprime with 'FW_ASSERT_LEVEL' set to 'FW_FILEID_ASSERT' a hash will be emitted in place of the
 file path in order to keep assert messages succinct. '{EXECUTABLE} hash-to-file <hash>' will convert this hash value to
@@ -268,7 +277,7 @@ Examples:
   cd Ref
   {EXECUTABLE} hash-to-file raspberrypi 0xABCD1234
 """,
-    "new": f"""     -- WARNING: prototype code -- Creates a new fprime object
+    "new": f"""{EXECUTABLE} new ({VERSION}):       -- WARNING: prototype code -- Creates a new fprime object
 
 WARNING: prototype code. Not recommended for inexperienced users. '{EXECUTABLE} new' runs a wizard to create new ports
 and components in fprime. The code has not been updated to use FPP models. Please check back later.
@@ -299,7 +308,7 @@ class HelpText(object):
         return lines[0] if lines else default
 
     @staticmethod
-    def long(context_key: str, default: str = ""):
+    def long(context_key: str, default: str = "", version="(unknown version)"):
         """long help text for context
 
         Returns the long help message.

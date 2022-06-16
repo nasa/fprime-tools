@@ -35,6 +35,12 @@ from fprime.util.cli import add_special_parsers
 
 CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
 
+# Attempt to get pkg_resources from "setuptools"
+try:
+    import pkg_resources
+except ImportError:
+    pkg_resources = None
+
 
 class ArgValidationException(Exception):
     """An exception used for argument validation"""
@@ -42,8 +48,6 @@ class ArgValidationException(Exception):
 
 def package_version_check(package: str, requirement_path: Path):
     """Checks the version of the packages installed match the expected packages of the fprime aggregate package"""
-    import pkg_resources
-
     expected_version = get_version(package, requirement_path).lstrip(
         "v"
     )  # Python version
@@ -76,10 +80,8 @@ def validate_tools_from_requirements(build: Build):
             f"[WARNING] Could not find 'requirements.txt' in: {possibilities}. Will not check tool versions."
         )
         return
-    # Pre-roll import errors
-    try:
-        import pkg_resources
-    except ImportError:
+    # Pre-roll import errors from pkg_resources
+    if pkg_resources is None:
         print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
         return
 
