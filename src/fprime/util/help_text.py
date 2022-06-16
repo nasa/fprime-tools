@@ -22,6 +22,7 @@ import sys
 # Attempt to get pkg_resources from "setuptools"
 try:
     import pkg_resources
+
     VERSION = pkg_resources.get_distribution("fprime-tools").version
 except ImportError:
     VERSION = "(unknown version)"
