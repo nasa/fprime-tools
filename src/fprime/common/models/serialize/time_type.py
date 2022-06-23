@@ -288,13 +288,12 @@ class TimeType(type_base.BaseType):
         # If we could convert to a valid datetime, use that, otherwise, format
         if dt:
             return dt.strftime("%Y-%m-%d %H:%M:%S%z")
-        else:
-            return "%s: %d.%06ds, context=%d" % (
-                TimeBase(self.__timeBase.val).name,
-                self.__secs.val,
-                self.__usecs.val,
-                self.__timeContext.val,
-            )
+        return "%s: %d.%06ds, context=%d" % (
+            TimeBase(self.__timeBase.val).name,
+            self.__secs.val,
+            self.__usecs.val,
+            self.__timeContext.val,
+        )
 
     def get_datetime(self, tz=None):
         """
@@ -355,8 +354,7 @@ class TimeType(type_base.BaseType):
         """Less than"""
         if isinstance(other, TimeType):
             return self.compare(self, other) < 0
-        else:
-            return self.get_float() < other
+        return self.get_float() < other
 
     def __le__(self, other):
         """Less than or equal"""
@@ -369,29 +367,25 @@ class TimeType(type_base.BaseType):
         """Equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) == 0
-        else:
-            return self.get_float() == other
+        return self.get_float() == other
 
     def __ne__(self, other):
         """Not equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) != 0
-        else:
-            return self.get_float() != other
+        return self.get_float() != other
 
     def __gt__(self, other):
         """Greater than"""
         if isinstance(other, TimeType):
             return self.compare(self, other) > 0
-        else:
-            return self.get_float() > other
+        return self.get_float() > other
 
     def __ge__(self, other):
         """Greater than or equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) >= 0
-        else:
-            return self.get_float() >= other
+        return self.get_float() >= other
 
     # The following helper methods enable support for arithmetic operations on TimeTypes.
 

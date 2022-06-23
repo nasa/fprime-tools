@@ -332,7 +332,7 @@ def is_valid_name(word: str):
     for char in invalid_characters:
         if isinstance(word, str) and char in word:
             return char
-        elif not isinstance(word, str):
+        if not isinstance(word, str):
             raise ValueError("Incorrect usage of is_valid_name")
     return "valid"
 

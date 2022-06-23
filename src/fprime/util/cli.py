@@ -115,7 +115,7 @@ def template(
     """
     if parsed.component and not parsed.port:
         return new_component(build.deployment, parsed.platform, parsed.verbose, build)
-    elif parsed.port and not parsed.component:
+    if parsed.port and not parsed.component:
         return new_port(build.deployment, build)
     print("[ERROR] Use --component or --port, not both.", file=sys.stderr)
 
