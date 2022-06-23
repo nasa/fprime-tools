@@ -66,7 +66,7 @@ def format_string_template(format_str, given_values):
             elif all([not ignore_int, str(conversion_type).lower() == "d"]):
                 format_template += f"{conversion_type}"
 
-        return "{}" if not format_template else "{:" + format_template + "}"
+        return "{:" + format_template + "}" if format_template else "{}"
 
     def convert_include_all(match_obj):
         return convert(match_obj, ignore_int=False)

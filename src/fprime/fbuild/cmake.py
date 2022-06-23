@@ -105,11 +105,13 @@ class CMakeHandler:
             cmake_target = target
         else:
             module = self.get_cmake_module(path, build_dir)
-            cmake_target = (
-                module
-                if target == ""
-                else (f"{module}_{target}".lstrip("_") if not top_target else target)
-            )
+            if target == "":
+                cmake_target = module
+            elif top_target:
+                cmake_target = target
+            else:
+                cmake_target = f"{module}_{target}".lstrip("_")
+
         run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
