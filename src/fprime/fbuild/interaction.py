@@ -445,7 +445,7 @@ def new_port(deployment: Path, build: Build):
         else:
             add_port_to_cmake(str(path_to_cmakelists), fname)
 
-        if proj_root_found is False:
+        if not proj_root_found:
             print(
                 "[INFO] No project root found. Created port without adding to build system nor generating implementation."
             )
