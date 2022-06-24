@@ -8,8 +8,37 @@ settings from the settings.default file that is part of the F prime deployment d
 """
 import os
 import configparser
+from functools import partial
+from enum import Enum
 from typing import Dict, List
 from pathlib import Path
+
+
+class SettingType(Enum):
+    """ Designates the type of the setting """
+    PATH = 0
+    PATH_LIST = 1
+    STRING = 2
+
+
+def find_fprime(settings: dict) -> Path:
+    """
+    Finds F prime by recursing parent to parent until a matching directory is found.
+    """
+    needle = Path("cmake/FPrime.cmake")
+    path = settings["_deployment"]
+    while path != path.parent:
+        if Path(path, needle).is_file():
+            return path
+        path = path.parent
+    raise FprimeLocationUnknownException(
+        "Please set 'framework_path' in [fprime] section in 'settings.ini"
+    )
+
+
+def join(key: Path, addition: str, settings: dict):
+    """Joins a settings key to the addition """
+    return settings[key] / addition
 
 
 class IniSettings:
@@ -18,20 +47,21 @@ class IniSettings:
     DEF_FILE = "settings.ini"
     SET_ENV = "FPRIME_SETTINGS_FILE"
 
-    @staticmethod
-    def find_fprime(cwd: Path) -> Path:
-        """
-        Finds F prime by recursing parent to parent until a matching directory is found.
-        """
-        needle = Path("cmake/FPrime.cmake")
-        path = cwd.resolve()
-        while path != path.parent:
-            if Path(path, needle).is_file():
-                return path
-            path = path.parent
-        raise FprimeLocationUnknownException(
-            "Please set 'framework_path' in [fprime] section in 'settings.ini"
-        )
+    FPRIME_FIELDS = [
+        ("framework_path", SettingType.PATH, find_fprime),
+        ("project_root", SettingType.PATH, lambda settings: settings["framework_path"]),
+        ("default_toolchain", SettingType.STRING, "native"),
+        ("default_ut_toolchain", SettingType.STRING, "native"),
+        ("library_locations", SettingType.PATH_LIST, []),
+        ("component_cookiecutter", SettingType.PATH, "default"),
+    ]
+
+    PLATFORM_FIELDS = [
+        ("config_dir", SettingType.PATH, partial(join, "framework_path", "config")),
+        ("ac_constants", SettingType.PATH, partial(join, "config_dir", "AcConstants.ini")),
+        ("install_dest", SettingType.PATH, partial(join, "_deployment", "build-artifacts")),
+        ("environment_file", SettingType.PATH, lambda settings: settings["settings_file"])
+    ]
 
     @staticmethod
     def read_safe_path(
@@ -40,7 +70,7 @@ class IniSettings:
         key: str,
         ini_file: Path,
         exists: bool = True,
-    ) -> List[str]:
+    ) -> List[Path]:
         """
         Reads path(s), safely, from the config parser.  Validates the path(s) exists or raises an exception. Paths are
         separated by ':'.  This will also expand relative paths relative to the settings file.
@@ -61,17 +91,37 @@ class IniSettings:
                 raise FprimeSettingsException(
                     f"Nonexistent path '{path}' found in section '{section}' option '{key}' of file '{ini_file}'"
                 )
-            expanded.append(full_path)
+            expanded.append(Path(full_path).resolve())
         return expanded
 
     @staticmethod
-    def load(settings_file: Path, platform: str = "fprime"):
+    def read_setting(config_parser: configparser.ConfigParser, settings: dict, section: str, key: str, settings_type: SettingType, default):
+        """ Reads an individual setting """
+        default_value = default(settings) if callable(default) else default
+
+        if config_parser is None:
+            value = default_value
+        elif settings_type == SettingType.STRING:
+            value = config_parser.get(section, key, fallback=default_value)
+        elif settings_type == SettingType.PATH:
+            paths_list = IniSettings.read_safe_path(config_parser, section, key, settings["settings_file"], key != "install_dest")
+            value = paths_list[0] if paths_list else default_value
+        elif settings_type == SettingType.PATH_LIST:
+            paths_list = IniSettings.read_safe_path(config_parser, section, key, settings["settings_file"], key != "install_dest")
+            value = paths_list if paths_list else default_value
+        else:
+            raise FprimeSettingsException("Invalid settings specification")
+        return value
+
+    @staticmethod
+    def load(settings_file: Path, platform: str = "native", is_ut: bool = False):
         """
         Load settings from specified file or from specified build directory. Either a specific file or the build
         directory must be not None.
 
         :param settings_file: file to load settings from (in INI format). Must be specified if build_dir is not.
         :param platform: platform to read platform specific settings
+        :param is_ut: is this a unit test build
         :return: a dictionary of needed settings
         """
         settings_file = (
@@ -79,82 +129,32 @@ class IniSettings:
             if settings_file is None
             else settings_file
         ).resolve()
-        dfl_install_dest = Path(settings_file.parent, "build-artifacts")
-
-        # Check file existence if specified
-        if not os.path.exists(settings_file):
-            print(f"[WARNING] Failed to find settings file: {settings_file}")
-            fprime_location = IniSettings.find_fprime(settings_file.parent)
-            return {"framework_path": fprime_location, "install_dest": dfl_install_dest}
-        confparse = configparser.ConfigParser()
-        confparse.read(settings_file)
-        # Search through F prime locations
-        fprime_location = IniSettings.read_safe_path(
-            confparse, "fprime", "framework_path", settings_file
-        )
-        fprime_location = (
-            Path(fprime_location[0])
-            if fprime_location
-            else IniSettings.find_fprime(settings_file.parent)
-        )
-        # Read project root if it is available
-        proj_root = IniSettings.read_safe_path(
-            confparse, "fprime", "project_root", settings_file
-        )
-        proj_root = proj_root[0] if proj_root else None
-        # Read ac constants if it is available
-        ac_consts = IniSettings.read_safe_path(
-            confparse, platform, "ac_constants", settings_file
-        )
-        ac_consts = ac_consts[0] if ac_consts else None
-        # Read include constants if it is available
-        config_dir = IniSettings.read_safe_path(
-            confparse, platform, "config_directory", settings_file
-        )
-        config_dir = config_dir[0] if config_dir else None
-
-        install_dest = IniSettings.read_safe_path(
-            confparse, platform, "install_dest", settings_file, False
-        )
-
-        install_dest = Path(install_dest[0]) if install_dest else dfl_install_dest
-
-        # Read separate environment file if necessary
-        env_file = IniSettings.read_safe_path(
-            confparse, platform, "environment_file", settings_file
-        )
-        env_file = env_file[0] if env_file else settings_file
-        libraries = IniSettings.read_safe_path(
-            confparse, platform, "library_locations", settings_file
-        )
-        environment = IniSettings.load_environment(env_file)
+        # Setup a config parser, or none if the settings file does not exist
+        confparse = None
+        if settings_file.exists():
+            confparse = configparser.ConfigParser()
+            confparse.read(settings_file)
+        else:
+            print(f"[WARNING] {settings_file} does not exist")
 
         settings = {
             "settings_file": settings_file,
-            "framework_path": fprime_location,
-            "library_locations": libraries,
-            "default_toolchain": confparse.get(
-                "fprime", "default_toolchain", fallback="native"
-            ),
-            "default_ut_toolchain": confparse.get(
-                "fprime", "default_ut_toolchain", fallback="native"
-            ),
-            "install_dest": install_dest,
-            "environment_file": env_file,
-            "environment": environment,
-            "component_cookiecutter": confparse.get(
-                "fprime", "component_cookiecutter", fallback="default"
-            ),
+            "_deployment": settings_file.parent
         }
-        # Set the project root
-        if proj_root is not None:
-            settings["project_root"] = proj_root
-        # Set AC constants if available
-        if ac_consts is not None:
-            settings["ac_constants"] = ac_consts
-        # Set the config dir
-        if config_dir is not None:
-            settings["config_dir"] = config_dir
+
+        # Read fprime and platform settings from the "fprime" section
+        for key, settings_type, default in IniSettings.FPRIME_FIELDS + IniSettings.PLATFORM_FIELDS:
+            settings[key] = IniSettings.read_setting(confparse, settings, "fprime", key, settings_type, default)
+
+        # Calculate the platform if not specified
+        if not platform or platform == "default":
+            platform = settings["default_ut_toolchain"] if is_ut else settings["default_toolchain"]
+
+        # Read platform settings overtop of fprime settings
+        for key, settings_type, default in IniSettings.PLATFORM_FIELDS:
+            settings[key] = IniSettings.read_setting(confparse, settings, platform, key, settings_type, settings.get(key, default))
+
+        settings["environment"] = IniSettings.load_environment(settings["environment_file"])
         return settings
 
     @staticmethod

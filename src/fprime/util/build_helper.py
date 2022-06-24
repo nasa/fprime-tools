@@ -264,5 +264,6 @@ def utility_entry(args):
         return 1
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
+        raise
         return 1
     return 0
