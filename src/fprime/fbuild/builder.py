@@ -313,7 +313,7 @@ class Build:
 
         if "FPRIME_LIBRARY_LOCATIONS" in cmake_args:
             cmake_args["FPRIME_LIBRARY_LOCATIONS"] = ";".join(
-                cmake_args["FPRIME_LIBRARY_LOCATIONS"]
+                [str(location) for location in cmake_args["FPRIME_LIBRARY_LOCATIONS"]]
             )
         # When the new v3 autocoder directory exists, this means we can use the new UT api and preserve the build type
         v3_autocoder_directory = Path(
@@ -495,7 +495,11 @@ class Build:
         assert self.platform is None, "Already setup it is invalid to re-setup"
         assert self.build_dir is None, "Already setup it is invalid to re-setup"
 
-        self.settings = IniSettings.load(self.deployment / "settings.ini", platform, self.build_type == BuildType.BUILD_TESTING)
+        self.settings = IniSettings.load(
+            self.deployment / "settings.ini",
+            platform,
+            self.build_type == BuildType.BUILD_TESTING,
+        )
 
         if platform is not None and platform != "default":
             self.platform = platform

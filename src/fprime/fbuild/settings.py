@@ -15,7 +15,8 @@ from pathlib import Path
 
 
 class SettingType(Enum):
-    """ Designates the type of the setting """
+    """Designates the type of the setting"""
+
     PATH = 0
     PATH_LIST = 1
     STRING = 2
@@ -28,7 +29,7 @@ def find_fprime(settings: dict) -> Path:
     needle = Path("cmake/FPrime.cmake")
     path = settings["_deployment"]
     while path != path.parent:
-        if Path(path, needle).is_file():
+        if (path / needle).is_file():
             return path
         path = path.parent
     raise FprimeLocationUnknownException(
@@ -37,7 +38,7 @@ def find_fprime(settings: dict) -> Path:
 
 
 def join(key: Path, addition: str, settings: dict):
-    """Joins a settings key to the addition """
+    """Joins a settings key to the addition"""
     return settings[key] / addition
 
 
@@ -58,9 +59,21 @@ class IniSettings:
 
     PLATFORM_FIELDS = [
         ("config_dir", SettingType.PATH, partial(join, "framework_path", "config")),
-        ("ac_constants", SettingType.PATH, partial(join, "config_dir", "AcConstants.ini")),
-        ("install_dest", SettingType.PATH, partial(join, "_deployment", "build-artifacts")),
-        ("environment_file", SettingType.PATH, lambda settings: settings["settings_file"])
+        (
+            "ac_constants",
+            SettingType.PATH,
+            partial(join, "config_dir", "AcConstants.ini"),
+        ),
+        (
+            "install_dest",
+            SettingType.PATH,
+            partial(join, "_deployment", "build-artifacts"),
+        ),
+        (
+            "environment_file",
+            SettingType.PATH,
+            lambda settings: settings["settings_file"],
+        ),
     ]
 
     @staticmethod
@@ -95,20 +108,39 @@ class IniSettings:
         return expanded
 
     @staticmethod
-    def read_setting(config_parser: configparser.ConfigParser, settings: dict, section: str, key: str, settings_type: SettingType, default):
-        """ Reads an individual setting """
-        default_value = default(settings) if callable(default) else default
+    def read_setting(
+        config_parser: configparser.ConfigParser,
+        settings: dict,
+        section: str,
+        key: str,
+        settings_type: SettingType,
+        default,
+    ):
+        """Reads an individual setting"""
+        get_default_value = lambda: default(settings) if callable(default) else default
 
         if config_parser is None:
-            value = default_value
+            value = get_default_value()
         elif settings_type == SettingType.STRING:
-            value = config_parser.get(section, key, fallback=default_value)
+            value = config_parser.get(section, key, fallback=get_default_value())
         elif settings_type == SettingType.PATH:
-            paths_list = IniSettings.read_safe_path(config_parser, section, key, settings["settings_file"], key != "install_dest")
-            value = paths_list[0] if paths_list else default_value
+            paths_list = IniSettings.read_safe_path(
+                config_parser,
+                section,
+                key,
+                settings["settings_file"],
+                key != "install_dest",
+            )
+            value = paths_list[0] if paths_list else get_default_value()
         elif settings_type == SettingType.PATH_LIST:
-            paths_list = IniSettings.read_safe_path(config_parser, section, key, settings["settings_file"], key != "install_dest")
-            value = paths_list if paths_list else default_value
+            paths_list = IniSettings.read_safe_path(
+                config_parser,
+                section,
+                key,
+                settings["settings_file"],
+                key != "install_dest",
+            )
+            value = paths_list if paths_list else get_default_value()
         else:
             raise FprimeSettingsException("Invalid settings specification")
         return value
@@ -137,24 +169,38 @@ class IniSettings:
         else:
             print(f"[WARNING] {settings_file} does not exist")
 
-        settings = {
-            "settings_file": settings_file,
-            "_deployment": settings_file.parent
-        }
+        settings = {"settings_file": settings_file, "_deployment": settings_file.parent}
 
         # Read fprime and platform settings from the "fprime" section
-        for key, settings_type, default in IniSettings.FPRIME_FIELDS + IniSettings.PLATFORM_FIELDS:
-            settings[key] = IniSettings.read_setting(confparse, settings, "fprime", key, settings_type, default)
+        for key, settings_type, default in (
+            IniSettings.FPRIME_FIELDS + IniSettings.PLATFORM_FIELDS
+        ):
+            settings[key] = IniSettings.read_setting(
+                confparse, settings, "fprime", key, settings_type, default
+            )
 
         # Calculate the platform if not specified
         if not platform or platform == "default":
-            platform = settings["default_ut_toolchain"] if is_ut else settings["default_toolchain"]
+            platform = (
+                settings["default_ut_toolchain"]
+                if is_ut
+                else settings["default_toolchain"]
+            )
 
         # Read platform settings overtop of fprime settings
         for key, settings_type, default in IniSettings.PLATFORM_FIELDS:
-            settings[key] = IniSettings.read_setting(confparse, settings, platform, key, settings_type, settings.get(key, default))
+            settings[key] = IniSettings.read_setting(
+                confparse,
+                settings,
+                platform,
+                key,
+                settings_type,
+                settings.get(key, default),
+            )
 
-        settings["environment"] = IniSettings.load_environment(settings["environment_file"])
+        settings["environment"] = IniSettings.load_environment(
+            settings["environment_file"]
+        )
         return settings
 
     @staticmethod
