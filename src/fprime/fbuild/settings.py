@@ -54,7 +54,7 @@ class IniSettings:
         ("default_toolchain", SettingType.STRING, "native"),
         ("default_ut_toolchain", SettingType.STRING, "native"),
         ("library_locations", SettingType.PATH_LIST, []),
-        ("component_cookiecutter", SettingType.PATH, "default"),
+        ("component_cookiecutter", SettingType.STRING, "default"),
     ]
 
     PLATFORM_FIELDS = [
@@ -201,6 +201,7 @@ class IniSettings:
         settings["environment"] = IniSettings.load_environment(
             settings["environment_file"]
         )
+        del settings["_deployment"]
         return settings
 
     @staticmethod

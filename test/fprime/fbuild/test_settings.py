@@ -36,6 +36,9 @@ def test_settings():
                 "environment_file": full_path("settings-data/settings-empty.ini"),
                 "environment": {},
                 "component_cookiecutter": "default",
+                "ac_constants": full_path("..") / "config" / "AcConstants.ini",
+                "project_root": full_path(".."),
+                "config_dir": full_path("..") / "config",
             },
         },
         {
@@ -52,6 +55,9 @@ def test_settings():
                 ),
                 "environment": {},
                 "component_cookiecutter": "default",
+                "ac_constants": full_path("..") / "config" / "AcConstants.ini",
+                "project_root": full_path(".."),
+                "config_dir": full_path("..") / "config",
             },
         },
         {
@@ -70,6 +76,9 @@ def test_settings():
                 ),
                 "environment": {},
                 "component_cookiecutter": "default",
+                "ac_constants": full_path("..") / "config" / "AcConstants.ini",
+                "project_root": full_path(".."),
+                "config_dir": full_path("..") / "config",
             },
         },
         {
@@ -88,6 +97,9 @@ def test_settings():
                 ),
                 "environment": {},
                 "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
+                "ac_constants": full_path("..") / "config" / "AcConstants.ini",
+                "project_root": full_path(".."),
+                "config_dir": full_path("..") / "config",
             },
         },
     ]
