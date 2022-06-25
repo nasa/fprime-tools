@@ -55,7 +55,7 @@ class CMakeHandler:
     def validate_cmake_cache(self, cmake_args, build_dir):
         cmake_cache = self._read_cache(build_dir)
         for key, expected in cmake_args.items():
-            actual = cmake_cache.get(key, None)
+            actual = cmake_cache.get(key)
             # Allow expected variables not to be set in cache.
             # When building with a newer version of fprime-util and an older version of F prime,
             # newer CMake options that aren't used by older versions of CMake won't be set in the cache
@@ -360,7 +360,7 @@ class CMakeHandler:
         """
         cache = self._read_cache(build_dir)
         # Reads cache values suppressing KeyError, {}.get(x, default=None)
-        miner = lambda x: cache.get(x, None)
+        miner = lambda x: cache.get(x)
         return tuple(map(miner, keys))
 
     def _read_cache(self, build_dir):
