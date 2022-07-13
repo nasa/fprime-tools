@@ -140,7 +140,7 @@ class IniSettings:
                 settings["settings_file"],
                 key != "install_dest",
             )
-            value = paths_list if paths_list else get_default_value()
+            value = paths_list or get_default_value()
         else:
             raise FprimeSettingsException("Invalid settings specification")
         return value
