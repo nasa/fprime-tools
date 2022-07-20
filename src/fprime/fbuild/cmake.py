@@ -360,7 +360,7 @@ class CMakeHandler:
         """
         cache = self._read_cache(build_dir)
         # Reads cache values suppressing KeyError, {}.get(x, default=None)
-        miner = lambda x: cache.get(x)
+        miner = cache.get
         return tuple(map(miner, keys))
 
     def _read_cache(self, build_dir):
