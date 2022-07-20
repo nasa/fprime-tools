@@ -250,11 +250,7 @@ class TimeType(type_base.BaseType):
 
         # Compare usecs
         usec_cmp = cmp(t1.useconds, t2.useconds)
-        if usec_cmp != 0:
-            return usec_cmp
-
-        # Compare contexts
-        return cmp(t1.timeContext, t2.timeContext)
+        return usec_cmp if usec_cmp != 0 else cmp(t1.timeContext, t2.timeContext)
 
     def __str__(self):
         """
@@ -360,8 +356,7 @@ class TimeType(type_base.BaseType):
         """Less than or equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) <= 0
-        else:
-            return self.get_float() <= other
+        return self.get_float() <= other
 
     def __eq__(self, other):
         """Equal"""
