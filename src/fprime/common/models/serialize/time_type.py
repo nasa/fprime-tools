@@ -356,8 +356,7 @@ class TimeType(type_base.BaseType):
         """Less than or equal"""
         if isinstance(other, TimeType):
             return self.compare(self, other) <= 0
-        else:
-            return self.get_float() <= other
+        return self.get_float() <= other
 
     def __eq__(self, other):
         """Equal"""
