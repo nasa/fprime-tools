@@ -58,7 +58,11 @@ class IniSettings:
     ]
 
     PLATFORM_FIELDS = [
-        ("config_directory", SettingType.PATH, partial(join, "framework_path", "config")),
+        (
+            "config_directory",
+            SettingType.PATH,
+            partial(join, "framework_path", "config"),
+        ),
         (
             "ac_constants",
             SettingType.PATH,

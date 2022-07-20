@@ -402,12 +402,16 @@ class Build:
 
     def purge_install(self):
         """Purge the install directory"""
-        assert "install_destination" in self.settings, "install_destination not present in settings"
+        assert (
+            "install_destination" in self.settings
+        ), "install_destination not present in settings"
         self.cmake.purge(self.settings["install_destination"])
 
     def install_dest_exists(self) -> Path:
         """Check if the install destination exists and returns the path if it does"""
-        assert "install_destination" in self.settings, "install_destination not present in settings"
+        assert (
+            "install_destination" in self.settings
+        ), "install_destination not present in settings"
         path = Path(self.settings["install_destination"])
         return path if path.exists() else None
 
