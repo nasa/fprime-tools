@@ -250,11 +250,7 @@ class TimeType(type_base.BaseType):
 
         # Compare usecs
         usec_cmp = cmp(t1.useconds, t2.useconds)
-        if usec_cmp != 0:
-            return usec_cmp
-
-        # Compare contexts
-        return cmp(t1.timeContext, t2.timeContext)
+        return usec_cmp if usec_cmp != 0 else cmp(t1.timeContext, t2.timeContext)
 
     def __str__(self):
         """
