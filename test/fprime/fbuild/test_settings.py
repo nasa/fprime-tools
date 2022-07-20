@@ -31,14 +31,14 @@ def test_settings():
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
                 "framework_path": full_path(".."),
-                "install_dest": full_path("settings-data/build-artifacts"),
+                "install_destination": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path("settings-data/settings-empty.ini"),
                 "environment": {},
                 "component_cookiecutter": "default",
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
-                "config_dir": full_path("..") / "config",
+                "config_directory": full_path("..") / "config",
             },
         },
         {
@@ -48,7 +48,7 @@ def test_settings():
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
                 "framework_path": full_path(".."),
-                "install_dest": full_path("test"),
+                "install_destination": full_path("test"),
                 "library_locations": [],
                 "environment_file": full_path(
                     "settings-data/settings-custom-install.ini"
@@ -57,7 +57,7 @@ def test_settings():
                 "component_cookiecutter": "default",
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
-                "config_dir": full_path("..") / "config",
+                "config_directory": full_path("..") / "config",
             },
         },
         {
@@ -69,7 +69,7 @@ def test_settings():
                 "default_toolchain": "custom1",
                 "default_ut_toolchain": "custom2",
                 "framework_path": full_path(".."),
-                "install_dest": full_path("settings-data/build-artifacts"),
+                "install_destination": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path(
                     "settings-data/settings-custom-toolchain.ini"
@@ -78,7 +78,7 @@ def test_settings():
                 "component_cookiecutter": "default",
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
-                "config_dir": full_path("..") / "config",
+                "config_directory": full_path("..") / "config",
             },
         },
         {
@@ -90,7 +90,7 @@ def test_settings():
                 "default_toolchain": "native",
                 "default_ut_toolchain": "native",
                 "framework_path": full_path(".."),
-                "install_dest": full_path("settings-data/build-artifacts"),
+                "install_destination": full_path("settings-data/build-artifacts"),
                 "library_locations": [],
                 "environment_file": full_path(
                     "settings-data/settings-outside-cookiecutter.ini"
@@ -99,7 +99,7 @@ def test_settings():
                 "component_cookiecutter": "gh:SterlingPeet/cookiecutter-fprime-deployment",
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
-                "config_dir": full_path("..") / "config",
+                "config_directory": full_path("..") / "config",
             },
         },
     ]

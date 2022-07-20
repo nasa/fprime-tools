@@ -302,8 +302,8 @@ class Build:
             ("FPRIME_SETTINGS_FILE", "settings_file"),
             ("FPRIME_ENVIRONMENT_FILE", "environment_file"),
             ("FPRIME_AC_CONSTANTS_FILE", "ac_constants"),
-            ("FPRIME_CONFIG_DIR", "config_dir"),
-            ("FPRIME_INSTALL_DEST", "install_dest"),
+            ("FPRIME_CONFIG_DIR", "config_directory"),
+            ("FPRIME_INSTALL_DEST", "install_destination"),
         ]
         cmake_args = {
             cache: self.get_settings(setting, None)
@@ -402,13 +402,13 @@ class Build:
 
     def purge_install(self):
         """Purge the install directory"""
-        assert "install_dest" in self.settings, "install_dest not present in settings"
-        self.cmake.purge(self.settings["install_dest"])
+        assert "install_destination" in self.settings, "install_destination not present in settings"
+        self.cmake.purge(self.settings["install_destination"])
 
     def install_dest_exists(self) -> Path:
         """Check if the install destination exists and returns the path if it does"""
-        assert "install_dest" in self.settings, "install_dest not present in settings"
-        path = Path(self.settings["install_dest"])
+        assert "install_destination" in self.settings, "install_destination not present in settings"
+        path = Path(self.settings["install_destination"])
         return path if path.exists() else None
 
     @staticmethod
