@@ -58,14 +58,18 @@ class IniSettings:
     ]
 
     PLATFORM_FIELDS = [
-        ("config_dir", SettingType.PATH, partial(join, "framework_path", "config")),
+        (
+            "config_directory",
+            SettingType.PATH,
+            partial(join, "framework_path", "config"),
+        ),
         (
             "ac_constants",
             SettingType.PATH,
-            partial(join, "config_dir", "AcConstants.ini"),
+            partial(join, "config_directory", "AcConstants.ini"),
         ),
         (
-            "install_dest",
+            "install_destination",
             SettingType.PATH,
             partial(join, "_deployment", "build-artifacts"),
         ),
@@ -89,8 +93,10 @@ class IniSettings:
         separated by ':'.  This will also expand relative paths relative to the settings file.
 
         :param parser: parser to read from
+        :param section: section to read from
         :param key: key to read from
         :param ini_file: ini_file path for clean errors
+        :param exists: expect the path to exist. Default: True, must exist.
         :return: path, validated
         """
         base_dir = os.path.dirname(ini_file)
@@ -129,7 +135,7 @@ class IniSettings:
                 section,
                 key,
                 settings["settings_file"],
-                key != "install_dest",
+                key != "install_destination",
             )
             value = paths_list[0] if paths_list else get_default_value()
         elif settings_type == SettingType.PATH_LIST:
@@ -138,7 +144,7 @@ class IniSettings:
                 section,
                 key,
                 settings["settings_file"],
-                key != "install_dest",
+                key != "install_destination",
             )
             value = paths_list or get_default_value()
         else:
