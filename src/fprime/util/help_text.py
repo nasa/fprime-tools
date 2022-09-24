@@ -127,9 +127,9 @@ Examples:
   cd Ref/SignalGen
   {EXECUTABLE} build
 
-  -- Build Reg/SignalGen UTs --
+  -- Build Ref/SignalGen UTs --
   cd Ref/SignalGen
-  {EXECUTABLE} build
+  {EXECUTABLE} build --ut
 
 """,
     "impl": f"""{EXECUTABLE} impl ({VERSION}): Generate fprime implementation templates.
