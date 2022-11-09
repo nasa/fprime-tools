@@ -463,9 +463,7 @@ def new_port(deployment: Path, build: Build):
             return 0
         regenerate(build)
         print("")
-        print(
-            "################################################################################"
-        )
+        print("#"*80)
         print("")
         print(
             "You have successfully created the port "
@@ -474,9 +472,7 @@ def new_port(deployment: Path, build: Build):
             + context["dir_name"]
         )
         print("")
-        print(
-            "################################################################################"
-        )
+        print("#"*80)
         return 0
     except OutputDirExistsException as out_directory_error:
         print(f"{out_directory_error}", file=sys.stderr)
