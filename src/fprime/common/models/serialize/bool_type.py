@@ -44,5 +44,11 @@ class BoolType(ValueType):
         except struct.error:
             raise DeserializeException("Not enough bytes to deserialize bool.")
 
-    def getSize(self):
+    @classmethod
+    def getSize(cls):
         return struct.calcsize("B")
+
+    @classmethod
+    def getMaxSize(cls):
+        """ Maximum size of type """
+        return cls.getSize()  # Always the same as getSize

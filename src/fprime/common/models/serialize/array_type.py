@@ -117,5 +117,10 @@ class ArrayType(DictionaryType):
         self._val = values
 
     def getSize(self):
-        """Return the size of the array"""
+        """Return the size in bytes of the array"""
         return sum(item.getSize() for item in self._val)
+
+    @classmethod
+    def getMaxSize(cls):
+        """Return the maximum size in bytes of the array"""
+        return cls.MEMBER_TYPE.getMaxSize() * cls.LENGTH

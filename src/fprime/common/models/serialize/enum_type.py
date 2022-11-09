@@ -87,6 +87,12 @@ class EnumType(DictionaryType):
         else:
             raise TypeRangeException(int_val)
 
-    def getSize(self):
+    @classmethod
+    def getSize(cls):
         """Calculates the size based on the size of an integer used to store it"""
         return struct.calcsize(">i")
+
+    @classmethod
+    def getMaxSize(cls):
+        """ Maximum size of type """
+        return cls.getSize()  # Always the same as getSize

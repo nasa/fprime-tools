@@ -22,7 +22,7 @@ import math
 from enum import Enum
 
 # Custom Python Modules
-import fprime.common.models.serialize.numerical_types
+from fprime.common.models.serialize.numerical_types import U8Type, U16Type, U32Type
 from fprime.common.models.serialize import type_base
 from fprime.common.models.serialize.type_exceptions import TypeRangeException
 
@@ -82,14 +82,10 @@ class TimeType(type_base.BaseType):
         self._check_time_base(time_base)
         self._check_useconds(useconds)
 
-        self.__timeBase = fprime.common.models.serialize.numerical_types.U16Type(
-            time_base
-        )
-        self.__timeContext = fprime.common.models.serialize.numerical_types.U8Type(
-            time_context
-        )
-        self.__secs = fprime.common.models.serialize.numerical_types.U32Type(seconds)
-        self.__usecs = fprime.common.models.serialize.numerical_types.U32Type(useconds)
+        self.__timeBase = U16Type(time_base)
+        self.__timeContext = U8Type(time_context)
+        self.__secs = U32Type(seconds)
+        self.__usecs = U32Type(useconds)
 
     @staticmethod
     def _check_useconds(useconds):
@@ -209,19 +205,25 @@ class TimeType(type_base.BaseType):
         self.__usecs.deserialize(data, offset)
         offset += self.__usecs.getSize()
 
-    def getSize(self):
+    @classmethod
+    def getSize(cls):
         """
         Return the size of the time type object when serialized
 
         Returns:
             The size of the time type object when serialized
         """
-        return (
-            self.__timeBase.getSize()
-            + self.__timeContext.getSize()
-            + self.__secs.getSize()
-            + self.__usecs.getSize()
-        )
+        return U16Type.getSize() + U8Type.getSize() + U32Type.getSize() + U32Type.getSize()
+
+    @classmethod
+    def getMaxSize(cls):
+        """
+        Return the size of the time type object when serialized
+
+        Returns:
+            The size of the time type object when serialized
+        """
+        return cls.getSize()
 
     @staticmethod
     def compare(t1, t2):

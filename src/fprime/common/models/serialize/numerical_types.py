@@ -31,6 +31,11 @@ class NumericalType(ValueType, abc.ABC):
         """Gets the size of the integer based on the size specified in the class name"""
         return int(cls.get_bits() >> 3)  # Divide by 8 quickly
 
+    @classmethod
+    def getMaxSize(cls):
+        """ Maximum size of type """
+        return cls.getSize()  # Always the same as getSize
+
     @staticmethod
     @abc.abstractmethod
     def get_serialize_format():
