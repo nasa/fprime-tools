@@ -107,6 +107,7 @@ def valid_values_test(type_input, valid_values, sizes):
             assert (
                 serialized == new_serialized_bytes
             ), "Repeated serialization has failed"
+    return instantiation
 
 
 def invalid_values_test(
@@ -161,7 +162,9 @@ def ser_deser_time_test(t_base, t_context, secs, usecs):
 
 def test_boolean_nominal():
     """Tests the nominal cases of a BoolType"""
-    valid_values_test(BoolType, [True, False], 1)
+    instance = valid_values_test(BoolType, [True, False], 1)
+    # Make sure max size is the same as the size and can be derived from the class
+    assert instance.getSize() == instance.__class__.getMaxSize()
 
 
 def test_boolean_off_nominal():
@@ -175,7 +178,9 @@ def test_int_types_nominal():
     """Tests the integer types"""
     for type_input, size in [(I8Type, 1), (I16Type, 2), (I32Type, 4), (I64Type, 8)]:
         total = pow(2, (size * 8) - 1)
-        valid_values_test(type_input, [0, -1, 1, -total, total - 1], size)
+        instance = valid_values_test(type_input, [0, -1, 1, -total, total - 1], size)
+        # Make sure max size is the same as the size and can be derived from the class
+        assert instance.getSize() == instance.__class__.getMaxSize()
 
 
 def test_int_types_off_nominal():
@@ -195,7 +200,9 @@ def test_uint_types_nominal():
     """Tests the integer types"""
     for type_input, size in [(U8Type, 1), (U16Type, 2), (U32Type, 4), (U64Type, 8)]:
         max_int = pow(2, (size * 8)) - 1
-        valid_values_test(type_input, [0, 1, max_int - 1, max_int], size)
+        instance = valid_values_test(type_input, [0, 1, max_int - 1, max_int], size)
+        # Make sure max size is the same as the size and can be derived from the class
+        assert instance.getSize() == instance.__class__.getMaxSize()
 
 
 def test_uint_types_off_nominal():
@@ -215,8 +222,12 @@ def test_uint_types_off_nominal():
 
 def test_float_types_nominal():
     """Tests the integer types"""
-    valid_values_test(F32Type, [0.31415000557899475, 0.0, -3.141590118408203], 4)
-    valid_values_test(F64Type, [0.31415000557899475, 0.0, -3.141590118408203], 8)
+    instance = valid_values_test(F32Type, [0.31415000557899475, 0.0, -3.141590118408203], 4)
+    # Make sure max size is the same as the size and can be derived from the class
+    assert instance.getSize() == instance.__class__.getMaxSize()
+    instance = valid_values_test(F64Type, [0.31415000557899475, 0.0, -3.141590118408203], 8)
+    # Make sure max size is the same as the size and can be derived from the class
+    assert instance.getSize() == instance.__class__.getMaxSize()
 
 
 def test_float_types_off_nominal():
@@ -238,7 +249,9 @@ def test_enum_nominal():
     members = {"MEMB1": 0, "MEMB2": 6, "MEMB3": 9}
     enum_class = EnumType.construct_type("SomeEnum", members)
     valid = ["MEMB1", "MEMB2", "MEMB3"]
-    valid_values_test(enum_class, valid, [4] * len(valid))
+    instance = valid_values_test(enum_class, valid, [4] * len(valid))
+    # Make sure max size is the same as the size and can be derived from the class
+    assert instance.getSize() == instance.__class__.getMaxSize()
 
 
 def test_enum_off_nominal():
@@ -259,9 +272,11 @@ def test_string_nominal():
     """Tests named string types"""
     py_string = "ABC123DEF456"
     string_type = StringType.construct_type("MyFancyString", max_length=10)
-    valid_values_test(
+    instance = valid_values_test(
         string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9]
     )
+    # String type defined a max-size of 10 plus 2 for the size data
+    assert instance.__class__.getMaxSize() == 10+2
 
 
 def test_string_off_nominal():
@@ -294,15 +309,16 @@ def test_serializable_basic():
         ],
     ]
     valid_values = [
-        ({"member1": 123, "member2": 456, "member3": -234}, 4 + 4 + 8),
-        ({"member4": "345", "member5": "abc1", "member6": 213}, 5 + 6 + 8),
+        ({"member1": 123, "member2": 456, "member3": -234}, 4 + 4 + 8, 4 + 4 + 8),
+        ({"member4": "345", "member5": "abc1", "member6": 213}, 5 + 6 + 8, 12 + 6 + 8),
     ]
 
-    for index, (members, (valid, size)) in enumerate(zip(member_list, valid_values)):
+    for index, (members, (valid, size, max_size)) in enumerate(zip(member_list, valid_values)):
         serializable_type = SerializableType.construct_type(
             f"BasicSerializable{index}", members
         )
-        valid_values_test(serializable_type, [valid], [size])
+        instance = valid_values_test(serializable_type, [valid], [size])
+        assert instance.__class__.getMaxSize() == max_size  # Sum of sizes of member list
 
 
 def test_serializable_basic_off_nominal():
@@ -368,11 +384,12 @@ def test_serializable_advanced():
         "field4": ["", "123", "6"],
         "field5": {"subfield1": 3234, "subfield2": ["abc", "def", "abc"]},
     }
-    valid_values_test(
+    instance = valid_values_test(
         serializable_class,
         [serializable1],
         [5 + 4 + 4 + (2 + 5 + 3) + (4 + (5 + 5 + 5))],
     )
+    assert instance.__class__.getMaxSize() == (5 + 4 + 4 + (3 * 5) + (4 +  (3 * 5)))  # Sum of sizes of member list
 
 
 def test_array_type():
@@ -391,9 +408,11 @@ def test_array_type():
     ]
     values = [[32, 1], [0, 1, 2, 3], ["one", "1234", "1"]]
     sizes = [8, 4, 14]
-    for ctor_args, values, size in zip(extra_ctor_args, values, sizes):
+    max_sizes = [8, 4, (2 + 18) * 3]
+    for ctor_args, values, size, max_size in zip(extra_ctor_args, values, sizes, max_sizes):
         type_input = ArrayType.construct_type(*ctor_args)
-        valid_values_test(type_input, [values], [size])
+        instance = valid_values_test(type_input, [values], [size])
+        assert instance.__class__.getMaxSize() == max_size
 
 
 def test_array_type_off_nominal():
@@ -438,6 +457,7 @@ def test_time_type():
     val = TimeType()
     size = val.getSize()
     assert size == TIME_SIZE
+    assert val.getMaxSize() == TIME_SIZE
 
     for (t_base, t_context, secs, usecs) in in_no_err_list:
         ser_deser_time_test(t_base, t_context, secs, usecs)
@@ -458,6 +478,10 @@ class Dummy(BaseType):
     def getSize(self):
         return 0
 
+    @classmethod
+    def getMaxSize(cls):
+        return 902
+
     def to_jsonable(self):
         return {"name": "dummy"}
 
@@ -476,6 +500,9 @@ def test_base_type():
     d = Dummy()
     assert d.serialize() == "serialized"
     assert d.getSize() == 0
+    assert Dummy.getMaxSize() == 902
+    assert d.getMaxSize() == 902
+
     with pytest.raises(AbstractMethodException):
         # In the Dummy class above, the deserialize method
         # is set to call the super class, which is just the

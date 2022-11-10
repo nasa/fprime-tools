@@ -137,7 +137,7 @@ class TimeType(type_base.BaseType):
     @timeBase.setter
     def timeBase(self, val):
         self._check_time_base(val)
-        self.__timeBase = fprime.common.models.serialize.numerical_types.U16Type(val)
+        self.__timeBase = U16Type(val)
 
     @property
     def timeContext(self):
@@ -145,7 +145,7 @@ class TimeType(type_base.BaseType):
 
     @timeContext.setter
     def timeContext(self, val):
-        self.__timeContext = fprime.common.models.serialize.numerical_types.U8Type(val)
+        self.__timeContext = U8Type(val)
 
     @property
     def seconds(self):
@@ -153,7 +153,7 @@ class TimeType(type_base.BaseType):
 
     @seconds.setter
     def seconds(self, val):
-        self.__secs = fprime.common.models.serialize.numerical_types.U32Type(val)
+        self.__secs = U32Type(val)
 
     @property
     def useconds(self):
@@ -162,7 +162,7 @@ class TimeType(type_base.BaseType):
     @useconds.setter
     def useconds(self, val):
         self._check_useconds(val)
-        self.__usecs = fprime.common.models.serialize.numerical_types.U32Type(val)
+        self.__usecs = U32Type(val)
 
     def serialize(self):
         """
@@ -332,11 +332,11 @@ class TimeType(type_base.BaseType):
         self._check_time_base(time_base)
         self._check_useconds(useconds)
 
-        self.__timeBase = fprime.common.models.serialize.numerical_types.U16Type(
+        self.__timeBase = U16Type(
             time_base
         )
-        self.__secs = fprime.common.models.serialize.numerical_types.U32Type(seconds)
-        self.__usecs = fprime.common.models.serialize.numerical_types.U32Type(useconds)
+        self.__secs = U32Type(seconds)
+        self.__usecs = U32Type(useconds)
 
     # The following Python special methods add support for rich comparison of TimeTypes to other
     # TimeTypes and numbers.

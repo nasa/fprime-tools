@@ -151,7 +151,7 @@ class SerializableType(DictionaryType):
     @classmethod
     def getMaxSize(cls):
         """Return the maximum size in bytes of the array"""
-        return sum(member_type.getMaxSize() for _, member_type, _, _ in self.MEMBER_LIST)
+        return sum(member_type.getMaxSize() for _, member_type, _, _ in cls.MEMBER_LIST)
 
     def to_jsonable(self):
         """
