@@ -50,5 +50,5 @@ class BoolType(ValueType):
 
     @classmethod
     def getMaxSize(cls):
-        """ Maximum size of type """
+        """Maximum size of type"""
         return cls.getSize()  # Always the same as getSize

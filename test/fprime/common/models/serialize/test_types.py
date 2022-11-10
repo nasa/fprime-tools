@@ -222,10 +222,14 @@ def test_uint_types_off_nominal():
 
 def test_float_types_nominal():
     """Tests the integer types"""
-    instance = valid_values_test(F32Type, [0.31415000557899475, 0.0, -3.141590118408203], 4)
+    instance = valid_values_test(
+        F32Type, [0.31415000557899475, 0.0, -3.141590118408203], 4
+    )
     # Make sure max size is the same as the size and can be derived from the class
     assert instance.getSize() == instance.__class__.getMaxSize()
-    instance = valid_values_test(F64Type, [0.31415000557899475, 0.0, -3.141590118408203], 8)
+    instance = valid_values_test(
+        F64Type, [0.31415000557899475, 0.0, -3.141590118408203], 8
+    )
     # Make sure max size is the same as the size and can be derived from the class
     assert instance.getSize() == instance.__class__.getMaxSize()
 
@@ -276,7 +280,7 @@ def test_string_nominal():
         string_type, [py_string[:10], py_string[:4], py_string[:7]], [12, 6, 9]
     )
     # String type defined a max-size of 10 plus 2 for the size data
-    assert instance.__class__.getMaxSize() == 10+2
+    assert instance.__class__.getMaxSize() == 10 + 2
 
 
 def test_string_off_nominal():
@@ -313,12 +317,16 @@ def test_serializable_basic():
         ({"member4": "345", "member5": "abc1", "member6": 213}, 5 + 6 + 8, 12 + 6 + 8),
     ]
 
-    for index, (members, (valid, size, max_size)) in enumerate(zip(member_list, valid_values)):
+    for index, (members, (valid, size, max_size)) in enumerate(
+        zip(member_list, valid_values)
+    ):
         serializable_type = SerializableType.construct_type(
             f"BasicSerializable{index}", members
         )
         instance = valid_values_test(serializable_type, [valid], [size])
-        assert instance.__class__.getMaxSize() == max_size  # Sum of sizes of member list
+        assert (
+            instance.__class__.getMaxSize() == max_size
+        )  # Sum of sizes of member list
 
 
 def test_serializable_basic_off_nominal():
@@ -389,7 +397,9 @@ def test_serializable_advanced():
         [serializable1],
         [5 + 4 + 4 + (2 + 5 + 3) + (4 + (5 + 5 + 5))],
     )
-    assert instance.__class__.getMaxSize() == (5 + 4 + 4 + (3 * 5) + (4 +  (3 * 5)))  # Sum of sizes of member list
+    assert instance.__class__.getMaxSize() == (
+        5 + 4 + 4 + (3 * 5) + (4 + (3 * 5))
+    )  # Sum of sizes of member list
 
 
 def test_array_type():
@@ -409,7 +419,9 @@ def test_array_type():
     values = [[32, 1], [0, 1, 2, 3], ["one", "1234", "1"]]
     sizes = [8, 4, 14]
     max_sizes = [8, 4, (2 + 18) * 3]
-    for ctor_args, values, size, max_size in zip(extra_ctor_args, values, sizes, max_sizes):
+    for ctor_args, values, size, max_size in zip(
+        extra_ctor_args, values, sizes, max_sizes
+    ):
         type_input = ArrayType.construct_type(*ctor_args)
         instance = valid_values_test(type_input, [values], [size])
         assert instance.__class__.getMaxSize() == max_size

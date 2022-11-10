@@ -38,7 +38,7 @@ class BaseType(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def getMaxSize(cls):
-        """ Get maximum size of the type """
+        """Get maximum size of the type"""
         return AbstractMethodException("getMaxSize")
 
     def __repr__(self):

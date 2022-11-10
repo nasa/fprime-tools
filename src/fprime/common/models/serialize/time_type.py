@@ -213,7 +213,9 @@ class TimeType(type_base.BaseType):
         Returns:
             The size of the time type object when serialized
         """
-        return U16Type.getSize() + U8Type.getSize() + U32Type.getSize() + U32Type.getSize()
+        return (
+            U16Type.getSize() + U8Type.getSize() + U32Type.getSize() + U32Type.getSize()
+        )
 
     @classmethod
     def getMaxSize(cls):
@@ -332,9 +334,7 @@ class TimeType(type_base.BaseType):
         self._check_time_base(time_base)
         self._check_useconds(useconds)
 
-        self.__timeBase = U16Type(
-            time_base
-        )
+        self.__timeBase = U16Type(time_base)
         self.__secs = U32Type(seconds)
         self.__usecs = U32Type(useconds)
 

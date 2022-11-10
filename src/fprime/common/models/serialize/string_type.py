@@ -78,5 +78,5 @@ class StringType(type_base.DictionaryType):
 
     @classmethod
     def getMaxSize(cls):
-        """ Get maximum size of the type """
+        """Get maximum size of the type"""
         return struct.calcsize(">H") + cls.MAX_LENGTH
