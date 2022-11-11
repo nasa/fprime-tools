@@ -10,7 +10,7 @@ import os
 import configparser
 from functools import partial
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Union, Callable, Any
 from pathlib import Path
 
 
@@ -78,6 +78,7 @@ class IniSettings:
             SettingType.PATH,
             lambda settings: settings["settings_file"],
         ),
+        ("default_cmake_options", SettingType.STRING, ""),
     ]
 
     @staticmethod
@@ -116,14 +117,17 @@ class IniSettings:
     @staticmethod
     def read_setting(
         config_parser: configparser.ConfigParser,
-        settings: dict,
+        settings: Dict[str, Any],
         section: str,
         key: str,
         settings_type: SettingType,
-        default,
+        default: Union[Callable, Any],
     ):
         """Reads an individual setting"""
-        get_default_value = lambda: default(settings) if callable(default) else default
+
+        def get_default_value():
+            """Calculates the default value for the given setting"""
+            return default(settings) if callable(default) else default
 
         if config_parser is None:
             value = get_default_value()

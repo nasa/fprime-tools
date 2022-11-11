@@ -39,6 +39,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -58,6 +59,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -79,6 +81,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -100,6 +103,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
     ]

@@ -311,6 +311,9 @@ class Build:
             if self.get_settings(setting, None) is not None
         }
 
+        # Load in the default settings
+        self.get_settings("default_cmake_options", None)
+
         if "FPRIME_LIBRARY_LOCATIONS" in cmake_args:
             cmake_args["FPRIME_LIBRARY_LOCATIONS"] = ";".join(
                 [str(location) for location in cmake_args["FPRIME_LIBRARY_LOCATIONS"]]
@@ -387,10 +390,23 @@ class Build:
             cmake_args: cmake arguments to pass into the generate step
         """
         try:
+
+            def split_pair(item):
+                """Process an item into a two-tuple always"""
+                return tuple([*item.strip().split("=", 1), ""][:2])
+
+            default_options_text = self.get_settings("default_cmake_options", None)
+            default_options = default_options_text.split("\n")
+
+            default_cmake_args = {
+                option: value
+                for (option, value) in [split_pair(item) for item in default_options]
+            }
+
             self.cmake.generate_build(
                 self.deployment,
                 self.build_dir,
-                {**cmake_args, **self.get_cmake_args()},
+                {**default_cmake_args, **cmake_args, **self.get_cmake_args()},
                 environment=self.settings.get("environment", None),
             )
         except CMakeException as cexc:
