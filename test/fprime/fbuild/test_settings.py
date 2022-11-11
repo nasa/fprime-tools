@@ -39,6 +39,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -58,6 +59,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -79,6 +81,7 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
             },
         },
         {
@@ -100,6 +103,29 @@ def test_settings():
                 "ac_constants": full_path("..") / "config" / "AcConstants.ini",
                 "project_root": full_path(".."),
                 "config_directory": full_path("..") / "config",
+                "default_cmake_options": "",
+            },
+        },
+        {
+            "file": "settings-multi-line-default-options.ini",
+            "expected": {
+                "settings_file": full_path(
+                    "settings-data/settings-multi-line-default-options.ini"
+                ),
+                "default_toolchain": "native",
+                "default_ut_toolchain": "native",
+                "framework_path": full_path(".."),
+                "install_destination": full_path("settings-data/build-artifacts"),
+                "library_locations": [],
+                "environment_file": full_path(
+                    "settings-data/settings-multi-line-default-options.ini"
+                ),
+                "environment": {},
+                "component_cookiecutter": "default",
+                "ac_constants": full_path("..") / "config" / "AcConstants.ini",
+                "project_root": full_path(".."),
+                "config_directory": full_path("..") / "config",
+                "default_cmake_options": "OPTION1=ABC\nOPTION2=123\nOPTION3=Something",
             },
         },
     ]

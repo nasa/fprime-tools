@@ -96,7 +96,7 @@ def test_get_fprime_configuration():
 def test_get_include_locations():
     """
     Test all the include locations. This will ensure that values are properly read from a cache listing. This will
-    support various other portions of the system, so debug here firest.
+    support various other portions of the system, so debug here first.
     """
     test_data = {
         "grand-unified": ["/home/user11/fprime"],
