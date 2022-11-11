@@ -65,7 +65,7 @@ def print_info(
         print(
             f"    Available global targets: {' '.join(global_generic_targets.keys())}"
         )
-        print("  ----------------------------------------------------------")
+        print(f'{"  ":-<60}')
     # Artifact locations come afterwards
     for (
         build_type,
