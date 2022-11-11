@@ -401,6 +401,7 @@ class Build:
             default_cmake_args = {
                 option: value
                 for (option, value) in [split_pair(item) for item in default_options]
+                if option != ""
             }
 
             self.cmake.generate_build(
