@@ -225,6 +225,7 @@ class TimeType(type_base.BaseType):
         Returns:
             The size of the time type object when serialized
         """
+        # Always the same as getSize. Must be updated when time types are configurable.
         return cls.getSize()
 
     @staticmethod
