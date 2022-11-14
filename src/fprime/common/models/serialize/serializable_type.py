@@ -148,6 +148,11 @@ class SerializableType(DictionaryType):
         """The size of a struct is the size of all the members"""
         return sum(self._val.get(name).getSize() for name, _, _, _ in self.MEMBER_LIST)
 
+    @classmethod
+    def getMaxSize(cls):
+        """Return the maximum size in bytes of the array"""
+        return sum(member_type.getMaxSize() for _, member_type, _, _ in cls.MEMBER_LIST)
+
     def to_jsonable(self):
         """
         JSONable type for a serializable
