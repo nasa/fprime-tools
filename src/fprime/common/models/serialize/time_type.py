@@ -396,7 +396,7 @@ class TimeType(type_base.BaseType):
         """
         num = max(num, 0)
         self.seconds = int(math.floor(num))
-        self.useconds = int(round((num - self.seconds) * 1000000))
+        self.useconds = int(math.floor((num - self.seconds) * 1000000))
 
     def get_type_from_float(self, num):
         """
