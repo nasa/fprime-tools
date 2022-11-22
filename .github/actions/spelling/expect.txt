@@ -170,6 +170,7 @@ rstrip
 rsub
 rtd
 rtruediv
+sanitizers
 Sched
 SCLK
 scm
