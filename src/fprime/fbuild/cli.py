@@ -51,7 +51,7 @@ def run_fbuild_cli(
         toolchain = build.find_toolchain()
         print(f"[INFO] Generating build directory at: {build.build_dir}")
         print(f"[INFO] Using toolchain file {toolchain} for platform {parsed.platform}")
-        if parsed.sanitize == True:
+        if (parsed.ut == True and parsed.disable_sanitizers == False):
             # The following options are defined in F' to have CMake enable the sanitizers
             cmake_args["ENABLE_SANITIZER_LEAK"] = "ON"
             cmake_args["ENABLE_SANITIZER_ADDRESS"] = "ON"
@@ -190,17 +190,17 @@ def add_special_targets(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     generate_parser.add_argument(
+        "--disable-sanitizers",
+        default=False,
+        help="Disable the compiler sanitizers. Sanitizers are only enabled by default when --ut is provided.",
+        action="store_true",
+    )
+    generate_parser.add_argument(
         "-Dxyz",
         action="append",
         help="Pass -D flags through to CMakes",
         nargs=1,
         default=[],
-    )
-    generate_parser.add_argument(
-        "--sanitize",
-        default=False,
-        help="Enable sanitizers at compilation (leak, address, undefined behavior)",
-        action="store_true",
     )
     purge_parser = subparsers.add_parser(
         "purge",
