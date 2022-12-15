@@ -103,7 +103,7 @@ def hash_to_file(
 
 
 def template(
-    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str]
+    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
 ):
     """Processes new command
 
@@ -112,6 +112,7 @@ def template(
         parsed: parsed arguments
         _: unused cmake arguments
         __: unused make arguments
+        ___: unused pass through arguments
     """
     if parsed.component and not parsed.port:
         return new_component(build.deployment, parsed.platform, parsed.verbose, build)
