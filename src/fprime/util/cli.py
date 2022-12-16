@@ -123,7 +123,11 @@ def template(
 
 
 def run_code_format(
-    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___: List[str],
+    build: Build,
+    parsed: argparse.Namespace,
+    _: Dict[str, str],
+    __: Dict[str, str],
+    ___: List[str],
 ):
     """Runs code formatting using clang-format
 
@@ -142,7 +146,7 @@ def run_code_format(
     clang_formatter = ClangFormatter(
         "clang-format",
         build.settings.get("framework_path", Path(".")) / ".clang-format",
-        options
+        options,
     )
     if not clang_formatter.is_supported():
         print(
@@ -221,14 +225,14 @@ def add_special_parsers(
 
     # Code formatting with clang-format
     format_parser = subparsers.add_parser(
-        "format", 
+        "format",
         help=help_text.short("format"),
         description=help_text.long("format"),
         parents=[common],
         add_help=True,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        conflict_handler='resolve'
-    ).add_argument_group('format utility arguments')
+        conflict_handler="resolve",
+    ).add_argument_group("format utility arguments")
     format_parser.add_argument(
         "-x", "--no-backup", action="store_true", help="Disable backups"
     )
@@ -236,10 +240,17 @@ def add_special_parsers(
         "-q", "--quiet", action="store_true", help="Disable clang-format verbose mode"
     )
     format_parser.add_argument(
-        "--force", action="store_true", help="Force all listed files to be passed to clang-format (no file extension check)"
+        "--force",
+        action="store_true",
+        help="Force all listed files to be passed to clang-format (no file extension check)",
     )
     format_parser.add_argument(
-        "-f", "--files", nargs="*", default=[], type=Path, help="List of files to format",
+        "-f",
+        "--files",
+        nargs="*",
+        default=[],
+        type=Path,
+        help="List of files to format",
     )
     format_parser.add_argument(
         "--stdin", action="store_true", help="Read stdin for list of files to format"
@@ -250,4 +261,9 @@ def add_special_parsers(
         default=[],
         help="If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
     )
-    return {"hash-to-file": hash_to_file, "info": print_info, "new": template, "format": run_code_format}
+    return {
+        "hash-to-file": hash_to_file,
+        "info": print_info,
+        "new": template,
+        "format": run_code_format,
+    }

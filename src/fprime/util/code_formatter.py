@@ -22,28 +22,32 @@ import re
 MARKER = "// WARNING: fprime-util format mishap"
 
 # POST pattern is different because the formatting will likely introduce whitespaces
-PRIVATE_PRE_PATTERN    = f"private:{MARKER}"
-PRIVATE_POST_PATTERN   = f"private:[\s]*{MARKER}"
-PROTECTED_PRE_PATTERN  = f"protected:{MARKER}"
+PRIVATE_PRE_PATTERN = f"private:{MARKER}"
+PRIVATE_POST_PATTERN = f"private:[\s]*{MARKER}"
+PROTECTED_PRE_PATTERN = f"protected:{MARKER}"
 PROTECTED_POST_PATTERN = f"protected:[\s]*{MARKER}"
-STATIC_PRE_PATTERN     = f"static:{MARKER}"
-STATIC_POST_PATTERN    = f"static:[\s]*{MARKER}"
+STATIC_PRE_PATTERN = f"static:{MARKER}"
+STATIC_POST_PATTERN = f"static:[\s]*{MARKER}"
 
 # clang-format will try to format everything it is given - restrict for the time being
-VALID_EXTENSIONS = [".cpp", ".c++", ".cxx", ".cc", ".c", ".hpp", ".h++", ".hxx", ".hh", ".h"]
-
+VALID_EXTENSIONS = [
+    ".cpp",
+    ".c++",
+    ".cxx",
+    ".cc",
+    ".c",
+    ".hpp",
+    ".h++",
+    ".hxx",
+    ".hh",
+    ".h",
+]
 
 
 class ClangFormatter(ExecutableAction):
-    """Class encapsulating the clang-format logic for fprime-util
-    """
+    """Class encapsulating the clang-format logic for fprime-util"""
 
-    def __init__(
-            self,
-            executable: str,
-            style_file: "Path",
-            options: Dict
-    ):
+    def __init__(self, executable: str, style_file: "Path", options: Dict):
         super().__init__(TargetScope.LOCAL)
         self.executable = executable
         self.style_file = style_file
@@ -66,8 +70,10 @@ class ClangFormatter(ExecutableAction):
         if not filepath.is_file():
             print(f"[INFO] Skipping {filepath} : is not a file.")
         elif self.validate_extensions and (filepath.suffix not in VALID_EXTENSIONS):
-            print(f"[INFO] Skipping {filepath} : unrecognized C/C++ file extension "
-                  f"('{filepath.suffix}'). Use --force to force format.""")
+            print(
+                f"[INFO] Skipping {filepath} : unrecognized C/C++ file extension "
+                f"('{filepath.suffix}'). Use --force to force format."
+            )
         else:
             self._files_to_format.append(filepath)
 
@@ -83,26 +89,27 @@ class ClangFormatter(ExecutableAction):
                 content = file.read()
             # Replace the strings in the file content
             content = re.sub("PROTECTED:", PROTECTED_PRE_PATTERN, content)
-            content = re.sub("PRIVATE:",   PRIVATE_PRE_PATTERN,   content)
-            content = re.sub("STATIC:",    STATIC_PRE_PATTERN,    content)
+            content = re.sub("PRIVATE:", PRIVATE_PRE_PATTERN, content)
+            content = re.sub("STATIC:", STATIC_PRE_PATTERN, content)
             # Write the file out to the same location, seemingly in-place
             with open(filepath, "w") as file:
                 file.write(content)
 
     def _postprocess_files(self) -> None:
-        """Postprocess a file to restore the access specifier macros.
-        """
+        """Postprocess a file to restore the access specifier macros."""
         for filepath in self._files_to_format:
             # Same logic as _preprocess_files()
             with open(filepath, "r") as file:
                 content = file.read()
             content = re.sub(PROTECTED_POST_PATTERN, "PROTECTED:", content)
-            content = re.sub(PRIVATE_POST_PATTERN,   "PRIVATE:",   content)
-            content = re.sub(STATIC_POST_PATTERN,    "STATIC:",    content)
+            content = re.sub(PRIVATE_POST_PATTERN, "PRIVATE:", content)
+            content = re.sub(STATIC_POST_PATTERN, "STATIC:", content)
             with open(filepath, "w") as file:
                 file.write(content)
 
-    def execute(self, builder: "Build", context: "Path", args: Tuple[Dict[str, str], List[str]]):
+    def execute(
+        self, builder: "Build", context: "Path", args: Tuple[Dict[str, str], List[str]]
+    ):
         """Execute clang-format on the files that were staged.
 
         Args:
@@ -115,8 +122,10 @@ class ClangFormatter(ExecutableAction):
             print("[INFO] No files were formatted.")
             return 0
         if not self.style_file.is_file():
-            print(f"[ERROR] No .clang-format file found in {self.style_file.parent}. "
-                    "Override location with --pass-through --style=file:<path>.")
+            print(
+                f"[ERROR] No .clang-format file found in {self.style_file.parent}. "
+                "Override location with --pass-through --style=file:<path>."
+            )
             return 1
         # Backup files unless --no-backup is requested
         if self.backup:
