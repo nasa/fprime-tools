@@ -282,6 +282,38 @@ Examples:
 WARNING: prototype code. Not recommended for inexperienced users. '{EXECUTABLE} new' runs a wizard to create new ports
 and components in fprime. The code has not been updated to use FPP models. Please check back later.
 """,
+    "format": f"""{EXECUTABLE} format ({VERSION}): Formats C/C++ files using clang-format
+
+'{EXECUTABLE} format' uses 'clang-format' to format C/C++ files. It uses the style specified in the .clang-format file
+found at the root of the F' framework used by the project (i.e. the 'framework_path' specified in settings.ini).
+Files are specified through stdin or by using the '--files [<path/to/file>]*' flag. When reading from stdin, file paths
+should be separated by whitespace characters.
+Because clang-format will try to format any text file it is fed, '{EXECUTABLE} format' restricts by default the files
+that are processed to commonly used C/C++ file extensions (cpp, c++, cxx, cc, c, and their 'h' equivalents). Backup
+copies of the formatted files are also created by default.
+
+Note: '{EXECUTABLE} format' requires that the 'clang-format' utility is installed and in the PATH.
+More information at https://clang.llvm.org/docs/ClangFormat.html
+
+Examples:
+
+  -- Manual usage --
+  {EXECUTABLE} format -f Main.cpp Main.hpp
+  {EXECUTABLE} format -f Imu/*
+  {EXECUTABLE} format -f *.hpp --pass-through --dry-run
+  
+  -- From stdin using Git | format all changed files --
+  git diff --name-only --relative | {EXECUTABLE} format --stdin
+
+  -- Format all C/C++ files within a module --
+  cd Ref/SignalGen
+  find . | {EXECUTABLE} format --stdin
+
+  -- With file list --
+  {EXECUTABLE} format --stdin < files-to-format.txt
+  {EXECUTABLE} format --files OtherFile.cpp --stdin < files-to-format.txt
+
+""",
 }
 
 
