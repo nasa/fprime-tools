@@ -16,7 +16,7 @@ import re
 
 
 # MARKER is needed to differentiate at postprocess between access specifiers
-# that were previously MACRO'ed uppercase, and those that were originally lowercase.
+# that were previously an uppercase MACRO, and those that were originally lowercase.
 # MARKER *MUST* be a comment for the formatting to behave - so might as well make it
 # a meaningful warning in case it's not postprocessed correctly
 MARKER = "// WARNING: fprime-util format mishap"

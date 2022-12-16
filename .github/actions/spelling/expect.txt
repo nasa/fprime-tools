@@ -1,3 +1,4 @@
+bak
 cargs
 cexc
 cfg
@@ -59,6 +60,7 @@ fh
 filecmp
 FILEID
 fileobj
+filepath
 firest
 floordiv
 FPGA
@@ -111,6 +113,7 @@ kevin
 kwargs
 len
 lld
+llvm
 locs
 lstrip
 lxml
@@ -136,7 +139,7 @@ pathlib
 Peet
 pexpect
 Popen
-
+postprocessed
 proj
 ptf
 py
@@ -186,6 +189,7 @@ stackoverflow
 startswith
 staticmethod
 stderr
+stdin
 stdint
 stdout
 strftime
@@ -229,6 +233,7 @@ venv
 versioning
 viewcode
 whitelist
+whitespaces
 workdir
 www
 wxgui
