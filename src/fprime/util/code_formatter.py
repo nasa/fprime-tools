@@ -17,7 +17,7 @@ import re
 
 # MARKER is needed to differentiate at postprocess between access specifiers
 # that were previously an uppercase MACRO, and those that were originally lowercase.
-# MARKER *MUST* be a comment for the formatting to behave - so might as well make it
+# MARKER must be a comment for the formatting to behave - so might as well make it
 # a meaningful warning in case it's not postprocessed correctly
 MARKER = "// WARNING: fprime-util format mishap"
 
@@ -30,7 +30,7 @@ STATIC_PRE_PATTERN = f"static:{MARKER}"
 STATIC_POST_PATTERN = f"static:[\s]*{MARKER}"
 
 # clang-format will try to format everything it is given - restrict for the time being
-VALID_EXTENSIONS = [
+ALLOWED_EXTENSIONS = [
     ".cpp",
     ".c++",
     ".cxx",
@@ -54,10 +54,15 @@ class ClangFormatter(ExecutableAction):
         self.backup = options["backup"]
         self.verbose = options["verbose"]
         self.validate_extensions = options["validate_extensions"]
+        self.allowed_extensions = ALLOWED_EXTENSIONS.copy()
         self._files_to_format: List[Path] = []
 
     def is_supported(self) -> bool:
         return bool(shutil.which(self.executable))
+
+    def whitelist_extension(self, file_ext: str) -> None:
+        """Add a file extension str to the list of allowed extension"""
+        self.allowed_extensions.append(file_ext)
 
     def stage_file(self, filepath: Path) -> None:
         """Request ClangFormatter to consider the file for formatting.
@@ -69,10 +74,12 @@ class ClangFormatter(ExecutableAction):
         """
         if not filepath.is_file():
             print(f"[INFO] Skipping {filepath} : is not a file.")
-        elif self.validate_extensions and (filepath.suffix not in VALID_EXTENSIONS):
+        elif self.validate_extensions and (
+            filepath.suffix not in self.allowed_extensions
+        ):
             print(
                 f"[INFO] Skipping {filepath} : unrecognized C/C++ file extension "
-                f"('{filepath.suffix}'). Use --force to force format."
+                f"('{filepath.suffix}'). Use --whitelist or --force."
             )
         else:
             self._files_to_format.append(filepath)

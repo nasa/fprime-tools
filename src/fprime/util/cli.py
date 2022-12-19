@@ -154,6 +154,9 @@ def run_code_format(
             file=sys.stderr,
         )
         return 1
+    # Add requested file extensions to the whitelist
+    for file_ext in parsed.whitelist:
+        clang_formatter.whitelist_extension(file_ext)
     # Stage all files that are passed through stdin, if requested
     if parsed.stdin:
         for filename in sys.stdin.read().split():
@@ -243,6 +246,12 @@ def add_special_parsers(
         "--force",
         action="store_true",
         help="Force all listed files to be passed to clang-format (no file extension check)",
+    )
+    format_parser.add_argument(
+        "--whitelist",
+        action="append",
+        default=[],
+        help="Add a file extension to the allowed set",
     )
     format_parser.add_argument(
         "-f",

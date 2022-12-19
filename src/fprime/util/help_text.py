@@ -313,6 +313,10 @@ Examples:
   {EXECUTABLE} format --stdin < files-to-format.txt
   {EXECUTABLE} format --files OtherFile.cpp --stdin < files-to-format.txt
 
+  -- Allow additional file extension -- 
+  {EXECUTABLE} format -f Main.cpp main.py --whitelist .py
+
+
 """,
 }
 
