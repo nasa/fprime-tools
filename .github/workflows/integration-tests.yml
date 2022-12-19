@@ -12,7 +12,7 @@ jobs:
         fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
