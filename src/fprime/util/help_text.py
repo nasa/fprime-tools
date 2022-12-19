@@ -314,7 +314,7 @@ Examples:
   {EXECUTABLE} format --files OtherFile.cpp --stdin < files-to-format.txt
 
   -- Allow additional file extension -- 
-  {EXECUTABLE} format -f Main.cpp main.py --whitelist .py
+  {EXECUTABLE} format -f Main.cpp main.py --allow-extension .py
 
 
 """,

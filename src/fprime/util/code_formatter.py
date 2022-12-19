@@ -60,7 +60,7 @@ class ClangFormatter(ExecutableAction):
     def is_supported(self) -> bool:
         return bool(shutil.which(self.executable))
 
-    def whitelist_extension(self, file_ext: str) -> None:
+    def allow_extension(self, file_ext: str) -> None:
         """Add a file extension str to the list of allowed extension"""
         self.allowed_extensions.append(file_ext)
 
@@ -73,14 +73,16 @@ class ClangFormatter(ExecutableAction):
             filepath (str): file path to file to be staged.
         """
         if not filepath.is_file():
-            print(f"[INFO] Skipping {filepath} : is not a file.")
+            if self.verbose:
+                print(f"[INFO] Skipping {filepath} : is not a file.")
         elif self.validate_extensions and (
             filepath.suffix not in self.allowed_extensions
         ):
-            print(
-                f"[INFO] Skipping {filepath} : unrecognized C/C++ file extension "
-                f"('{filepath.suffix}'). Use --whitelist or --force."
-            )
+            if self.verbose:
+                print(
+                    f"[INFO] Skipping {filepath} : unrecognized C/C++ file extension "
+                    f"('{filepath.suffix}'). Use --allow-extension or --force."
+                )
         else:
             self._files_to_format.append(filepath)
 
