@@ -150,6 +150,6 @@ class ClangFormatter(ExecutableAction):
             *pass_through,
             *self._files_to_format,
         ]
-        subprocess.run(clang_args)
+        status = subprocess.run(clang_args)
         self._postprocess_files()
-        return 0
+        return status.returncode

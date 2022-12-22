@@ -164,7 +164,7 @@ def run_code_format(
     # Stage all files that are passed through --files
     for filename in parsed.files:
         clang_formatter.stage_file(Path(filename))
-    clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+    return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
 
 
 def add_special_parsers(

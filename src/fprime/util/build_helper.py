@@ -250,7 +250,7 @@ def utility_entry(args):
             if parsed.command not in ["purge", "info"]:
                 raise
         validate_tools_from_requirements(build)
-        runners[parsed.command](
+        status = runners[parsed.command](
             build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
         )
     except GenerateException as genex:
@@ -265,4 +265,4 @@ def utility_entry(args):
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
-    return 0
+    return 0 if status is None else status
