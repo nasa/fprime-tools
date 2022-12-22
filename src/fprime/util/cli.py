@@ -1,7 +1,7 @@
 """ fprime.util.cli: general CLI handling
 
 Sets up parsers and processors for general CLI targets under fprime-util that do not fit elsewhere. Includes parsers
-such as: hast-to-file, info, and others.
+such as: hast-to-file, info, format, and others.
 
 @author mstarch
 """
@@ -9,9 +9,10 @@ import argparse
 import sys
 
 from pathlib import Path
-from typing import Dict, Callable
+from typing import List, Dict, Callable
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.fbuild.interaction import new_component, new_port
+from fprime.util.code_formatter import ClangFormatter
 
 
 def print_info(
@@ -121,6 +122,51 @@ def template(
     print("[ERROR] Use --component or --port, not both.", file=sys.stderr)
 
 
+def run_code_format(
+    build: Build,
+    parsed: argparse.Namespace,
+    _: Dict[str, str],
+    __: Dict[str, str],
+    ___: List[str],
+):
+    """Runs code formatting using clang-format
+
+    Args:
+        build: used to retrieve .clang-format file
+        parsed: parsed input arguments
+        __: unused cmake_args
+        ___: unused make_args
+        ____: unused pass-through arguments
+    """
+    options = {
+        "verbose": not parsed.quiet,
+        "backup": not parsed.no_backup,
+        "validate_extensions": not parsed.force,
+    }
+    clang_formatter = ClangFormatter(
+        "clang-format",
+        build.settings.get("framework_path", Path(".")) / ".clang-format",
+        options,
+    )
+    if not clang_formatter.is_supported():
+        print(
+            f"[ERROR] Cannot find executable: {clang_formatter.executable}. Unable to run formatting.",
+            file=sys.stderr,
+        )
+        return 1
+    # Allow requested file extensions
+    for file_ext in parsed.allow_extension:
+        clang_formatter.allow_extension(file_ext)
+    # Stage all files that are passed through stdin, if requested
+    if parsed.stdin:
+        for filename in sys.stdin.read().split():
+            clang_formatter.stage_file(Path(filename))
+    # Stage all files that are passed through --files
+    for filename in parsed.files:
+        clang_formatter.stage_file(Path(filename))
+    return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+
+
 def add_special_parsers(
     subparsers, common: argparse.ArgumentParser, help_text: "HelpText"
 ) -> Dict[str, Callable]:
@@ -179,4 +225,54 @@ def add_special_parsers(
         action="store_true",
         help="Tells the new command to generate a port",
     )
-    return {"hash-to-file": hash_to_file, "info": print_info, "new": template}
+
+    # Code formatting with clang-format
+    format_parser = subparsers.add_parser(
+        "format",
+        help=help_text.short("format"),
+        description=help_text.long("format"),
+        parents=[common],
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        conflict_handler="resolve",
+    ).add_argument_group("format utility arguments")
+    format_parser.add_argument(
+        "-x", "--no-backup", action="store_true", help="Disable backups"
+    )
+    format_parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Disable clang-format verbose mode"
+    )
+    format_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force all listed files to be passed to clang-format (no file extension check)",
+    )
+    format_parser.add_argument(
+        "--allow-extension",
+        action="append",
+        default=[],
+        help="Add a file extension to the allowed set",
+    )
+    format_parser.add_argument(
+        "-f",
+        "--files",
+        nargs="*",
+        default=[],
+        type=Path,
+        help="List of files to format",
+    )
+    format_parser.add_argument(
+        "--stdin", action="store_true", help="Read stdin for list of files to format"
+    )
+    format_parser.add_argument(
+        "--pass-through",
+        nargs=argparse.REMAINDER,
+        default=[],
+        help="If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
+    )
+    return {
+        "hash-to-file": hash_to_file,
+        "info": print_info,
+        "new": template,
+        "format": run_code_format,
+    }

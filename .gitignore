@@ -43,6 +43,7 @@ core
 py_dict
 .settings
 
+/build/
 /ci-venv/
 /ci-logs*
 .eggs
