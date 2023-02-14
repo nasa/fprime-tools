@@ -242,7 +242,7 @@ def utility_entry(args):
         # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
         # build caches related to that set.
         try:
-            if parsed.command == "generate":
+            if parsed.command == "generate" or parsed.command == "format":
                 build.invent(parsed.platform, build_dir=parsed.build_cache)
             else:
                 build.load(parsed.platform, parsed.build_cache)
