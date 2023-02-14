@@ -247,7 +247,7 @@ def utility_entry(args):
             else:
                 build.load(parsed.platform, parsed.build_cache)
         except InvalidBuildCacheException:
-            if parsed.command not in ["purge", "info"]:
+            if parsed.command not in ["purge", "info", "format"]:
                 raise
         validate_tools_from_requirements(build)
         status = runners[parsed.command](
