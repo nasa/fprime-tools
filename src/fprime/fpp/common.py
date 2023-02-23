@@ -19,7 +19,7 @@ class FppMissingSupportFiles(FprimeException):
 
     def __init__(self, file):
         super().__init__(
-            f"fpp-* commands require fprime v3.1.0+. Assumed older version because {file} not found"
+            f"{file} not found. Ensure that you are running from the correct directory and using fprime v3.1.0 or higher."
         )
 
 
