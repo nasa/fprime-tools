@@ -22,7 +22,7 @@ jobs:
           python -m pip install --upgrade pip urllib3 setuptools_scm
       - name: clone fprime and gps-tutorial
         run: |
-          git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
+          git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
           git clone --recurse-submodules https://github.com/fprime-community/gps-tutorial.git
           pip install -r fprime/requirements.txt || true # Attempt to install fprime package when available
       - name: Generate correct fprime version in gps-tutorial
