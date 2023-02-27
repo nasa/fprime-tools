@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        fprime-version: ["NASA-v1.5.3", "v2.0.0", "v3.0.0", "devel"]
 
     steps:
       - uses: actions/checkout@v3
