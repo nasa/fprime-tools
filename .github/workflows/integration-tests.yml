@@ -7,9 +7,10 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-        fprime-version: [[NASA-v1.5.3, 99cef07], [v2.0.0, 521516c], [v3.0.0, 521516c], [devel, 521516c]]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        fprime-version: ["NASA-v1.5.3", "v2.0.0", "v3.0.0", "devel"]
 
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip urllib3 setuptools_scm
       - name: clone fprime and gps-tutorial
         run: |
-          git clone -b ${{ matrix.fprime-version[0] }} https://github.com/nasa/fprime.git
+          git clone -b ${{ matrix.fprime-version }} https://github.com/nasa/fprime.git
           git clone --recurse-submodules https://github.com/fprime-community/gps-tutorial.git
           pip install -r fprime/requirements.txt || true # Attempt to install fprime package when available
       - name: Generate correct fprime version in gps-tutorial
