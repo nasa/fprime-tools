@@ -241,14 +241,19 @@ def utility_entry(args):
         # Some commands, like purge and info, run on sets of directories and will attempt to load those sets later.
         # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
         # build caches related to that set.
-        try:
-            if parsed.command == "generate":
-                build.invent(parsed.platform, build_dir=parsed.build_cache)
-            else:
-                build.load(parsed.platform, parsed.build_cache)
-        except InvalidBuildCacheException:
-            if parsed.command not in ["purge", "info", "format"]:
-                raise
+        if parsed.command == "generate":
+            build.invent(parsed.platform, build_dir=parsed.build_cache)
+        else:
+            does_not_need_cache_directory = parsed.command in [
+                "purge",
+                "info",
+                "format",
+            ]
+            build.load(
+                parsed.platform,
+                parsed.build_cache,
+                skip_validation=does_not_need_cache_directory,
+            )
         validate_tools_from_requirements(build)
         status = runners[parsed.command](
             build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
