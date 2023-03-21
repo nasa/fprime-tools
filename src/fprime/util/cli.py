@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import List, Dict, Callable
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.fbuild.interaction import new_component, new_port
+from fprime.fbuild.interaction import new_component, new_port, new_deployment
 from fprime.util.code_formatter import ClangFormatter
 
 
@@ -115,12 +115,12 @@ def template(
         __: unused make arguments
         ___: unused pass through arguments
     """
-    if parsed.component and not parsed.port:
+    if parsed.component:
         return new_component(build.deployment, parsed.platform, parsed.verbose, build)
-    if parsed.port and not parsed.component:
+    if parsed.port:
         return new_port(build.deployment, build)
-    print("[ERROR] Use --component or --port, not both.", file=sys.stderr)
-
+    if parsed.deployment:
+       return new_deployment()
 
 def run_code_format(
     build: Build,
@@ -213,17 +213,24 @@ def add_special_parsers(
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    new_parser.add_argument(
+    new_exclusive = new_parser.add_mutually_exclusive_group()
+    new_exclusive.add_argument(
         "--component",
         default=False,
         action="store_true",
         help="Tells the new command to generate a component",
     )
-    new_parser.add_argument(
+    new_exclusive.add_argument(
         "--port",
         default=False,
         action="store_true",
         help="Tells the new command to generate a port",
+    )
+    new_exclusive.add_argument(
+        "--deployment",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a deployment",
     )
 
     # Code formatting with clang-format

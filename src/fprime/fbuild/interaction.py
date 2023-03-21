@@ -481,3 +481,9 @@ def new_port(deployment: Path, build: Build):
     except OSError as ose:
         print(f"[ERROR] {ose}")
     return 1
+
+
+def new_deployment():
+    """Uses cookiecutter for making new deployments"""
+    print("Creating new deployment...")
+    return 0
