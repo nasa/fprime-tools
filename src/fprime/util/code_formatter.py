@@ -97,9 +97,9 @@ class ClangFormatter(ExecutableAction):
             with open(filepath, "r") as file:
                 content = file.read()
             # Replace the strings in the file content
-            content = re.sub("PROTECTED:", PROTECTED_PRE_PATTERN, content)
-            content = re.sub("PRIVATE:", PRIVATE_PRE_PATTERN, content)
-            content = re.sub("STATIC:", STATIC_PRE_PATTERN, content)
+            content = re.sub("PROTECTED[\s]*:", PROTECTED_PRE_PATTERN, content)
+            content = re.sub("PRIVATE[\s]*:", PRIVATE_PRE_PATTERN, content)
+            content = re.sub("STATIC[\s]*:", STATIC_PRE_PATTERN, content)
             # Write the file out to the same location, seemingly in-place
             with open(filepath, "w") as file:
                 file.write(content)
