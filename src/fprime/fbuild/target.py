@@ -6,6 +6,7 @@ contain build system targets (e.g. CMake target invokers), and miscellaneous tar
 @author lestarch
 """
 import functools
+import itertools
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -56,9 +57,16 @@ class ExecutableAction(ABC):
 
     @abstractmethod
     def execute(
-        self, builder: "Build", context: Path, args: Tuple[Dict[str, str], List[str]]
+        self,
+        builder: "Build",
+        context: Path,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the given target"""
+
+    def option_args(self):
+        """List of option arguments handled by this target"""
+        return []
 
     def allows_pass_args(self):
         """Target allows pass-through arguments"""
@@ -234,6 +242,16 @@ class CompositeTarget(Target):
             True,
         )
 
+    def option_args(self):
+        """Returns the set of option arguments"""
+        return list(
+            set(
+                itertools.chain.from_iterable(
+                    [target.option_args() for target in self.targets]
+                )
+            )
+        )
+
     def allows_pass_args(self):
         """Pass args allowed if any child allows it"""
         return functools.reduce(
@@ -268,7 +286,10 @@ class BuildSystemTarget(Target):
         self.build_target = build_target
 
     def execute(
-        self, builder: "Build", context: Path, args: Tuple[Dict[str, str], List[str]]
+        self,
+        builder: "Build",
+        context: Path,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Execute a build target
 
@@ -277,9 +298,8 @@ class BuildSystemTarget(Target):
 
         Args:
             builder: builder to execute target with
-            target: target to run
             context: context path for local targets
-            make_args: make system arguments directly supplied
+            args: make system arguments directly supplied
         """
         # Global targets with build target "" must be mapped to "arg"
         build_target = (
@@ -338,6 +358,10 @@ class DelegatorTarget(Target):
             True if supported false otherwise
         """
         return self.delegate.is_supported(builder, context)
+
+    def option_args(self):
+        """Delegate the arguments"""
+        return self.delegate.option_args()
 
     def allows_pass_args(self):
         """Pass args allowed if any child allows it"""
