@@ -103,7 +103,7 @@ class Gcovr(ExecutableAction):
                 file=sys.stderr,
             )
             return
-        build_cache_resolved = Path(builder.build_dir).absolute().resolve()
+        build_cache_resolved = Path(builder.build_dir).resolve()
 
         _, pass_through_args, options = args
         include_all_ac = options["--all-ac"]
@@ -127,34 +127,22 @@ class Gcovr(ExecutableAction):
         ]
 
         build_cache_path = (
-            (
-                builder.build_dir
-                if _using_root(builder, context, self.scope)
-                else builder.get_build_cache_path(context)
-            )
-            .absolute()
-            .resolve()
-        )
+            builder.build_dir
+            if _using_root(builder, context, self.scope)
+            else builder.get_build_cache_path(context)
+        ).resolve()
 
-        coverage_output_dir = context.absolute().resolve() / "coverage"
+        coverage_output_dir = context.resolve() / "coverage"
         coverage_output_dir.mkdir(exist_ok=True)
-        project_root = (
-            builder.get_settings(
-                "project_root",
-                builder.get_settings("framework_path", builder.build_dir.parent.parent),
-            )
-            .absolute()
-            .resolve()
-        )
+        project_root = builder.get_settings(
+            "project_root",
+            builder.get_settings("framework_path", builder.build_dir.parent.parent),
+        ).resolve()
         filter_path = (
-            (
-                Path(project_root).absolute()
-                if _using_root(builder, context, self.scope)
-                else _get_project_path(builder, context)
-            )
-            .absolute()
-            .resolve()
-        )
+            Path(project_root).resolve()
+            if _using_root(builder, context, self.scope)
+            else _get_project_path(builder, context)
+        ).resolve()
         exclude_autocoders = (
             builder.get_settings("framework_path", builder.build_dir.parent.parent)
             / "Autocoders"

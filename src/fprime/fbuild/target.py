@@ -64,8 +64,19 @@ class ExecutableAction(ABC):
     ):
         """Executes the given target"""
 
-    def option_args(self):
-        """List of option arguments handled by this target"""
+    def option_args(self) -> List[Tuple[str, str]]:
+        """List of option arguments handled by this target
+
+        Option flags are switches that are not allowed arguments. The current design defaults the value to False unless
+        the switch is supplied. This function is expected to return a list of pairs of switch flag and description help
+        text. e.g.
+        [
+            (--turn-on, "Turns on a switch"),
+        ]
+
+        Returns:
+            list of tuples containing the paired flag and description
+        """
         return []
 
     def allows_pass_args(self):
