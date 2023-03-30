@@ -219,6 +219,11 @@ def utility_entry(args):
     parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
+        if parsed.command == "new" and parsed.deployment:
+            return runners[parsed.command](
+                Build(BuildType.BUILD_NORMAL, None, verbose=parsed.verbose), parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
+            )
+
         try:
             target = get_target(parsed)
             build_type = target.build_type
@@ -227,11 +232,14 @@ def utility_entry(args):
                 BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
             )
 
+        # if parsed.command == "new" and parsed.deployment:
+        #     deployment = None
         deployment = (
             Path(parsed.deploy)
             if parsed.deploy is not None
             else Build.find_nearest_deployment(Path.cwd())  # Deployments look in CWD
         )
+
         build = Build(build_type, deployment, verbose=parsed.verbose)
 
         # All commands need to load the build cache to setup the basic information for the build with the exception of
@@ -243,6 +251,8 @@ def utility_entry(args):
         # build caches related to that set.
         if parsed.command == "generate":
             build.invent(parsed.platform, build_dir=parsed.build_cache)
+        # elif parsed.command == "new" and parsed.deployment:
+        #     pass
         else:
             does_not_need_cache_directory = parsed.command in [
                 "purge",

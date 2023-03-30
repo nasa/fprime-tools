@@ -1,7 +1,7 @@
 """ fprime.util.cli: general CLI handling
 
 Sets up parsers and processors for general CLI targets under fprime-util that do not fit elsewhere. Includes parsers
-such as: hast-to-file, info, format, and others.
+such as: hash-to-file, info, format, and others.
 
 @author mstarch
 """
@@ -120,7 +120,7 @@ def template(
     if parsed.port:
         return new_port(build.deployment, build)
     if parsed.deployment:
-       return new_deployment()
+       return new_deployment(build, parsed)
 
 def run_code_format(
     build: Build,

@@ -483,7 +483,20 @@ def new_port(deployment: Path, build: Build):
     return 1
 
 
-def new_deployment():
+def new_deployment(build: Build, parsed_args):
     """Uses cookiecutter for making new deployments"""
     print("Creating new deployment...")
+    # proj_root = build.get_settings("project_root", None)
+    # parsed_args.path
+    # cookiecutter(source, extra_context={"component_namespace": deployment.name})
+    # Checks if deployment_cookiecutter is set in settings.ini file, else uses local deployment_cookiecutter template as default
+    # source = build.get_settings("deployment_cookiecutter", None)
+    # if (source is not None and source != "default"):
+    #     print(f"[INFO] Cookiecutter source: {source}")
+    # else:
+
+    source = os.path.dirname(__file__) + "/../cookiecutter_templates/cookiecutter-fprime-deployment"
+    print(f"[INFO] Cookiecutter source: using builtin template")
+    # print(Path.cwd().absolute())
+    cookiecutter(source)#, output_dir='.') #, extra_context={"component_namespace": deployment.name})
     return 0

@@ -1,5 +1,5 @@
 {
-    "author_name": "Otto Jeneretted",
     "deployment_name": "MyDeployment",
-    "path_to_fprime": "./fprime"
+    "path_to_fprime": "fprime",
+    "author_name": ""
 }
