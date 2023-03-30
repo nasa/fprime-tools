@@ -85,7 +85,15 @@ def run_fbuild_cli(
                     purge_build.purge_install()
     else:
         target = get_target(parsed)
-        target.execute(build, context=Path(parsed.path), args=(make_args, pass_through))
+        option_args = {
+            flag: getattr(parsed, flag.lstrip("-").replace("-", "_"), False)
+            for flag, _ in target.option_args()
+        }
+        target.execute(
+            build,
+            context=Path(parsed.path),
+            args=(make_args, pass_through, option_args),
+        )
 
 
 def add_target_parser(
@@ -150,6 +158,11 @@ def add_target_parser(
             default=False,
             help=f"{target.desc}{extra_help}",
         )
+    for flag, description in filter(
+        lambda flag_desc: flag_desc[0] not in flags, target.option_args()
+    ):
+        parser.add_argument(flag, action="store_true", help=f"{description}")
+        new_flags.append(flag)
     # Allow pass through arguments
     if target.pass_handler() and "--pass-through" not in flags:
         parser.add_argument(
