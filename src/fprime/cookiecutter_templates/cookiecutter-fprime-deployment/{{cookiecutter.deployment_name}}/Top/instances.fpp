@@ -18,17 +18,17 @@ module {{cookiecutter.deployment_name}} {
     stack size Default.STACK_SIZE \
     priority 140
 
-  instance rateGroup1Comp: Svc.ActiveRateGroup base id 0x0200 \
+  instance rateGroup1: Svc.ActiveRateGroup base id 0x0200 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 120
 
-  instance rateGroup2Comp: Svc.ActiveRateGroup base id 0x0300 \
+  instance rateGroup2: Svc.ActiveRateGroup base id 0x0300 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 119
 
-  instance rateGroup3Comp: Svc.ActiveRateGroup base id 0x0400 \
+  instance rateGroup3: Svc.ActiveRateGroup base id 0x0400 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 118
@@ -57,11 +57,6 @@ module {{cookiecutter.deployment_name}} {
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
-
-  # instance pingRcvr: {{cookiecutter.deployment_name}}.PingReceiver base id 0x0A00 \
-  #   queue size Default.QUEUE_SIZE \
-  #   stack size Default.STACK_SIZE \
-  #   priority 100
 
   instance eventLogger: Svc.ActiveLogger base id 0x0B00 \
     queue size Default.QUEUE_SIZE \
@@ -94,24 +89,6 @@ module {{cookiecutter.deployment_name}} {
   instance $health: Svc.Health base id 0x2000 \
     queue size 25
 
-  # instance SG1: {{cookiecutter.deployment_name}}.SignalGen base id 0x2100 \
-  #   queue size Default.QUEUE_SIZE
-
-  # instance SG2: {{cookiecutter.deployment_name}}.SignalGen base id 0x2200 \
-  #   queue size Default.QUEUE_SIZE
-
-  # instance SG3: {{cookiecutter.deployment_name}}.SignalGen base id 0x2300 \
-  #   queue size Default.QUEUE_SIZE
-
-  # instance SG4: {{cookiecutter.deployment_name}}.SignalGen base id 0x2400 \
-  #   queue size Default.QUEUE_SIZE
-
-  # instance SG5: {{cookiecutter.deployment_name}}.SignalGen base id 0x2500 \
-  #   queue size Default.QUEUE_SIZE
-
-  # instance sendBuffComp: {{cookiecutter.deployment_name}}.SendBuff base id 0x2600 \
-  #   queue size Default.QUEUE_SIZE
-
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------
@@ -134,16 +111,14 @@ module {{cookiecutter.deployment_name}} {
     type "Svc::LinuxTime" \
     at "../../Svc/LinuxTime/LinuxTime.hpp"
 
-  instance rateGroupDriverComp: Svc.RateGroupDriver base id 0x4600
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x4600
 
-  # instance recvBuffComp: {{cookiecutter.deployment_name}}.RecvBuff base id 0x4700
+  instance staticMemory: Svc.StaticMemory base id 0x4700
 
-  instance staticMemory: Svc.StaticMemory base id 0x4800
+  instance textLogger: Svc.PassiveTextLogger base id 0x4800
 
-  instance textLogger: Svc.PassiveTextLogger base id 0x4900
+  instance uplink: Svc.Deframer base id 0x4900
 
-  instance uplink: Svc.Deframer base id 0x4A00
-
-  instance systemResources: Svc.SystemResources base id 0x4B00
+  instance systemResources: Svc.SystemResources base id 0x4A00
 
 }

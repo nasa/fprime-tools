@@ -1,14 +1,10 @@
 // ======================================================================
 // \title  {{cookiecutter.deployment_name}}TopologyDefs.hpp
-// \author mstarch
+// \author {{cookiecutter.author_name}}
 // \brief required header file containing the required definitions for the topology autocoder
 //
-// \copyright
-// Copyright 2009-2022, by the California Institute of Technology.
-// ALL RIGHTS RESERVED.  United States Government Sponsorship
-// acknowledged.
 // ======================================================================
-#ifndef REF_REFTOPOLOGYDEFS_HPP
+#ifndef REF_REFTOPOLOGYDEFS_HPP // #!!
 #define REF_REFTOPOLOGYDEFS_HPP
 
 #include "Drv/BlockDriver/BlockDriver.hpp"
@@ -77,19 +73,16 @@ enum { WARN = 3, FATAL = 5 };
 namespace fileUplink {
 enum { WARN = 3, FATAL = 5 };
 }
-// namespace pingRcvr {
-// enum { WARN = 3, FATAL = 5 };
-// }
 namespace prmDb {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup1Comp {
+namespace rateGroup1 {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup2Comp {
+namespace rateGroup2 {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup3Comp {
+namespace rateGroup3 {
 enum { WARN = 3, FATAL = 5 };
 }
 }  // namespace PingEntries

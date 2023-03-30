@@ -1,12 +1,8 @@
 // ======================================================================
 // \title  Main.cpp
-// \author mstarch
-// \brief main program for reference application. Intended for CLI-based systems (Linux, macOS)
+// \author {{cookiecutter.author_name}}
+// \brief main program for the F' application. Intended for CLI-based systems (Linux, macOS)
 //
-// \copyright
-// Copyright 2009-2022, by the California Institute of Technology.
-// ALL RIGHTS RESERVED.  United States Government Sponsorship
-// acknowledged.
 // ======================================================================
 // Used to access topology functions
 #include <{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}Topology.hpp>

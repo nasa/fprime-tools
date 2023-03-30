@@ -1,14 +1,10 @@
 // ======================================================================
-// \title  Topology.hpp
-// \author mstarch
+// \title  {{cookiecutter.deployment_name}}Topology.hpp
+// \author {{cookiecutter.author_name}}
 // \brief header file containing the topology instantiation definitions
 //
-// \copyright
-// Copyright 2009-2022, by the California Institute of Technology.
-// ALL RIGHTS RESERVED.  United States Government Sponsorship
-// acknowledged.
 // ======================================================================
-#ifndef REF_REFTOPOLOGY_HPP
+#ifndef REF_REFTOPOLOGY_HPP // #!!
 #define REF_REFTOPOLOGY_HPP
 // Included for access to {{cookiecutter.deployment_name}}::TopologyState and {{cookiecutter.deployment_name}}::ConfigObjects::pingEntries. These definitions are required by the
 // autocoder, but are also used in this hand-coded topology.

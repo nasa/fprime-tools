@@ -1,12 +1,8 @@
 // ======================================================================
-// \title  Topology.cpp
-// \author mstarch
+// \title  {{cookiecutter.deployment_name}}Topology.cpp
+// \author {{cookiecutter.author_name}}
 // \brief cpp file containing the topology instantiation code
 //
-// \copyright
-// Copyright 2009-2022, by the California Institute of Technology.
-// ALL RIGHTS RESERVED.  United States Government Sponsorship
-// acknowledged.
 // ======================================================================
 // Provides access to autocoded functions
 #include <{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}TopologyAc.hpp>
@@ -68,11 +64,10 @@ Svc::Health::PingEntry pingEntries[] = {
     {PingEntries::fileDownlink::WARN, PingEntries::fileDownlink::FATAL, "fileDownlink"},
     {PingEntries::fileManager::WARN, PingEntries::fileManager::FATAL, "fileManager"},
     {PingEntries::fileUplink::WARN, PingEntries::fileUplink::FATAL, "fileUplink"},
-    // {PingEntries::pingRcvr::WARN, PingEntries::pingRcvr::FATAL, "pingRcvr"},
     {PingEntries::prmDb::WARN, PingEntries::prmDb::FATAL, "prmDb"},
-    {PingEntries::rateGroup1Comp::WARN, PingEntries::rateGroup1Comp::FATAL, "rateGroup1Comp"},
-    {PingEntries::rateGroup2Comp::WARN, PingEntries::rateGroup2Comp::FATAL, "rateGroup2Comp"},
-    {PingEntries::rateGroup3Comp::WARN, PingEntries::rateGroup3Comp::FATAL, "rateGroup3Comp"},
+    {PingEntries::rateGroup1::WARN, PingEntries::rateGroup1::FATAL, "rateGroup1"},
+    {PingEntries::rateGroup2::WARN, PingEntries::rateGroup2::FATAL, "rateGroup2"},
+    {PingEntries::rateGroup3::WARN, PingEntries::rateGroup3::FATAL, "rateGroup3"},
 };
 
 /**
@@ -82,17 +77,17 @@ Svc::Health::PingEntry pingEntries[] = {
  * allocating resources, passing-in arguments, etc. This function may be inlined into the topology setup function if
  * desired, but is extracted here for clarity.
  */
-void    configureTopology() {
+void configureTopology() {
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, CMD_SEQ_BUFFER_SIZE);
 
     // Rate group driver needs a divisor list
-    rateGroupDriverComp.configure(rateGroupDivisors, FW_NUM_ARRAY_ELEMENTS(rateGroupDivisors));
+    rateGroupDriver.configure(rateGroupDivisors, FW_NUM_ARRAY_ELEMENTS(rateGroupDivisors));
 
     // Rate groups require context arrays. Empty for {{cookiecutter.deployment_name}}erence example.
-    rateGroup1Comp.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
-    rateGroup2Comp.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
-    rateGroup3Comp.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+    rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
+    rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
+    rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
 
     // File downlink requires some project-derived properties.
     fileDownlink.configure(FILE_DOWNLINK_TIMEOUT, FILE_DOWNLINK_COOLDOWN, FILE_DOWNLINK_CYCLE_TIME,

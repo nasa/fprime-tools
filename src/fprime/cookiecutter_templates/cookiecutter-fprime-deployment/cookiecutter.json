@@ -1,9 +1,5 @@
 {
-    "author_name": "John Doe",
-    "author_email": "noreply@nospam.com",
-    "deployment_name": "MyTemplatedDeployment",
-    "dep_short_description": "Example deployment for F Prime FSW framework.",
-    "deployment_slug": "{{ cookiecutter.deployment_name|slugify(separator='', lowercase=False) }}",
-    "deployment_path": ".",
-    "deployment_path_to_project_root": ".."
+    "author_name": "Otto Jeneretted",
+    "deployment_name": "MyDeployment",
+    "path_to_fprime": "./fprime"
 }
