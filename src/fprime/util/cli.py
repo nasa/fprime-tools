@@ -32,6 +32,7 @@ def utility_entry(args):
         else:
             build = load_build(parsed)
 
+        # runners is a Dict[str, Callable] of {command_name: handler_functions} pairs
         return runners[parsed.command](
             build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
         )
