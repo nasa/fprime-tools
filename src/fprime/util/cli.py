@@ -120,7 +120,7 @@ def template(
     if parsed.port:
         return new_port(build.deployment, build)
     if parsed.deployment:
-       return new_deployment(build, parsed)
+       return new_deployment(parsed)
 
 def run_code_format(
     build: Build,
@@ -213,7 +213,13 @@ def add_special_parsers(
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    new_exclusive = new_parser.add_mutually_exclusive_group()
+    new_parser.add_argument(
+        "--overwrite",
+        default=False,
+        action="store_true",
+        help="Overwrite existing files and directories",
+    )
+    new_exclusive = new_parser.add_argument_group("'new' targets").add_mutually_exclusive_group()
     new_exclusive.add_argument(
         "--component",
         default=False,
