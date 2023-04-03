@@ -98,7 +98,7 @@ def add_special_parsers(
         "--overwrite",
         default=False,
         action="store_true",
-        help="Overwrite existing files and directories",
+        help="Generated files will overwrite existing ones",
     )
     new_exclusive = new_parser.add_argument_group(
         "'new' targets"
