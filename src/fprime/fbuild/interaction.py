@@ -484,9 +484,10 @@ def new_port(deployment: Path, build: Build):
 
 def new_deployment(parsed_args):
     """Uses cookiecutter for making new deployments"""
-    print("Creating new deployment...")
     source = os.path.dirname(__file__) + "/../cookiecutter_templates/cookiecutter-fprime-deployment"
     print(f"[INFO] Cookiecutter source: using builtin template")
 
-    cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)#, output_dir='.') #, extra_context={"component_namespace": deployment.name})
+    gen_path = cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
+    print(f"New deployment successfully created: {gen_path}")
+
     return 0
