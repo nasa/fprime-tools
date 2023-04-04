@@ -14,7 +14,7 @@
 #include <cstdlib>
 
 /**
- * \brief print commandline help message
+ * \brief print command line help message
  *
  * This will print a command line help message including the available command line arguments.
  *

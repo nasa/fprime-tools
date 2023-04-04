@@ -82,7 +82,7 @@ def validate_tools_from_requirements(build: Build):
 def load_build(parsed):
     """
     Loads Build object and returns it to the caller. Additionally, this will validate the
-    installed tool versions (such as fpp and other F' utilitiles) against the requirements.txt
+    installed tool versions (such as fpp and other F' utilities) against the requirements.txt
     """
 
     try:
