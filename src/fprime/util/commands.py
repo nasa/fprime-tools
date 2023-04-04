@@ -128,7 +128,9 @@ def run_new(
         return new_port(build.deployment, build)
     if parsed.deployment:
         return new_deployment(parsed)
-    raise NotImplementedError("`fprime-util new` target is missing or not implemented. See usage (--help).")
+    raise NotImplementedError(
+        "`fprime-util new` target is missing or not implemented. See usage (--help)."
+    )
 
 
 def run_code_format(

@@ -89,9 +89,7 @@ def load_build(parsed):
         target = get_target(parsed)
         build_type = target.build_type
     except NoSuchTargetException:
-        build_type = (
-            BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
-        )
+        build_type = BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
 
     deployment = (
         Path(parsed.deploy)
