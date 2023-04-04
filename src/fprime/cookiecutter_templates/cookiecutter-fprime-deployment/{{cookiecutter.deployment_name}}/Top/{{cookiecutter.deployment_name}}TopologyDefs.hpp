@@ -4,8 +4,8 @@
 // \brief required header file containing the required definitions for the topology autocoder
 //
 // ======================================================================
-#ifndef REF_REFTOPOLOGYDEFS_HPP // #!!
-#define REF_REFTOPOLOGYDEFS_HPP
+#ifndef {{cookiecutter.__deployment_name_upper}}_{{cookiecutter.__deployment_name_upper}}TOPOLOGYDEFS_HPP
+#define {{cookiecutter.__deployment_name_upper}}_{{cookiecutter.__deployment_name_upper}}TOPOLOGYDEFS_HPP
 
 #include "Drv/BlockDriver/BlockDriver.hpp"
 #include "Fw/Types/MallocAllocator.hpp"

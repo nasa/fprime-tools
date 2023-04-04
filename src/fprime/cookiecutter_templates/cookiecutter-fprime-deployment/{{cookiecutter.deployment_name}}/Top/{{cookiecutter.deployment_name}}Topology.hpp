@@ -4,8 +4,8 @@
 // \brief header file containing the topology instantiation definitions
 //
 // ======================================================================
-#ifndef REF_REFTOPOLOGY_HPP // #!!
-#define REF_REFTOPOLOGY_HPP
+#ifndef {{cookiecutter.__deployment_name_upper}}_{{cookiecutter.__deployment_name_upper}}TOPOLOGY_HPP
+#define {{cookiecutter.__deployment_name_upper}}_{{cookiecutter.__deployment_name_upper}}TOPOLOGY_HPP
 // Included for access to {{cookiecutter.deployment_name}}::TopologyState and {{cookiecutter.deployment_name}}::ConfigObjects::pingEntries. These definitions are required by the
 // autocoder, but are also used in this hand-coded topology.
 #include <{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}TopologyDefs.hpp>
