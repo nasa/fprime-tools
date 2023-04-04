@@ -14,6 +14,7 @@ from typing import Dict, Callable
 
 from fprime.fbuild.target import Target
 from fprime.fbuild.cli import add_fbuild_parsers
+from fprime.fbuild.builder import GenerateException, UnableToDetectDeploymentException
 
 from fprime.fpp.cli import add_fpp_parsers
 
@@ -36,6 +37,14 @@ def utility_entry(args):
         return runners[parsed.command](
             build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
         )
+
+    except GenerateException as genex:
+        print(
+            f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
+            file=sys.stderr,
+        )
+    except UnableToDetectDeploymentException:
+        print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
     return 1

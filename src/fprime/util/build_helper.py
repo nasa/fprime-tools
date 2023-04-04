@@ -13,16 +13,10 @@ are supported herein:
 
 @author mstarch
 """
-import sys
 from pathlib import Path
 
 from fprime.fbuild.target import NoSuchTargetException
-from fprime.fbuild.builder import (
-    Build,
-    BuildType,
-    GenerateException,
-    UnableToDetectDeploymentException,
-)
+from fprime.fbuild.builder import Build, BuildType
 from .versioning import get_version, VersionException
 from fprime.fbuild.cli import get_target
 
@@ -92,53 +86,40 @@ def load_build(parsed):
     """
 
     try:
-        try:
-            target = get_target(parsed)
-            build_type = target.build_type
-        except NoSuchTargetException:
-            build_type = (
-                BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
-            )
-
-        deployment = (
-            Path(parsed.deploy)
-            if parsed.deploy is not None
-            else Build.find_nearest_deployment(Path.cwd())  # Deployments look in CWD
+        target = get_target(parsed)
+        build_type = target.build_type
+    except NoSuchTargetException:
+        build_type = (
+            BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
         )
 
-        build = Build(build_type, deployment, verbose=parsed.verbose)
+    deployment = (
+        Path(parsed.deploy)
+        if parsed.deploy is not None
+        else Build.find_nearest_deployment(Path.cwd())  # Deployments look in CWD
+    )
 
-        # All commands need to load the build cache to setup the basic information for the build with the exception of
-        # generate, which is run before the creation of the build cache and thus must invent the cache instead. This
-        # call will ensure the build is in a ready state before attempting to check tool versions and run the command.
-        #
-        # Some commands, like purge and info, run on sets of directories and will attempt to load those sets later.
-        # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
-        # build caches related to that set.
-        if parsed.command == "generate":
-            build.invent(parsed.platform, build_dir=parsed.build_cache)
-        else:
-            does_not_need_cache_directory = parsed.command in [
-                "purge",
-                "info",
-                "format",
-            ]
-            build.load(
-                parsed.platform,
-                parsed.build_cache,
-                skip_validation=does_not_need_cache_directory,
-            )
-        validate_tools_from_requirements(build)
-    except GenerateException as genex:
-        print(
-            f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
-            file=sys.stderr,
+    build = Build(build_type, deployment, verbose=parsed.verbose)
+
+    # All commands need to load the build cache to setup the basic information for the build with the exception of
+    # generate, which is run before the creation of the build cache and thus must invent the cache instead. This
+    # call will ensure the build is in a ready state before attempting to check tool versions and run the command.
+    #
+    # Some commands, like purge and info, run on sets of directories and will attempt to load those sets later.
+    # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
+    # build caches related to that set.
+    if parsed.command == "generate":
+        build.invent(parsed.platform, build_dir=parsed.build_cache)
+    else:
+        does_not_need_cache_directory = parsed.command in [
+            "purge",
+            "info",
+            "format",
+        ]
+        build.load(
+            parsed.platform,
+            parsed.build_cache,
+            skip_validation=does_not_need_cache_directory,
         )
-        sys.exit(1)
-    except UnableToDetectDeploymentException:
-        print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
-        sys.exit(1)
-    except Exception as exc:
-        print(f"[ERROR] {exc}", file=sys.stderr)
-        sys.exit(1)
+    validate_tools_from_requirements(build)
     return build
