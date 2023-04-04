@@ -201,7 +201,7 @@ rsub
 rtd
 rtruediv
 sanitizers
-Sched
+sched
 SCLK
 scm
 sdd
