@@ -1,170 +1,61 @@
-""" fprime.util.cli: general CLI handling
+""" fprime.util.cli: CLI handling
 
-Sets up parsers and processors for general CLI targets under fprime-util that do not fit elsewhere. Includes parsers
-such as: hast-to-file, info, format, and others.
+Defines main entrypoint for fprime-util and sets up parsers for general CLI targets.
 
 @author mstarch
 """
 import argparse
 import sys
+import re
+import os
 
 from pathlib import Path
-from typing import List, Dict, Callable
-from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.fbuild.interaction import new_component, new_port
-from fprime.util.code_formatter import ClangFormatter
+from typing import Dict, Callable
+
+from fprime.fbuild.target import Target
+from fprime.fbuild.cli import add_fbuild_parsers
+from fprime.fbuild.builder import GenerateException, UnableToDetectDeploymentException
+
+from fprime.fpp.cli import add_fpp_parsers
+
+from fprime.util.help_text import HelpText
+from fprime.util.build_helper import load_build
+from fprime.util.commands import run_hash_to_file, run_info, run_new, run_code_format
 
 
-def print_info(
-    base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
-):
-    """Builds and prints the informational output block
+def utility_entry(args):
+    """Entrypoint for fprime-util, main interface to F' utility"""
+    parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
-    Handles the info command using the given build as a template to discover other build types. This will load the
-    information and prints it to the screen.
+    try:
+        if skip_build_loading(parsed):
+            build = None
+        else:
+            build = load_build(parsed)
 
-    Args:
-        base: base build used to find other builds including information
-        parsed: parsed command namespace
-        _: unused cmake arguments
-        __: unused make arguments
-        ___: unused pass through arguments
-    """
-    # Roll up targets for more concise display. Dictionaries are used as their keys become a set and as of Python 3.7
-    # the native dictionary maintains ordering. Thus it acts as an "ordered set" for a nice predictable display order
-    # derived from the order of target definitions.
-    build_infos = {}
-    local_generic_targets = {}
-    global_generic_targets = {}
-    # Loop through available builds and harvest targets
-    for build in Build.get_build_list(base, parsed.build_cache):
-        build_info = build.get_build_info(Path(parsed.path))
-        # Target list
-        local_targets = {
-            f"'{target}'": "" for target in build_info.get("local_targets", [])
-        }
-        global_targets = {
-            f"'{target}'": "" for target in build_info.get("global_targets", [])
-        }
-        build_artifacts = (
-            build_info.get("auto_location")
-            if build_info.get("auto_location") is not None
-            else "N/A",
-            build_info.get("build_dir", "Unknown"),
+        # runners is a Dict[str, Callable] of {command_name: handler_functions} pairs
+        return runners[parsed.command](
+            build, parsed, cmake_args, make_args, getattr(parsed, "pass_through", [])
         )
-        local_generic_targets.update(local_targets)
-        global_generic_targets.update(global_targets)
-        build_infos[build.build_type] = build_artifacts
 
-    # Print out directory and deployment target sections
-    if local_generic_targets.keys() or global_generic_targets.keys():
-        print("[INFO] fprime build information:")
+    except GenerateException as genex:
         print(
-            f"    Available directory targets: {' '.join(local_generic_targets.keys())}"
-        )
-        print()
-        print(
-            f"    Available global targets: {' '.join(global_generic_targets.keys())}"
-        )
-        print(f'{"  ":-<60}')
-    # Artifact locations come afterwards
-    for (
-        build_type,
-        (build_artifact_location, global_build_cache),
-    ) in build_infos.items():
-        print(
-            f"    {build_type.get_cmake_build_type()} build cache module directory: {build_artifact_location}"
-        )
-        print(
-            f"    {build_type.get_cmake_build_type()} build cache: {global_build_cache}"
-        )
-    print()
-
-
-def hash_to_file(
-    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
-):
-    """Processes hash-to-file to locate file
-
-    Args:
-        build: build to search for hashes.txt
-        parsed: parsed arguments for needed for parsed.hash
-        _: unused cmake arguments
-        __: unused make arguments
-        ___: unused pass through arguments
-    """
-    lines = build.find_hashed_file(parsed.hash)
-    if not lines:
-        raise InvalidBuildCacheException(
-            f"Hash 0x{parsed.hash:x} not found. Do you need '--ut' for a unittest run?"
-        )
-    print("[INFO] File(s) associated with hash 0x{:x}".format(parsed.hash))
-    for line in lines:
-        print("   ", line, end="")
-
-
-def template(
-    build: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
-):
-    """Processes new command
-
-    Args:
-        build: build used to inform new component and new port calls
-        parsed: parsed arguments
-        _: unused cmake arguments
-        __: unused make arguments
-        ___: unused pass through arguments
-    """
-    if parsed.component and not parsed.port:
-        return new_component(build.deployment, parsed.platform, parsed.verbose, build)
-    if parsed.port and not parsed.component:
-        return new_port(build.deployment, build)
-    print("[ERROR] Use --component or --port, not both.", file=sys.stderr)
-
-
-def run_code_format(
-    build: Build,
-    parsed: argparse.Namespace,
-    _: Dict[str, str],
-    __: Dict[str, str],
-    ___: List[str],
-):
-    """Runs code formatting using clang-format
-
-    Args:
-        build: used to retrieve .clang-format file
-        parsed: parsed input arguments
-        __: unused cmake_args
-        ___: unused make_args
-        ____: unused pass-through arguments
-    """
-    options = {
-        "verbose": not parsed.quiet,
-        "backup": not parsed.no_backup,
-        "validate_extensions": not parsed.force,
-    }
-    clang_formatter = ClangFormatter(
-        "clang-format",
-        build.settings.get("framework_path", Path(".")) / ".clang-format",
-        options,
-    )
-    if not clang_formatter.is_supported():
-        print(
-            f"[ERROR] Cannot find executable: {clang_formatter.executable}. Unable to run formatting.",
+            f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
             file=sys.stderr,
         )
-        return 1
-    # Allow requested file extensions
-    for file_ext in parsed.allow_extension:
-        clang_formatter.allow_extension(file_ext)
-    # Stage all files that are passed through stdin, if requested
-    if parsed.stdin:
-        for filename in sys.stdin.read().split():
-            clang_formatter.stage_file(Path(filename))
-    # Stage all files that are passed through --files
-    for filename in parsed.files:
-        clang_formatter.stage_file(Path(filename))
-    return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+    except UnableToDetectDeploymentException:
+        print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
+    except Exception as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+    return 1
+
+
+def skip_build_loading(parsed):
+    """Determines if the build load step should be skipped. Commands that do not require a build object
+    should manually be added here by the developer."""
+    if parsed.command == "new" and parsed.deployment:
+        return True
+    return False
 
 
 def add_special_parsers(
@@ -214,16 +105,31 @@ def add_special_parsers(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     new_parser.add_argument(
+        "--overwrite",
+        default=False,
+        action="store_true",
+        help="Generated files will overwrite existing ones",
+    )
+    new_exclusive = new_parser.add_argument_group(
+        "'new' targets"
+    ).add_mutually_exclusive_group()
+    new_exclusive.add_argument(
         "--component",
         default=False,
         action="store_true",
         help="Tells the new command to generate a component",
     )
-    new_parser.add_argument(
+    new_exclusive.add_argument(
         "--port",
         default=False,
         action="store_true",
         help="Tells the new command to generate a port",
+    )
+    new_exclusive.add_argument(
+        "--deployment",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a deployment",
     )
 
     # Code formatting with clang-format
@@ -271,8 +177,130 @@ def add_special_parsers(
         help="If specified, --pass-through must be the last argument. Remaining arguments passed to underlying executable",
     )
     return {
-        "hash-to-file": hash_to_file,
-        "info": print_info,
-        "new": template,
+        "hash-to-file": run_hash_to_file,
+        "info": run_info,
+        "new": run_new,
         "format": run_code_format,
     }
+
+
+def validate(parsed, unknown):
+    """
+    Validate rules to ensure that the args are properly consistent. This will also generate a set of validated arguments
+    to pass to CMake. This allows these values to be created, defaulted, and validated in one place
+    :param parsed: args to validate
+    :param unknown: unknown arguments
+    :return: cmake arguments to pass to CMake
+    """
+    # regex pattern to detect -D<CMAKE_ARGUMENT>=<VALUE> arguments for CMake
+    CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
+    cmake_args = {}
+    make_args = {}
+    # Check platforms for existing toolchain, unless the default is specified.
+    if not hasattr(parsed, "command") or parsed.command is None:
+        raise ArgValidationException("'fprime-util' not supplied sub-command argument")
+    if parsed.command == "generate":
+        d_args = {
+            match.group(1): match.group(2)
+            for match in [CMAKE_REG.match(arg) for arg in unknown]
+        }
+        cmake_args.update(d_args)
+        unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
+    # Build type only for generate, jobs only for non-generate
+    elif parsed.command in Target.get_all_targets():
+        parsed.settings = None  # Force to load from cache if possible
+        make_args["--jobs"] = 1 if parsed.jobs <= 0 else parsed.jobs
+    # Check if any arguments are still unknown
+    if unknown:
+        runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"
+        raise ArgValidationException(
+            f"'{runnable}' supplied invalid arguments: {','.join(unknown)}"
+        )
+    parsed.build_cache = (
+        None if parsed.build_cache is None else Path(parsed.build_cache)
+    )
+    return cmake_args, make_args
+
+
+def parse_args(args):
+    """
+    Parse the arguments to the CLI. This will then enable the user to run the above listed commands via the commands.
+    :param args: CLI arguments to process
+    :return: parsed arguments in a Namespace
+    """
+    # Common parser specifying common arguments input into the utility
+    common_parser = argparse.ArgumentParser(
+        description="Common Parser for Common Ingredients."
+    )
+    common_parser.add_argument(
+        "platform",
+        nargs="?",
+        default="default",
+        help="F prime build platform (e.g. Linux, Darwin). Default specified in settings.ini",
+    )
+    common_parser.add_argument(
+        "-d",
+        "--deploy",
+        dest="deploy",
+        default=None,
+        help="F prime deployment directory to use. May contain multiple build directories.",
+    )
+    common_parser.add_argument(
+        "-p",
+        "--path",
+        default=os.getcwd(),
+        help="F prime directory to operate on. Default: cwd, %(default)s.",
+    )
+    common_parser.add_argument(
+        "--build-cache",
+        dest="build_cache",
+        default=None,
+        help="Overrides the build cache with a specific directory",
+    )
+    common_parser.add_argument(
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="Turn on verbose output.",
+    )
+    common_parser.add_argument(
+        "--ut", action="store_true", help="Run command against unit testing build type"
+    )
+
+    # Main parser for the whole application
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=HelpText.long("global_help"),
+    )
+    subparsers = parser.add_subparsers(
+        description=HelpText.long("subparsers_description"), dest="command"
+    )
+
+    # Add all externally defined cli parser command to running functions
+    runners = {}
+    parsers = {}
+
+    fbuild_runners, fbuild_parsers = add_fbuild_parsers(
+        subparsers, common_parser, HelpText
+    )
+    fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
+    parsers.update(fbuild_parsers)
+    parsers.update(fpp_parsers)
+    runners.update(fbuild_runners)
+    runners.update(fpp_runners)
+    runners.update(add_special_parsers(subparsers, common_parser, HelpText))
+
+    # Parse and prepare to run
+    parsed, unknown = parser.parse_known_args(args)
+    try:
+        cmake_args, make_args = validate(parsed, unknown)
+    except ArgValidationException as exc:
+        print(f"[ERROR] {exc}", end="\n\n")
+        parsers.get(parsed.command, (parser,))[0].print_usage()
+        sys.exit(1)
+    return parsed, cmake_args, make_args, parser, runners
+
+
+class ArgValidationException(Exception):
+    """An exception used for argument validation"""

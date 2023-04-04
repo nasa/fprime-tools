@@ -1,0 +1,6 @@
+{
+    "deployment_name": "MyDeployment",
+    "path_to_fprime": "./fprime",
+    "author_name": "",    
+    "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}"
+}
