@@ -499,3 +499,23 @@ def new_deployment(parsed_args):
         sys.exit(1)
     print(f"New deployment successfully created: {gen_path}")
     return 0
+
+ 
+def new_project(parsed_args):
+    """Creates a new F' project"""
+    source = (
+        os.path.dirname(__file__)
+        + "/../cookiecutter_templates/cookiecutter-fprime-project"
+    )
+    print(f"[INFO] Cookiecutter: using builtin template for new project")
+    try:
+        gen_path = cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
+
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    print(f"New project successfully created: {gen_path}")
+    return 0

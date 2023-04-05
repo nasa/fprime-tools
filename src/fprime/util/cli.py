@@ -55,6 +55,8 @@ def skip_build_loading(parsed):
     should manually be added here by the developer."""
     if parsed.command == "new" and parsed.deployment:
         return True
+    if parsed.command == "new" and parsed.project:
+        return True
     return False
 
 
@@ -127,6 +129,12 @@ def add_special_parsers(
     )
     new_exclusive.add_argument(
         "--deployment",
+        default=False,
+        action="store_true",
+        help="Tells the new command to generate a deployment",
+    )
+    new_exclusive.add_argument(
+        "--project",
         default=False,
         action="store_true",
         help="Tells the new command to generate a deployment",
