@@ -519,7 +519,11 @@ def new_project(parsed_args):
     )
     print(f"[INFO] Cookiecutter: using builtin template for new project")
     try:
-        gen_path = cookiecutter(source, overwrite_if_exists=parsed_args.overwrite, output_dir=parsed_args.path)
+        gen_path = cookiecutter(
+            source,
+            overwrite_if_exists=parsed_args.overwrite,
+            output_dir=parsed_args.path,
+        )
     except OutputDirExistsException as out_directory_error:
         print(
             f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",

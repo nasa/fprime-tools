@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import List, Dict
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.fbuild.interaction import new_component, new_port, new_deployment, new_project
+from fprime.fbuild.interaction import (
+    new_component,
+    new_port,
+    new_deployment,
+    new_project,
+)
 
 from fprime.util.code_formatter import ClangFormatter
 

@@ -8,27 +8,62 @@ DEFAULT_BRANCH = "devel"
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
-subprocess.run(["git", "submodule", "add", "-b", DEFAULT_BRANCH, "https://github.com/nasa/fprime.git"])
+subprocess.run(
+    [
+        "git",
+        "submodule",
+        "add",
+        "-b",
+        DEFAULT_BRANCH,
+        "https://github.com/nasa/fprime.git",
+    ]
+)
 
 # Checkout requested branch/tag
-available_tags = subprocess.run(["git", "tag", "-l"], cwd="./fprime", capture_output=True).stdout.decode("utf-8").split()
-if ("{{cookiecutter.fprime_branch_or_tag}}" in available_tags):
-    res = subprocess.run(["git", "checkout", "tags/{{cookiecutter.fprime_branch_or_tag}}"], cwd="./fprime", capture_output=True)
-    print("[INFO] F' submodule checked out to tag: {{cookiecutter.fprime_branch_or_tag}}")
+available_tags = (
+    subprocess.run(["git", "tag", "-l"], cwd="./fprime", capture_output=True)
+    .stdout.decode("utf-8")
+    .split()
+)
+if "{{cookiecutter.fprime_branch_or_tag}}" in available_tags:
+    res = subprocess.run(
+        ["git", "checkout", "tags/{{cookiecutter.fprime_branch_or_tag}}"],
+        cwd="./fprime",
+        capture_output=True,
+    )
+    print(
+        "[INFO] F' submodule checked out to tag: {{cookiecutter.fprime_branch_or_tag}}"
+    )
 else:
-    res = subprocess.run(["git", "checkout", "{{cookiecutter.fprime_branch_or_tag}}"], cwd="./fprime", capture_output=True)
-    print("[INFO] F' submodule checked out to branch: {{cookiecutter.fprime_branch_or_tag}}")
-if (res.returncode != 0):
-    print( "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}")
+    res = subprocess.run(
+        ["git", "checkout", "{{cookiecutter.fprime_branch_or_tag}}"],
+        cwd="./fprime",
+        capture_output=True,
+    )
+    print(
+        "[INFO] F' submodule checked out to branch: {{cookiecutter.fprime_branch_or_tag}}"
+    )
+if res.returncode != 0:
+    print(
+        "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+    )
     print(f"[WARNING] Reverted to default branch: {DEFAULT_BRANCH}")
 
 # Install Venv
-if ("{{cookiecutter.install_venv}}" == "yes"):
-    subprocess.run(["python",  "-m", "venv", "{{cookiecutter.venv_install_path}}"])
-    subprocess.run(["{{cookiecutter.venv_install_path}}/bin/pip", "install", "-r", "fprime/requirements.txt"])
+if "{{cookiecutter.install_venv}}" == "yes":
+    subprocess.run(["python", "-m", "venv", "{{cookiecutter.venv_install_path}}"])
+    subprocess.run(
+        [
+            "{{cookiecutter.venv_install_path}}/bin/pip",
+            "install",
+            "-r",
+            "fprime/requirements.txt",
+        ]
+    )
 
 
-print("""
+print(
+    """
 ################################################################
 
 Congratulations! You have successfully created a new F' project.
@@ -55,10 +90,15 @@ fprime-util build
 fprime-gds
 
 ################################################################
-""")
+"""
+)
 
-if (res.returncode != 0):
-    print( "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}")
+if res.returncode != 0:
+    print(
+        "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+    )
     print(f"[WARNING] Reverted to default branch: {DEFAULT_BRANCH}")
 else:
-    print("[INFO] F' submodule checked out to branch/tag: {{cookiecutter.fprime_branch_or_tag}}")
+    print(
+        "[INFO] F' submodule checked out to branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+    )
