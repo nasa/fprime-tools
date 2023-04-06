@@ -1,4 +1,6 @@
 {
     "project_name": "MyProject",
-    "fprime_branch": "devel"
+    "fprime_branch_or_tag": "devel",
+    "install_venv": ["yes", "no"],
+    "venv_install_path": "{% if cookiecutter.install_venv == 'yes' %}./venv{% else %}None{% endif %}"
 }
