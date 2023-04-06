@@ -265,6 +265,7 @@ vals
 venv
 versioning
 viewcode
+website
 whitelist
 whitespaces
 workdir
