@@ -7,6 +7,7 @@ import textwrap
 from pathlib import Path
 import re
 from contextlib import contextmanager
+import shutil
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -503,6 +504,15 @@ def new_deployment(parsed_args):
 
 def new_project(parsed_args):
     """Creates a new F' project"""
+
+    # Check if Git is installed and available - needed for cloning F' as submodule
+    if not shutil.which("git"):
+        print(
+            "[ERROR] Git is not installed or in PATH. Please install Git and try again.",
+            file=sys.stderr,
+        )
+        return 1
+
     source = (
         os.path.dirname(__file__)
         + "/../cookiecutter_templates/cookiecutter-fprime-project"
