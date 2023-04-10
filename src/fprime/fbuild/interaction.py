@@ -250,7 +250,7 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
         else:
             source = (
                 os.path.dirname(__file__)
-                + "/../cookiecutter_templates/cookiecutter-fprime-component"
+                + "/../cookiecutter_templates/cookiecutter-fprime-component/xml"
             )
             print("[INFO] Cookiecutter source: using builtin")
         print()
