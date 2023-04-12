@@ -65,7 +65,10 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         return False
     print("Generating implementation files and merging...")
     with suppress_stdout():
-        build.execute(target, context=path, make_args={})
+        # build.execute(target, context=path, make_args={})
+
+        # build.execute_build_target(target.build_target, path, True, {})
+        target.execute(build, path, ({}, []))
 
     hpp_files_template = glob.glob(f"{path}/*.hpp-template", recursive=False)
     cpp_files_template = glob.glob(f"{path}/*.cpp-template", recursive=False)
@@ -233,8 +236,78 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
             test_path = test_path.parent
     return None
 
+def new_component_fpp(deployment: Path, platform: str, verbose: bool, build: Build):
+    """Uses cookiecutter for making new components"""
+    try:
+        print("[WARNING] **** fprime-util new is prototype functionality ****")
+        proj_root = build.get_settings("project_root", None)
 
-def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
+        # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
+        if (
+            build.get_settings("component_cookiecutter", None) is not None
+            and build.get_settings("component_cookiecutter", None) != "default"
+        ):
+            source = build.get_settings("component_cookiecutter", None)
+            print(f"[INFO] Cookiecutter source: {source}")
+        else:
+            source = (
+                os.path.dirname(__file__)
+                + "/../cookiecutter_templates/cookiecutter-fprime-component/fpp"
+            )
+            print("[INFO] Cookiecutter source: using builtin")
+
+        final_component_dir = Path(
+            cookiecutter(source, extra_context={"component_namespace": deployment.name})
+        ).resolve()
+        if proj_root is None:
+            print(
+                f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
+            )
+            return 0
+        # Attempt to register to CMakeLists.txt
+        proj_root = Path(proj_root)
+        cmake_lists_file = find_nearest_cmake_lists(
+            final_component_dir, deployment, proj_root
+        )
+        if cmake_lists_file is None or not add_to_cmake(
+            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
+        ):
+            print(
+                f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
+            )
+            return 0
+        regenerate(build)
+        # Attempt implementation
+        if not run_impl(deployment, final_component_dir, platform, verbose):
+            print(
+                "[INFO] Could not generate implementations. Please do so manually.".format(
+                    final_component_dir
+                )
+            )
+            return 0
+        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
+            0
+        ]
+        print("[INFO] Created new component and created initial implementations.")
+        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+            print("[INFO] Fixed hpp include in cpp file.")
+
+        add_unit_tests(deployment, final_component_dir, platform, verbose)
+        print(
+            f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
+        )
+        return 0
+    except OutputDirExistsException as out_directory_error:
+        print(f"{out_directory_error}", file=sys.stderr)
+    except CMakeExecutionException as exc:
+        print(f"[ERROR] Failed to create component. {exc}", file=sys.stderr)
+    except OSError as ose:
+        print(f"[ERROR] {ose}")
+    return 1
+
+
+
+def new_component_xml(deployment: Path, platform: str, verbose: bool, build: Build):
     """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
