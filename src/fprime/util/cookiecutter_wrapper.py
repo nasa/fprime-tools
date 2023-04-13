@@ -485,7 +485,7 @@ def new_deployment(parsed_args):
             file=sys.stderr,
         )
         return 1
-    print(f"New deployment successfully created: {gen_path}")
+    print(f"[INFO] New deployment successfully created: {gen_path}")
     return 0
 
 

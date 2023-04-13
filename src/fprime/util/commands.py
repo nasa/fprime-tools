@@ -17,14 +17,8 @@ from pathlib import Path
 from typing import List, Dict
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.fbuild.interaction import (
-    new_component,
-    new_port,
-    new_deployment,
-    new_project,
-)
 
-from fprime.util.cookiecutter_wrapper import new_component, new_port, new_deployment
+from fprime.util.cookiecutter_wrapper import new_component, new_port, new_deployment, new_project
 from fprime.util.code_formatter import ClangFormatter
 
 
@@ -134,7 +128,7 @@ def run_new(
         return new_port(build.deployment, build)
     if parsed.new_deployment:
         return new_deployment(parsed)
-    if parsed.project:
+    if parsed.new_project:
         return new_project(parsed)
     raise NotImplementedError(
         "`fprime-util new` target is missing or not implemented. See usage (--help)."
