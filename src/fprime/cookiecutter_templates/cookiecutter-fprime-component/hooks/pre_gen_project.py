@@ -1,4 +1,4 @@
-from fprime.fbuild.interaction import is_valid_name
+from fprime.util.interaction import is_valid_name
 
 # Check to ensure Component Name is valid
 def verify_inputs(component_name, commands, events, telemetry, parameters):

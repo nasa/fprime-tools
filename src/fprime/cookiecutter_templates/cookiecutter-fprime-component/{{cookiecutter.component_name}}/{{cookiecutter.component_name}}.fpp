@@ -2,12 +2,15 @@ module {{cookiecutter.component_namespace}} {
     @ {{cookiecutter.component_short_description}}
     {{cookiecutter.component_kind}} component {{cookiecutter.component_name}} {
 
+
+# add commented-out examples
+
+
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
         ###############################################################################
         @ Port for requesting the current time
         time get port timeCaller
-
 {% if cookiecutter.commands == "yes" %}
         @ Port for sending command registrations
         command reg port cmdRegOut
