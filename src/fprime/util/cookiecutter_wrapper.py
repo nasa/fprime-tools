@@ -13,21 +13,10 @@ from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
+from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
 from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
-
-
-def confirm(msg):
-    """Confirms the removal of the file with a yes or no input"""
-    # Loop "forever" intended
-    while True:
-        confirm_input = input(msg)
-        if confirm_input.lower() in ["y", "yes"]:
-            return True
-        if confirm_input.lower() in ["n", "no"]:
-            return False
-        print(f"{confirm_input} is invalid.  Please use 'yes' or 'no'")
 
 
 def replace_contents(filename, what, replacement, count=1):
@@ -60,15 +49,12 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     cpp_dest = common[0] if common else cpp_files[0]
 
     if not confirm(
-        f"Generate implementations and merge into {hpp_dest} and {cpp_dest}?"
+        f"Generate implementations and merge into {hpp_dest} and {cpp_dest} (yes/no)? "
     ):
         return False
     print("Generating implementation files and merging...")
     with suppress_stdout():
-        # build.execute(target, context=path, make_args={})
-
-        # build.execute_build_target(target.build_target, path, True, {})
-        target.execute(build, path, ({}, []))
+        target.execute(build, path, ({}, [], {}))
 
     hpp_files_template = glob.glob(f"{path}/*.hpp-template", recursive=False)
     cpp_files_template = glob.glob(f"{path}/*.cpp-template", recursive=False)
@@ -80,11 +66,10 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     hpp_src = hpp_files_template[0]
     cpp_src = cpp_files_template[0]
 
-    # Copy files without headers
+    # Copy files
     for src, dest in [(hpp_src, hpp_dest), (cpp_src, cpp_dest)]:
         with open(src, "r") as file_handle:
             lines = file_handle.readlines()
-        lines = lines[11:]  # Remove old header
         with open(dest, "a") as file_handle:
             file_handle.write("".join(lines))
 
@@ -107,7 +92,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         print("Already added to CMakeLists.txt")
         return True
 
-    if not confirm(f"Add component {comp_path} to {list_file} at end of file?"):
+    if not confirm(f"Add component {comp_path} to {list_file} at end of file (yes/no)? "):
         return False
 
     lines.append(addition)
@@ -236,7 +221,7 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
             test_path = test_path.parent
     return None
 
-def new_component_fpp(deployment: Path, platform: str, verbose: bool, build: Build):
+def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
     """Uses cookiecutter for making new components"""
     try:
         print("[WARNING] **** fprime-util new is prototype functionality ****")
@@ -252,7 +237,7 @@ def new_component_fpp(deployment: Path, platform: str, verbose: bool, build: Bui
         else:
             source = (
                 os.path.dirname(__file__)
-                + "/../cookiecutter_templates/cookiecutter-fprime-component/fpp"
+                + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
             print("[INFO] Cookiecutter source: using builtin")
 
@@ -278,7 +263,7 @@ def new_component_fpp(deployment: Path, platform: str, verbose: bool, build: Bui
             return 0
         regenerate(build)
         # Attempt implementation
-        if not run_impl(deployment, final_component_dir, platform, verbose):
+        if not run_impl(deployment, final_component_dir, platform, verbose): # pass build object there
             print(
                 "[INFO] Could not generate implementations. Please do so manually.".format(
                     final_component_dir
@@ -289,81 +274,10 @@ def new_component_fpp(deployment: Path, platform: str, verbose: bool, build: Bui
             0
         ]
         print("[INFO] Created new component and created initial implementations.")
-        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
+        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1): # this should be done automatically already
             print("[INFO] Fixed hpp include in cpp file.")
 
-        add_unit_tests(deployment, final_component_dir, platform, verbose)
-        print(
-            f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
-        )
-        return 0
-    except OutputDirExistsException as out_directory_error:
-        print(f"{out_directory_error}", file=sys.stderr)
-    except CMakeExecutionException as exc:
-        print(f"[ERROR] Failed to create component. {exc}", file=sys.stderr)
-    except OSError as ose:
-        print(f"[ERROR] {ose}")
-    return 1
-
-
-
-def new_component_xml(deployment: Path, platform: str, verbose: bool, build: Build):
-    """Uses cookiecutter for making new components"""
-    try:
-        print("[WARNING] **** fprime-util new is prototype functionality ****")
-        proj_root = build.get_settings("project_root", None)
-
-        # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
-        if (
-            build.get_settings("component_cookiecutter", None) is not None
-            and build.get_settings("component_cookiecutter", None) != "default"
-        ):
-            source = build.get_settings("component_cookiecutter", None)
-            print(f"[INFO] Cookiecutter source: {source}")
-        else:
-            source = (
-                os.path.dirname(__file__)
-                + "/../cookiecutter_templates/cookiecutter-fprime-component/xml"
-            )
-            print("[INFO] Cookiecutter source: using builtin")
-        print()
-        final_component_dir = Path(
-            cookiecutter(source, extra_context={"component_namespace": deployment.name})
-        ).resolve()
-        if proj_root is None:
-            print(
-                f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
-            )
-            return 0
-        # Attempt to register to CMakeLists.txt
-        proj_root = Path(proj_root)
-        cmake_lists_file = find_nearest_cmake_lists(
-            final_component_dir, deployment, proj_root
-        )
-        if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
-        ):
-            print(
-                f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
-            )
-            return 0
-        regenerate(build)
-        # Attempt implementation
-        if not run_impl(deployment, final_component_dir, platform, verbose):
-            print(
-                "[INFO] Could not generate implementations. Please do so manually.".format(
-                    final_component_dir
-                )
-            )
-            return 0
-        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
-            0
-        ]
-        print("[INFO] Created new component and created initial implementations.")
-        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
-            print("[INFO] Fixed hpp include in cpp file.")
-
-        add_unit_tests(deployment, final_component_dir, platform, verbose)
+        # add_unit_tests(deployment, final_component_dir, platform, verbose)
         print(
             f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
         )
