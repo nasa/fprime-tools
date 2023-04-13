@@ -7,6 +7,7 @@ import textwrap
 from pathlib import Path
 import re
 from contextlib import contextmanager
+import shutil
 
 from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
@@ -496,6 +497,37 @@ def new_deployment(parsed_args):
             f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
             file=sys.stderr,
         )
-        sys.exit(1)
+        return 1
     print(f"New deployment successfully created: {gen_path}")
+    return 0
+
+
+def new_project(parsed_args):
+    """Creates a new F' project"""
+
+    # Check if Git is installed and available - needed for cloning F' as submodule
+    if not shutil.which("git"):
+        print(
+            "[ERROR] Git is not installed or in PATH. Please install Git and try again.",
+            file=sys.stderr,
+        )
+        return 1
+
+    source = (
+        os.path.dirname(__file__)
+        + "/../cookiecutter_templates/cookiecutter-fprime-project"
+    )
+    try:
+        gen_path = cookiecutter(
+            source,
+            overwrite_if_exists=parsed_args.overwrite,
+            output_dir=parsed_args.path,
+        )
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"[INFO] New project successfully created: {gen_path}")
     return 0
