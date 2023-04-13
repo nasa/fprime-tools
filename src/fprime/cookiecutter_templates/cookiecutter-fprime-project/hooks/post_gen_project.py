@@ -20,36 +20,22 @@ subprocess.run(
 )
 
 # Checkout requested branch/tag
-available_tags = (
-    subprocess.run(["git", "tag", "-l"], cwd="./fprime", capture_output=True)
-    .stdout.decode("utf-8")
-    .split()
+res = subprocess.run(
+    ["git", "checkout", "{{cookiecutter.fprime_branch_or_tag}}"],
+    cwd="./fprime",
+    capture_output=True,
 )
-if "{{cookiecutter.fprime_branch_or_tag}}" in available_tags:
-    res = subprocess.run(
-        ["git", "checkout", "tags/{{cookiecutter.fprime_branch_or_tag}}"],
-        cwd="./fprime",
-        capture_output=True,
-    )
-    print(
-        "[INFO] F' submodule checked out to tag: {{cookiecutter.fprime_branch_or_tag}}"
-    )
-else:
-    res = subprocess.run(
-        ["git", "checkout", "{{cookiecutter.fprime_branch_or_tag}}"],
-        cwd="./fprime",
-        capture_output=True,
-    )
-    print(
-        "[INFO] F' submodule checked out to branch: {{cookiecutter.fprime_branch_or_tag}}"
-    )
 if res.returncode != 0:
     print(
         "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
     )
     print(f"[WARNING] Reverted to default branch: {DEFAULT_BRANCH}")
+else:
+    print(
+        "[INFO] F' submodule checked out to branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+    )
 
-# Install Venv
+# Install venv if requested
 if "{{cookiecutter.install_venv}}" == "yes":
     subprocess.run(["python", "-m", "venv", "{{cookiecutter.venv_install_path}}"])
     subprocess.run(
@@ -60,7 +46,6 @@ if "{{cookiecutter.install_venv}}" == "yes":
             "fprime/requirements.txt",
         ]
     )
-
 
 print(
     """
@@ -75,19 +60,12 @@ Get started with your F' project:
 
 -- Activate the virtual environment --
 Linux/MacOS: source venv/bin/activate
-Windows: venv\Scripts\\activate.bat
 
 -- Generate a new component --
 fprime-util new --component
 
 -- Generate a new deployment --
 fprime-util new --deployment
-
--- Run the base deployment --
-cd <DeploymentName>
-fprime-util generate
-fprime-util build
-fprime-gds
 
 ################################################################
 """

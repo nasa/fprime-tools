@@ -517,7 +517,6 @@ def new_project(parsed_args):
         os.path.dirname(__file__)
         + "/../cookiecutter_templates/cookiecutter-fprime-project"
     )
-    print(f"[INFO] Cookiecutter: using builtin template for new project")
     try:
         gen_path = cookiecutter(
             source,
@@ -530,5 +529,5 @@ def new_project(parsed_args):
             file=sys.stderr,
         )
         return 1
-    print(f"New project successfully created: {gen_path}")
+    print(f"[INFO] New project successfully created: {gen_path}")
     return 0
