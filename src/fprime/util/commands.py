@@ -123,9 +123,9 @@ def run_new(
         ___: unused pass through arguments
     """
     if parsed.new_component:
-        return new_component(build.deployment, parsed.platform, parsed.verbose, build)
+        return new_component(build)
     if parsed.new_port:
-        return new_port(build.deployment, build)
+        return new_port(build)
     if parsed.new_deployment:
         return new_deployment(parsed)
     if parsed.new_project:

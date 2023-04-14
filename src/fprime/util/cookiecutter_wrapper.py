@@ -27,14 +27,12 @@ def replace_contents(filename, what, replacement, count=1):
         return new_file != changelog
 
 
-def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
-    """Run implementation of files one time"""
+def run_impl(build: Build, source_path: Path):
+    """Run implementation of files in source_path"""
     target = Target.get_target("impl", set())
-    build = Build(target.build_type, deployment, verbose=verbose)
-    build.load(platform)
 
-    hpp_files = glob.glob(f"{path}/*.hpp", recursive=False)
-    cpp_files = glob.glob(f"{path}/*.cpp", recursive=False)
+    hpp_files = glob.glob(f"{source_path}/*.hpp", recursive=False)
+    cpp_files = glob.glob(f"{source_path}/*.cpp", recursive=False)
     cpp_files.sort(key=len)
 
     # Check destinations
@@ -54,10 +52,10 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
         return False
     print("Generating implementation files and merging...")
     with suppress_stdout():
-        target.execute(build, path, ({}, [], {}))
+        target.execute(build, source_path, ({}, [], {}))
 
-    hpp_files_template = glob.glob(f"{path}/*.hpp-template", recursive=False)
-    cpp_files_template = glob.glob(f"{path}/*.cpp-template", recursive=False)
+    hpp_files_template = glob.glob(f"{source_path}/*.hpp-template", recursive=False)
+    cpp_files_template = glob.glob(f"{source_path}/*.cpp-template", recursive=False)
 
     if not hpp_files_template or not cpp_files_template:
         print("[WARNING] Failed to find generated .cpp-template or .hpp-template files")
@@ -66,16 +64,16 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     hpp_src = hpp_files_template[0]
     cpp_src = cpp_files_template[0]
 
-    # Copy files
+    # Move files from *.(c|h)pp-template to *.(c|h)pp
     for src, dest in [(hpp_src, hpp_dest), (cpp_src, cpp_dest)]:
         with open(src, "r") as file_handle:
             lines = file_handle.readlines()
         with open(dest, "a") as file_handle:
             file_handle.write("".join(lines))
-
     removals = [Path(hpp_src), Path(cpp_src)]
     for removal in removals:
         os.remove(removal)
+
     return True
 
 
@@ -92,7 +90,9 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         print("Already added to CMakeLists.txt")
         return True
 
-    if not confirm(f"Add component {comp_path} to {list_file} at end of file (yes/no)? "):
+    if not confirm(
+        f"Add component {comp_path} to {list_file} at end of file (yes/no)? "
+    ):
         return False
 
     lines.append(addition)
@@ -221,10 +221,11 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
             test_path = test_path.parent
     return None
 
-def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
+
+def new_component(build: Build):
     """Uses cookiecutter for making new components"""
     try:
-        print("[WARNING] **** fprime-util new is prototype functionality ****")
+        deployment = build.deployment
         proj_root = build.get_settings("project_root", None)
 
         # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
@@ -241,14 +242,21 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
             )
             print("[INFO] Cookiecutter source: using builtin")
 
+        # Use deployment name as default namespace if a deployment was found
+        extra_context = {}
+        if not proj_root.samefile(deployment):
+            extra_context["component_namespace"] = deployment.name
+
         final_component_dir = Path(
-            cookiecutter(source, extra_context={"component_namespace": deployment.name})
+            cookiecutter(source, extra_context=extra_context)
         ).resolve()
+
         if proj_root is None:
             print(
                 f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
             )
             return 0
+        
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
         cmake_lists_file = find_nearest_cmake_lists(
@@ -261,26 +269,15 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
             )
             return 0
-        regenerate(build)
+        # regenerate(build)
         # Attempt implementation
-        if not run_impl(deployment, final_component_dir, platform, verbose): # pass build object there
+        if not run_impl(build, final_component_dir):
             print(
-                "[INFO] Could not generate implementations. Please do so manually.".format(
-                    final_component_dir
-                )
+                f"[INFO] Could not generate implementations for {final_component_dir}. Please do so manually."
             )
             return 0
-        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
-            0
-        ]
-        print("[INFO] Created new component and created initial implementations.")
-        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1): # this should be done automatically already
-            print("[INFO] Fixed hpp include in cpp file.")
 
-        # add_unit_tests(deployment, final_component_dir, platform, verbose)
-        print(
-            f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
-        )
+        print("[INFO] Created new component and generated initial implementations.")
         return 0
     except OutputDirExistsException as out_directory_error:
         print(f"{out_directory_error}", file=sys.stderr)
@@ -383,9 +380,10 @@ def get_port_input(namespace):
     return values
 
 
-def new_port(deployment: Path, build: Build):
+def new_port(build: Build):
     """Uses cookiecutter for making new ports"""
     try:
+        deployment = build.deployment
         proj_root = build.get_settings("project_root", None)
         if proj_root is not None:
             proj_root = Path(proj_root)
