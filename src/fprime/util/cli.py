@@ -141,7 +141,7 @@ def add_special_parsers(
         default=False,
         action="store_true",
         dest="new_project",
-        help="Tells the new command to generate a deployment",
+        help="Tells the new command to generate a project",
     )
 
     # Code formatting with clang-format
