@@ -86,7 +86,7 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
         if project_root is None
         else project_root.name / list_file.relative_to(project_root)
     )
-    print(f"[INFO] Found CMakeLists.txt at '{short_display_path}'")
+    print(f"[INFO] Found CMake file at '{short_display_path}'")
     with open(list_file, "r") as f:
         lines = f.readlines()
 
@@ -148,6 +148,41 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
         file_handle.write("".join(lines))
     return True
 
+
+
+def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Path):
+    """Find the nearest CMake file, i.e. CMakeLists.txt or project.cmake
+
+    The "nearest" file is defined as the closest parent that is not the project root CMakeLists.txt. 
+    If none is found, the same procedure is run from the deployment directory and includes the project 
+    root this time. If nothing is found, None is returned.
+
+    In short the following in order of preference:
+     - Any Component Parent
+     - Any Deployment Parent
+     - project.cmake
+     - None
+
+    Args:
+        component_dir: directory of new component
+        deployment: deployment directory
+        proj_root: project root directory
+
+    Returns:
+        path to CMakeLists.txt or None
+    """
+    test_path = component_dir.parent
+    # First iterate from where we are, then from the deployment to find the nearest CMakeList.txt nearby
+    for test_path, end_path in [(test_path, proj_root), (deployment, proj_root.parent)]:
+        while proj_root is not None and test_path != proj_root.parent:
+            project_file = test_path / "project.cmake"
+            if project_file.is_file():
+                return project_file
+            cmake_list_file = test_path / "CMakeLists.txt"
+            if cmake_list_file.is_file():
+                return cmake_list_file
+            test_path = test_path.parent
+    return None
 
 def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: Path):
     """Find the nearest CMakeLists.txt file
@@ -218,12 +253,12 @@ def new_component(build: Build):
 
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
-        cmake_lists_file = find_nearest_cmake_lists(
+        cmake_file = find_nearest_cmake_file(
             final_component_dir, deployment, proj_root
         )
-        if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file,
-            final_component_dir.relative_to(cmake_lists_file.parent),
+        if cmake_file is None or not add_to_cmake(
+            cmake_file,
+            final_component_dir.relative_to(cmake_file.parent),
             proj_root,
         ):
             print(
