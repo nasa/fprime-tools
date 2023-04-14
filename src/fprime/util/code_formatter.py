@@ -51,9 +51,9 @@ class ClangFormatter(ExecutableAction):
         super().__init__(TargetScope.LOCAL)
         self.executable = executable
         self.style_file = style_file
-        self.backup = options["backup"]
-        self.verbose = options["verbose"]
-        self.validate_extensions = options["validate_extensions"]
+        self.backup = options.get("backup", True)
+        self.verbose = options.get("verbose", False)
+        self.validate_extensions = options.get("validate_extensions", True)
         self.allowed_extensions = ALLOWED_EXTENSIONS.copy()
         self._files_to_format: List[Path] = []
 

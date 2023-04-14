@@ -16,6 +16,7 @@ from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
 from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.util.code_formatter import ClangFormatter
 
 
 def run_impl(build: Build, source_path: Path):
@@ -58,6 +59,21 @@ def run_impl(build: Build, source_path: Path):
     # Move (and overwrite) files from *.(c|h)pp-template to *.(c|h)pp
     shutil.move(hpp_src, hpp_dest)
     shutil.move(cpp_src, cpp_dest)
+
+    # Format files if clang-format is available
+    format_file = build.settings.get("framework_path", Path(".")) / ".clang-format"
+    if not format_file.is_file():
+        print(
+            f"[WARNING] .clang-format file not found at {format_file.resolve()}. Skipping formatting."
+        )
+        return True
+    clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
+    if clang_formatter.is_supported():
+        clang_formatter.stage_file(Path(hpp_dest))
+        clang_formatter.stage_file(Path(cpp_dest))
+        clang_formatter.execute(None, None, ({}, []))
+    else:
+        print("[WARNING] clang-format not found in PATH. Skipping formatting.")
 
     return True
 
