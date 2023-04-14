@@ -41,7 +41,7 @@ def run_impl(build: Build, source_path: Path):
     cpp_dest = common[0] if common else cpp_files[0]
 
     if not confirm(
-        f"Generate implementations and merge into {hpp_dest} and {cpp_dest} (yes/no)? "
+        f"Generate implementation files early (yes/no)? "
     ):
         return False
     print("Generating implementation files and merging...")
@@ -217,7 +217,6 @@ def new_component(build: Build):
                 f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
             )
             return 0
-        # regenerate(build)
         # Attempt implementation
         if not run_impl(build, final_component_dir):
             print(

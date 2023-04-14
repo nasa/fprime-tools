@@ -3,11 +3,11 @@ module {{cookiecutter.component_namespace}} {
     {{cookiecutter.component_kind}} component {{cookiecutter.component_name}} {
 {% if cookiecutter.component_kind in ["active", "queued"] %}
         @ Default command for {{cookiecutter.component_kind}} components - to be overriden developer
-        async command CMD_DEFAULT opcode 0
-{% endif %}
+        async command CMD_DEFAULT_AQ opcode 0
+{% endif -%}
 {% if cookiecutter.component_kind == "queued" %}
         @ Default command for {{cookiecutter.component_kind}} components - to be overriden developer
-        sync command CMD_DEFAULT_2
+        sync command CMD_DEFAULT_Q
 {% endif %}
         ##############################################################################
         #### Uncomment the following examples to start customizing your component ####
