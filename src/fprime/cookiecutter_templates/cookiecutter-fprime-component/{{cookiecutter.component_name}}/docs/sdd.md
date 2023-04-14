@@ -15,8 +15,6 @@ And the typical usage of the component here
 Add a class diagram here
 
 ## Port Descriptions
-## Port Handler Functional Behaviors
-Add port handler functional behaviors in the chart below
 | Name | Description |
 |---|---|
 |---|---|
@@ -31,9 +29,25 @@ Add component states in the chart below
 Add sequence diagrams here
 
 ## Parameters
+| Name | Description |
+|---|---|
+|---|---|
+
 ## Commands
+| Name | Description |
+|---|---|
+|---|---|
+
 ## Events
+| Name | Description |
+|---|---|
+|---|---|
+
 ## Telemetry
+| Name | Description |
+|---|---|
+|---|---|
+
 ## Unit Tests
 Add unit test descriptions in the chart below
 | Name | Description | Output | Coverage |
@@ -48,5 +62,5 @@ Add requirements in the chart below
 
 ## Change Log
 | Date | Description |
-| <TODAY> | Initial Draft |
 |---|---|
+|---| Initial Draft |
