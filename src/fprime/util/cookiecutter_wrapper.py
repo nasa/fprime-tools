@@ -13,18 +13,12 @@ from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
-from fprime.common.utils import confirm
+from fprime.common.utils import confirm, replace_contents
 from fprime.fbuild.builder import Build
 from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
 
 
-def replace_contents(filename, what, replacement, count=1):
-    changelog = Path(filename).read_text()
-    with open(filename, "w") as fh:
-        new_file = changelog.replace(what, replacement, count)
-        fh.write(new_file)
-        return new_file != changelog
 
 
 def run_impl(build: Build, source_path: Path):
