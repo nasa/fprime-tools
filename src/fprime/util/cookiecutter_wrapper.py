@@ -149,12 +149,11 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     return True
 
 
-
 def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Path):
     """Find the nearest CMake file, i.e. CMakeLists.txt or project.cmake
 
-    The "nearest" file is defined as the closest parent that is not the project root CMakeLists.txt. 
-    If none is found, the same procedure is run from the deployment directory and includes the project 
+    The "nearest" file is defined as the closest parent that is not the project root CMakeLists.txt.
+    If none is found, the same procedure is run from the deployment directory and includes the project
     root this time. If nothing is found, None is returned.
 
     In short the following in order of preference:
@@ -183,6 +182,7 @@ def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Pa
                 return cmake_list_file
             test_path = test_path.parent
     return None
+
 
 def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: Path):
     """Find the nearest CMakeLists.txt file
@@ -253,9 +253,7 @@ def new_component(build: Build):
 
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(
-            final_component_dir, deployment, proj_root
-        )
+        cmake_file = find_nearest_cmake_file(final_component_dir, deployment, proj_root)
         if cmake_file is None or not add_to_cmake(
             cmake_file,
             final_component_dir.relative_to(cmake_file.parent),
