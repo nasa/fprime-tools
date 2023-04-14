@@ -3,7 +3,6 @@
 import os
 import glob
 import sys
-import textwrap
 from pathlib import Path
 import re
 from contextlib import contextmanager
@@ -13,7 +12,7 @@ from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
-from fprime.common.utils import confirm, replace_contents
+from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
 from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
@@ -41,10 +40,10 @@ def run_impl(build: Build, source_path: Path):
     cpp_dest = common[0] if common else cpp_files[0]
 
     if not confirm(
-        f"Generate implementation files early (yes/no)? "
+        f"Generate implementation files (yes/no)? "
     ):
         return False
-    print("Generating implementation files and merging...")
+    print("Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)...")
     with suppress_stdout():
         target.execute(build, source_path, ({}, [], {}))
 
@@ -58,15 +57,9 @@ def run_impl(build: Build, source_path: Path):
     hpp_src = hpp_files_template[0]
     cpp_src = cpp_files_template[0]
 
-    # Move files from *.(c|h)pp-template to *.(c|h)pp
-    for src, dest in [(hpp_src, hpp_dest), (cpp_src, cpp_dest)]:
-        with open(src, "r") as file_handle:
-            lines = file_handle.readlines()
-        with open(dest, "a") as file_handle:
-            file_handle.write("".join(lines))
-    removals = [Path(hpp_src), Path(cpp_src)]
-    for removal in removals:
-        os.remove(removal)
+    # Move (and overwrite) files from *.(c|h)pp-template to *.(c|h)pp
+    shutil.move(hpp_src, hpp_dest)
+    shutil.move(cpp_src, cpp_dest)
 
     return True
 

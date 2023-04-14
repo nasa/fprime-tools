@@ -3,10 +3,8 @@
     "component_short_description": "Example Component for F Prime FSW framework.",
     "component_namespace": "{{cookiecutter.component_name}}",
     "component_kind": ["active", "passive", "queued"],
-    "commands": ["yes","no"],
-    "telemetry": ["yes","no"],
-    "events": ["yes","no"],
-    "parameters": ["yes","no"]
+    "enable_commands": ["yes","no"],
+    "enable_telemetry": ["yes","no"],
+    "enable_events": ["yes","no"],
+    "enable_parameters": ["yes","no"]
 }
-
-

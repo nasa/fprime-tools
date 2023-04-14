@@ -1,13 +1,29 @@
 module {{cookiecutter.component_namespace}} {
     @ {{cookiecutter.component_short_description}}
     {{cookiecutter.component_kind}} component {{cookiecutter.component_name}} {
-{% if cookiecutter.component_kind in ["active", "queued"] %}
-        @ Default command for {{cookiecutter.component_kind}} components - to be overriden developer
-        async command CMD_DEFAULT_AQ opcode 0
+{% if cookiecutter.component_kind == "active" %}
+        # One async command/port is required for active components
+        # This should be overriden by the developers with a useful command/port
+        @ TODO
+{%- if cookiecutter.enable_commands == "yes" %}
+        async command TODO opcode 0
+{% else %}
+        async input port TODO: Svc.Sched
+{% endif -%}
 {% endif -%}
 {% if cookiecutter.component_kind == "queued" %}
-        @ Default command for {{cookiecutter.component_kind}} components - to be overriden developer
-        sync command CMD_DEFAULT_Q
+        # One sync and one async command/port are required for queued components
+        # This should be overriden by the developers with useful commands/ports
+{%- if cookiecutter.enable_commands == "yes" %}
+        @ TODO
+        async command TODO_1 opcode 0
+
+        @ TODO
+        sync command TOOD_2
+{% else %}
+        async input port TODO_1: Svc.Sched
+        sync input port TODO_2: Svc.Sched
+{% endif -%}
 {% endif %}
         ##############################################################################
         #### Uncomment the following examples to start customizing your component ####
@@ -33,7 +49,7 @@ module {{cookiecutter.component_namespace}} {
         ###############################################################################
         @ Port for requesting the current time
         time get port timeCaller
-{% if cookiecutter.commands == "yes" %}
+{% if cookiecutter.enable_commands == "yes" %}
         @ Port for sending command registrations
         command reg port cmdRegOut
 
@@ -43,18 +59,18 @@ module {{cookiecutter.component_namespace}} {
         @ Port for sending command responses
         command resp port cmdResponseOut
 {% endif -%}
-{% if cookiecutter.events == "yes" %}
+{% if cookiecutter.enable_events == "yes" %}
         @ Port for sending textual representation of events
         text event port logTextOut
 
         @ Port for sending events to downlink
         event port logOut
 {% endif -%}
-{% if cookiecutter.telemetry == "yes" %}
+{% if cookiecutter.enable_telemetry == "yes" %}
         @ Port for sending telemetry channels to downlink
         telemetry port tlmOut
 {% endif -%}
-{% if cookiecutter.parameters == "yes" %}
+{% if cookiecutter.enable_parameters == "yes" %}
         @ Port to return the value of a parameter
         param get port prmGetOut
 

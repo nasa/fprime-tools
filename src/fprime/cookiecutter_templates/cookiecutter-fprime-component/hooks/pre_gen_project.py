@@ -14,8 +14,8 @@ def verify_inputs(component_name, commands, events, telemetry, parameters):
 
 verify_inputs(
     "{{ cookiecutter.component_name }}",
-    "{{ cookiecutter.commands }}",
-    "{{ cookiecutter.events }}",
-    "{{ cookiecutter.telemetry }}",
-    "{{ cookiecutter.parameters }}",
+    "{{ cookiecutter.enable_commands }}",
+    "{{ cookiecutter.enable_events }}",
+    "{{ cookiecutter.enable_telemetry }}",
+    "{{ cookiecutter.enable_parameters }}",
 )
