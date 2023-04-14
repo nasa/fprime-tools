@@ -3,7 +3,7 @@ module {{cookiecutter.component_namespace}} {
     {{cookiecutter.component_kind}} component {{cookiecutter.component_name}} {
 {% if cookiecutter.component_kind == "active" %}
         # One async command/port is required for active components
-        # This should be overriden by the developers with a useful command/port
+        # This should be overridden by the developers with a useful command/port
         @ TODO
 {%- if cookiecutter.enable_commands == "yes" %}
         async command TODO opcode 0
@@ -13,13 +13,13 @@ module {{cookiecutter.component_namespace}} {
 {% endif -%}
 {% if cookiecutter.component_kind == "queued" %}
         # One sync and one async command/port are required for queued components
-        # This should be overriden by the developers with useful commands/ports
+        # This should be overridden by the developers with useful commands/ports
 {%- if cookiecutter.enable_commands == "yes" %}
         @ TODO
         async command TODO_1 opcode 0
 
         @ TODO
-        sync command TOOD_2
+        sync command TODD_2
 {% else %}
         async input port TODO_1: Svc.Sched
         sync input port TODO_2: Svc.Sched

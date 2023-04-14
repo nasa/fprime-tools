@@ -1,12 +1,13 @@
-""" fprime.common.utils: defines common utility functions to be used across subpackages
+""" fprime.common.utils: defines common utility functions to be used across sub packages
 
 @author thomas-bc
 """
 
 from pathlib import Path
 
+
 def confirm(msg):
-    """Ask user for a yes or no input after diplaying the given message"""
+    """Ask user for a yes or no input after displaying the given message"""
     # Loop "forever" intended
     while True:
         confirm_input = input(msg)
@@ -24,4 +25,3 @@ def replace_contents(filename, what, replacement, count=1):
         new_file = changelog.replace(what, replacement, count)
         fh.write(new_file)
         return new_file != changelog
-

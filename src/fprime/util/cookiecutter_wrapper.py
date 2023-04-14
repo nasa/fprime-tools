@@ -18,8 +18,6 @@ from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
 
 
-
-
 def run_impl(build: Build, source_path: Path):
     """Run implementation of files in source_path"""
     target = Target.get_target("impl", set())
@@ -39,11 +37,11 @@ def run_impl(build: Build, source_path: Path):
     hpp_dest = hpp_files[0]
     cpp_dest = common[0] if common else cpp_files[0]
 
-    if not confirm(
-        f"Generate implementation files (yes/no)? "
-    ):
+    if not confirm(f"Generate implementation files (yes/no)? "):
         return False
-    print("Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)...")
+    print(
+        "Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)..."
+    )
     with suppress_stdout():
         target.execute(build, source_path, ({}, [], {}))
 
@@ -65,10 +63,14 @@ def run_impl(build: Build, source_path: Path):
 
 
 def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
-    """Adds new component or port to CMakeLists.txt. If project_root is supplied, 
+    """Adds new component or port to CMakeLists.txt. If project_root is supplied,
     the logged path will be relative to the project root instead of absolute"""
-    path = list_file if project_root is None else project_root.name / list_file.relative_to(project_root)
-    print(f"[INFO] Found CMakeLists.txt at '{path}'")
+    short_display_path = (
+        list_file
+        if project_root is None
+        else project_root.name / list_file.relative_to(project_root)
+    )
+    print(f"[INFO] Found CMakeLists.txt at '{short_display_path}'")
     with open(list_file, "r") as f:
         lines = f.readlines()
 
@@ -80,7 +82,7 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
         return True
 
     if not confirm(
-        f"Add component {comp_path} to {path} at end of file (yes/no)? "
+        f"Add component {comp_path} to {short_display_path} at end of file (yes/no)? "
     ):
         return False
 
@@ -204,7 +206,9 @@ def new_component(build: Build):
             final_component_dir, deployment, proj_root
         )
         if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent), proj_root
+            cmake_lists_file,
+            final_component_dir.relative_to(cmake_lists_file.parent),
+            proj_root,
         ):
             print(
                 f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
