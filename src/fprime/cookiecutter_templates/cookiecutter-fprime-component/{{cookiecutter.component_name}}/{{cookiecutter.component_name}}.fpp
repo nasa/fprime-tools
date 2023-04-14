@@ -19,7 +19,7 @@ module {{cookiecutter.component_namespace}} {
         async command TODO_1 opcode 0
 
         @ TODO
-        sync command TODD_2
+        sync command TODO_2
 {% else %}
         async input port TODO_1: Svc.Sched
         sync input port TODO_2: Svc.Sched
