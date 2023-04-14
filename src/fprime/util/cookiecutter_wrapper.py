@@ -77,9 +77,11 @@ def run_impl(build: Build, source_path: Path):
     return True
 
 
-def add_to_cmake(list_file: Path, comp_path: Path):
-    """Adds new component or port to CMakeLists.txt"""
-    print(f"[INFO] Found CMakeLists.txt at '{list_file}'")
+def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
+    """Adds new component or port to CMakeLists.txt. If project_root is supplied, 
+    the logged path will be relative to the project root instead of absolute"""
+    path = list_file if project_root is None else project_root.name / list_file.relative_to(project_root)
+    print(f"[INFO] Found CMakeLists.txt at '{path}'")
     with open(list_file, "r") as f:
         lines = f.readlines()
 
@@ -91,7 +93,7 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         return True
 
     if not confirm(
-        f"Add component {comp_path} to {list_file} at end of file (yes/no)? "
+        f"Add component {comp_path} to {path} at end of file (yes/no)? "
     ):
         return False
 
@@ -119,54 +121,6 @@ def regenerate(build: Build):
             build.cmake.cmake_refresh_cache(build.get_build_cache())
         except CMakeExecutionException:
             build.cmake.cmake_refresh_cache(build.get_build_cache(), True)
-
-
-def add_unit_tests(deployment, comp_path, platform, verbose):
-    # Creates unit tests and moves them into test/ut directory
-    os.chdir(str(comp_path))
-    if confirm("Would you like to generate unit tests?: "):
-        test_path = Path("test", "ut")
-        test_path.mkdir(parents=True, exist_ok=True)
-        target = Target.get_target("impl", {"ut"})
-        build = Build(target.build_type, deployment, verbose=verbose)
-        build.load(platform)
-        print("Generating unit tests...")
-        with suppress_stdout():
-            build.execute(target, context=comp_path, make_args={})
-        test_files = [
-            "Tester.hpp",
-            "Tester.cpp",
-            "TesterBase.hpp",
-            "TesterBase.cpp",
-            "GTestBase.hpp",
-            "GTestBase.cpp",
-            "TestMain.cpp",
-        ]
-        for file in test_files:
-            if os.path.isfile(file):
-                new_name = test_path / file
-                os.rename(file, str(new_name))
-
-        with open("CMakeLists.txt", "r") as f:
-            cmakeFile = f.read()
-
-        with open("CMakeLists.txt", "w") as f:
-            cmakeFile = cmakeFile + textwrap.dedent(
-                """\n
-                set(UT_SOURCE_FILES
-                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/TestMain.cpp"
-                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/Tester.cpp"
-                )
-
-                register_fprime_ut()"""
-            )
-            f.write(cmakeFile)
-
-        if replace_contents(
-            Path("test", "ut", "Tester.hpp"), "ComponentImpl.hpp", ".hpp", -1
-        ):
-            print("[INFO] Fixed hpp include in Tester.hpp")
-        print("[INFO] Unit tests were generated.")
 
 
 def add_port_to_cmake(list_file: Path, comp_path: Path):
@@ -256,14 +210,14 @@ def new_component(build: Build):
                 f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
             )
             return 0
-        
+
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
         cmake_lists_file = find_nearest_cmake_lists(
             final_component_dir, deployment, proj_root
         )
         if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
+            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent), proj_root
         ):
             print(
                 f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
@@ -273,7 +227,7 @@ def new_component(build: Build):
         # Attempt implementation
         if not run_impl(build, final_component_dir):
             print(
-                f"[INFO] Could not generate implementations for {final_component_dir}. Please do so manually."
+                f"[INFO] Did not generate implementations for {final_component_dir}. Please do so manually."
             )
             return 0
 
