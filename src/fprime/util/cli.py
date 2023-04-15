@@ -53,9 +53,9 @@ def utility_entry(args):
 def skip_build_loading(parsed):
     """Determines if the build load step should be skipped. Commands that do not require a build object
     should manually be added here by the developer."""
-    if parsed.command == "new" and parsed.deployment:
+    if parsed.command == "new" and parsed.new_deployment:
         return True
-    if parsed.command == "new" and parsed.project:
+    if parsed.command == "new" and parsed.new_project:
         return True
     return False
 
@@ -119,25 +119,29 @@ def add_special_parsers(
         "--component",
         default=False,
         action="store_true",
+        dest="new_component",
         help="Tells the new command to generate a component",
     )
     new_exclusive.add_argument(
         "--port",
         default=False,
         action="store_true",
+        dest="new_port",
         help="Tells the new command to generate a port",
     )
     new_exclusive.add_argument(
         "--deployment",
         default=False,
         action="store_true",
+        dest="new_deployment",
         help="Tells the new command to generate a deployment",
     )
     new_exclusive.add_argument(
         "--project",
         default=False,
         action="store_true",
-        help="Tells the new command to generate a deployment",
+        dest="new_project",
+        help="Tells the new command to generate a project",
     )
 
     # Code formatting with clang-format

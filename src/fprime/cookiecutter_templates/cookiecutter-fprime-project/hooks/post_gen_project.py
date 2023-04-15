@@ -1,5 +1,13 @@
 """
 This script is run as a cookiecutter hook after the project is generated.
+
+It does the following:
+- Initializes a git repository
+- Adds F' as a submodule
+- Checks out the requested branch/tag
+- Installs the virtual environment if requested
+
+@author thomas-bc
 """
 
 import subprocess

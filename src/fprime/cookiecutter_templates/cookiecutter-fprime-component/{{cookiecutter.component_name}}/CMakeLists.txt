@@ -7,7 +7,7 @@
 #
 ####
 set(SOURCE_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}ComponentAi.xml"
+  "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.fpp"
   "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.cpp"
 )
 

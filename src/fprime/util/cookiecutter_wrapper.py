@@ -3,7 +3,6 @@
 import os
 import glob
 import sys
-import textwrap
 from pathlib import Path
 import re
 from contextlib import contextmanager
@@ -13,39 +12,19 @@ from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
 from jinja2 import Environment, FileSystemLoader
 
+from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
 from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.util.code_formatter import ClangFormatter
 
 
-def confirm(msg):
-    """Confirms the removal of the file with a yes or no input"""
-    # Loop "forever" intended
-    while True:
-        confirm_input = input(msg)
-        if confirm_input.lower() in ["y", "yes"]:
-            return True
-        if confirm_input.lower() in ["n", "no"]:
-            return False
-        print(f"{confirm_input} is invalid.  Please use 'yes' or 'no'")
-
-
-def replace_contents(filename, what, replacement, count=1):
-    changelog = Path(filename).read_text()
-    with open(filename, "w") as fh:
-        new_file = changelog.replace(what, replacement, count)
-        fh.write(new_file)
-        return new_file != changelog
-
-
-def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
-    """Run implementation of files one time"""
+def run_impl(build: Build, source_path: Path):
+    """Run implementation of files in source_path"""
     target = Target.get_target("impl", set())
-    build = Build(target.build_type, deployment, verbose=verbose)
-    build.load(platform)
 
-    hpp_files = glob.glob(f"{path}/*.hpp", recursive=False)
-    cpp_files = glob.glob(f"{path}/*.cpp", recursive=False)
+    hpp_files = glob.glob(f"{source_path}/*.hpp", recursive=False)
+    cpp_files = glob.glob(f"{source_path}/*.cpp", recursive=False)
     cpp_files.sort(key=len)
 
     # Check destinations
@@ -59,16 +38,16 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     hpp_dest = hpp_files[0]
     cpp_dest = common[0] if common else cpp_files[0]
 
-    if not confirm(
-        f"Generate implementations and merge into {hpp_dest} and {cpp_dest}?"
-    ):
+    if not confirm(f"Generate implementation files (yes/no)? "):
         return False
-    print("Generating implementation files and merging...")
+    print(
+        "Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)..."
+    )
     with suppress_stdout():
-        build.execute(target, context=path, make_args={})
+        target.execute(build, source_path, ({}, [], {}))
 
-    hpp_files_template = glob.glob(f"{path}/*.hpp-template", recursive=False)
-    cpp_files_template = glob.glob(f"{path}/*.cpp-template", recursive=False)
+    hpp_files_template = glob.glob(f"{source_path}/*.hpp-template", recursive=False)
+    cpp_files_template = glob.glob(f"{source_path}/*.cpp-template", recursive=False)
 
     if not hpp_files_template or not cpp_files_template:
         print("[WARNING] Failed to find generated .cpp-template or .hpp-template files")
@@ -77,23 +56,37 @@ def run_impl(deployment: Path, path: Path, platform: str, verbose: bool):
     hpp_src = hpp_files_template[0]
     cpp_src = cpp_files_template[0]
 
-    # Copy files without headers
-    for src, dest in [(hpp_src, hpp_dest), (cpp_src, cpp_dest)]:
-        with open(src, "r") as file_handle:
-            lines = file_handle.readlines()
-        lines = lines[11:]  # Remove old header
-        with open(dest, "a") as file_handle:
-            file_handle.write("".join(lines))
+    # Move (and overwrite) files from *.(c|h)pp-template to *.(c|h)pp
+    shutil.move(hpp_src, hpp_dest)
+    shutil.move(cpp_src, cpp_dest)
 
-    removals = [Path(hpp_src), Path(cpp_src)]
-    for removal in removals:
-        os.remove(removal)
+    # Format files if clang-format is available
+    format_file = build.settings.get("framework_path", Path(".")) / ".clang-format"
+    if not format_file.is_file():
+        print(
+            f"[WARNING] .clang-format file not found at {format_file.resolve()}. Skipping formatting."
+        )
+        return True
+    clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
+    if clang_formatter.is_supported():
+        clang_formatter.stage_file(Path(hpp_dest))
+        clang_formatter.stage_file(Path(cpp_dest))
+        clang_formatter.execute(None, None, ({}, []))
+    else:
+        print("[WARNING] clang-format not found in PATH. Skipping formatting.")
+
     return True
 
 
-def add_to_cmake(list_file: Path, comp_path: Path):
-    """Adds new component or port to CMakeLists.txt"""
-    print(f"[INFO] Found CMakeLists.txt at '{list_file}'")
+def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
+    """Adds new component or port to CMakeLists.txt. If project_root is supplied,
+    the logged path will be relative to the project root instead of absolute"""
+    short_display_path = (
+        list_file
+        if project_root is None
+        else project_root.name / list_file.relative_to(project_root)
+    )
+    print(f"[INFO] Found CMake file at '{short_display_path}'")
     with open(list_file, "r") as f:
         lines = f.readlines()
 
@@ -104,7 +97,9 @@ def add_to_cmake(list_file: Path, comp_path: Path):
         print("Already added to CMakeLists.txt")
         return True
 
-    if not confirm(f"Add component {comp_path} to {list_file} at end of file?"):
+    if not confirm(
+        f"Add component {comp_path} to {short_display_path} at end of file (yes/no)? "
+    ):
         return False
 
     lines.append(addition)
@@ -133,54 +128,6 @@ def regenerate(build: Build):
             build.cmake.cmake_refresh_cache(build.get_build_cache(), True)
 
 
-def add_unit_tests(deployment, comp_path, platform, verbose):
-    # Creates unit tests and moves them into test/ut directory
-    os.chdir(str(comp_path))
-    if confirm("Would you like to generate unit tests?: "):
-        test_path = Path("test", "ut")
-        test_path.mkdir(parents=True, exist_ok=True)
-        target = Target.get_target("impl", {"ut"})
-        build = Build(target.build_type, deployment, verbose=verbose)
-        build.load(platform)
-        print("Generating unit tests...")
-        with suppress_stdout():
-            build.execute(target, context=comp_path, make_args={})
-        test_files = [
-            "Tester.hpp",
-            "Tester.cpp",
-            "TesterBase.hpp",
-            "TesterBase.cpp",
-            "GTestBase.hpp",
-            "GTestBase.cpp",
-            "TestMain.cpp",
-        ]
-        for file in test_files:
-            if os.path.isfile(file):
-                new_name = test_path / file
-                os.rename(file, str(new_name))
-
-        with open("CMakeLists.txt", "r") as f:
-            cmakeFile = f.read()
-
-        with open("CMakeLists.txt", "w") as f:
-            cmakeFile = cmakeFile + textwrap.dedent(
-                """\n
-                set(UT_SOURCE_FILES
-                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/TestMain.cpp"
-                  "${CMAKE_CURRENT_LIST_DIR}/test/ut/Tester.cpp"
-                )
-
-                register_fprime_ut()"""
-            )
-            f.write(cmakeFile)
-
-        if replace_contents(
-            Path("test", "ut", "Tester.hpp"), "ComponentImpl.hpp", ".hpp", -1
-        ):
-            print("[INFO] Fixed hpp include in Tester.hpp")
-        print("[INFO] Unit tests were generated.")
-
-
 def add_port_to_cmake(list_file: Path, comp_path: Path):
     """Adds new port to CMakeLists.txt in port directory"""
     print(f"[INFO] Found CMakeLists.txt at '{list_file}'")
@@ -200,6 +147,41 @@ def add_port_to_cmake(list_file: Path, comp_path: Path):
     with open(list_file, "w") as file_handle:
         file_handle.write("".join(lines))
     return True
+
+
+def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Path):
+    """Find the nearest CMake file, i.e. CMakeLists.txt or project.cmake
+
+    The "nearest" file is defined as the closest parent that is not the project root CMakeLists.txt.
+    If none is found, the same procedure is run from the deployment directory and includes the project
+    root this time. If nothing is found, None is returned.
+
+    In short the following in order of preference:
+     - Any Component Parent
+     - Any Deployment Parent
+     - project.cmake
+     - None
+
+    Args:
+        component_dir: directory of new component
+        deployment: deployment directory
+        proj_root: project root directory
+
+    Returns:
+        path to CMakeLists.txt or None
+    """
+    test_path = component_dir.parent
+    # First iterate from where we are, then from the deployment to find the nearest CMakeList.txt nearby
+    for test_path, end_path in [(test_path, proj_root), (deployment, proj_root.parent)]:
+        while proj_root is not None and test_path != proj_root.parent:
+            project_file = test_path / "project.cmake"
+            if project_file.is_file():
+                return project_file
+            cmake_list_file = test_path / "CMakeLists.txt"
+            if cmake_list_file.is_file():
+                return cmake_list_file
+            test_path = test_path.parent
+    return None
 
 
 def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: Path):
@@ -234,10 +216,10 @@ def find_nearest_cmake_lists(component_dir: Path, deployment: Path, proj_root: P
     return None
 
 
-def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
+def new_component(build: Build):
     """Uses cookiecutter for making new components"""
     try:
-        print("[WARNING] **** fprime-util new is prototype functionality ****")
+        deployment = build.deployment
         proj_root = build.get_settings("project_root", None)
 
         # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
@@ -253,47 +235,42 @@ def new_component(deployment: Path, platform: str, verbose: bool, build: Build):
                 + "/../cookiecutter_templates/cookiecutter-fprime-component"
             )
             print("[INFO] Cookiecutter source: using builtin")
-        print()
+
+        # Use deployment name as default namespace if a deployment was found
+        extra_context = {}
+        if not proj_root.samefile(deployment):
+            extra_context["component_namespace"] = deployment.name
+
         final_component_dir = Path(
-            cookiecutter(source, extra_context={"component_namespace": deployment.name})
+            cookiecutter(source, extra_context=extra_context)
         ).resolve()
+
         if proj_root is None:
             print(
                 f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
             )
             return 0
+
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
-        cmake_lists_file = find_nearest_cmake_lists(
-            final_component_dir, deployment, proj_root
-        )
-        if cmake_lists_file is None or not add_to_cmake(
-            cmake_lists_file, final_component_dir.relative_to(cmake_lists_file.parent)
+        cmake_file = find_nearest_cmake_file(final_component_dir, deployment, proj_root)
+        if cmake_file is None or not add_to_cmake(
+            cmake_file,
+            final_component_dir.relative_to(cmake_file.parent),
+            proj_root,
         ):
             print(
                 f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
             )
             return 0
-        regenerate(build)
         # Attempt implementation
-        if not run_impl(deployment, final_component_dir, platform, verbose):
+        if not run_impl(build, final_component_dir):
             print(
-                "[INFO] Could not generate implementations. Please do so manually.".format(
-                    final_component_dir
-                )
+                f"[INFO] Did not generate implementations for {final_component_dir}. Please do so manually."
             )
             return 0
-        cpp_file = glob.glob(str(Path(deployment.name, final_component_dir, "*.cpp")))[
-            0
-        ]
-        print("[INFO] Created new component and created initial implementations.")
-        if replace_contents(cpp_file, "ComponentImpl.hpp", ".hpp", -1):
-            print("[INFO] Fixed hpp include in cpp file.")
 
-        add_unit_tests(deployment, final_component_dir, platform, verbose)
-        print(
-            f'[INFO] Next run `fprime-util build{"" if platform is None else f" {platform}"}` in {final_component_dir}'
-        )
+        print("[INFO] Created new component and generated initial implementations.")
         return 0
     except OutputDirExistsException as out_directory_error:
         print(f"{out_directory_error}", file=sys.stderr)
@@ -396,9 +373,10 @@ def get_port_input(namespace):
     return values
 
 
-def new_port(deployment: Path, build: Build):
+def new_port(build: Build):
     """Uses cookiecutter for making new ports"""
     try:
+        deployment = build.deployment
         proj_root = build.get_settings("project_root", None)
         if proj_root is not None:
             proj_root = Path(proj_root)
@@ -498,7 +476,7 @@ def new_deployment(parsed_args):
             file=sys.stderr,
         )
         return 1
-    print(f"New deployment successfully created: {gen_path}")
+    print(f"[INFO] New deployment successfully created: {gen_path}")
     return 0
 
 

@@ -200,6 +200,7 @@ rstrip
 rsub
 rtd
 rtruediv
+samefile
 sanitizers
 sched
 SCLK

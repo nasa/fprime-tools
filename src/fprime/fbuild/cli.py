@@ -11,7 +11,7 @@ from typing import Dict, List, Tuple, Callable
 from fprime.fbuild.types import BuildType
 from fprime.fbuild.target import Target
 from fprime.fbuild.builder import Build
-from fprime.fbuild.interaction import confirm
+from fprime.common.utils import confirm
 
 
 def get_target(parsed: argparse.Namespace) -> Target:

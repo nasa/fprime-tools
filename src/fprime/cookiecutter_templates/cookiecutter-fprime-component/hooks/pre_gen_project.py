@@ -1,4 +1,4 @@
-from fprime.fbuild.interaction import is_valid_name
+from fprime.util.cookiecutter_wrapper import is_valid_name
 
 # Check to ensure Component Name is valid
 def verify_inputs(component_name, commands, events, telemetry, parameters):
@@ -14,8 +14,8 @@ def verify_inputs(component_name, commands, events, telemetry, parameters):
 
 verify_inputs(
     "{{ cookiecutter.component_name }}",
-    "{{ cookiecutter.commands }}",
-    "{{ cookiecutter.events }}",
-    "{{ cookiecutter.telemetry }}",
-    "{{ cookiecutter.parameters }}",
+    "{{ cookiecutter.enable_commands }}",
+    "{{ cookiecutter.enable_events }}",
+    "{{ cookiecutter.enable_telemetry }}",
+    "{{ cookiecutter.enable_parameters }}",
 )
