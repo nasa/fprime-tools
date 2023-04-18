@@ -1,6 +1,5 @@
 // ======================================================================
 // \title  {{cookiecutter.deployment_name}}Topology.hpp
-// \author {{cookiecutter.author_name}}
 // \brief header file containing the topology instantiation definitions
 //
 // ======================================================================

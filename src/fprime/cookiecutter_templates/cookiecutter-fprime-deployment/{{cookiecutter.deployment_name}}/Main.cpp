@@ -1,6 +1,5 @@
 // ======================================================================
 // \title  Main.cpp
-// \author {{cookiecutter.author_name}}
 // \brief main program for the F' application. Intended for CLI-based systems (Linux, macOS)
 //
 // ======================================================================

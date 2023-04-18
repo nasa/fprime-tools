@@ -1,6 +1,5 @@
 // ======================================================================
 // \title  {{cookiecutter.deployment_name}}TopologyDefs.hpp
-// \author {{cookiecutter.author_name}}
 // \brief required header file containing the required definitions for the topology autocoder
 //
 // ======================================================================

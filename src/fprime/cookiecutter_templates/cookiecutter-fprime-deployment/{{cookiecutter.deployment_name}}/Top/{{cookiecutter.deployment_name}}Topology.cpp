@@ -1,6 +1,5 @@
 // ======================================================================
 // \title  {{cookiecutter.deployment_name}}Topology.cpp
-// \author {{cookiecutter.author_name}}
 // \brief cpp file containing the topology instantiation code
 //
 // ======================================================================
