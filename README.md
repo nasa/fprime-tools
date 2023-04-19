@@ -1,4 +1,4 @@
-# fprime-tools
+# F´ Tools
 
 A package containing tools to work with F´. Installation can be done using:
 
