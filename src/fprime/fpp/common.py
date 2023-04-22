@@ -19,7 +19,7 @@ class FppMissingSupportFiles(FprimeException):
 
     def __init__(self, file):
         super().__init__(
-            f"Current directory does not define any FPP files. Did you intend to run in the topology directory?"
+            "Current directory does not define any FPP files. Did you intend to run in the topology directory?"
         )
 
 

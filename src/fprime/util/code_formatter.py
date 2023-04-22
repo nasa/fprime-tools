@@ -139,7 +139,7 @@ class ClangFormatter(ExecutableAction):
         # Backup files unless --no-backup is requested
         if self.backup:
             for file in self._files_to_format:
-                shutil.copy2(file, file.parent / (file.stem + ".bak" + file.suffix))
+                shutil.copy2(file, file.parent / f"{file.stem}.bak{file.suffix}")
         pass_through = args[1]
         self._preprocess_files()
         clang_args = [
