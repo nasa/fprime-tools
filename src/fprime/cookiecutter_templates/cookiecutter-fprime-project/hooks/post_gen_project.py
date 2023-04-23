@@ -9,7 +9,7 @@ It does the following:
 
 @author thomas-bc
 """
-
+import sys
 import subprocess
 
 DEFAULT_BRANCH = "devel"
@@ -45,7 +45,7 @@ else:
 
 # Install venv if requested
 if "{{cookiecutter.install_venv}}" == "yes":
-    subprocess.run(["python", "-m", "venv", "{{cookiecutter.venv_install_path}}"])
+    subprocess.run([sys.executable, "-m", "venv", "{{cookiecutter.venv_install_path}}"])
     subprocess.run(
         [
             "{{cookiecutter.venv_install_path}}/bin/pip",
