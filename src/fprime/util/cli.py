@@ -28,10 +28,7 @@ def utility_entry(args):
     parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
-        if skip_build_loading(parsed):
-            build = None
-        else:
-            build = load_build(parsed)
+        build = None if skip_build_loading(parsed) else load_build(parsed)
 
         # runners is a Dict[str, Callable] of {command_name: handler_functions} pairs
         return runners[parsed.command](

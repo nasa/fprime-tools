@@ -38,7 +38,7 @@ def run_impl(build: Build, source_path: Path):
     hpp_dest = hpp_files[0]
     cpp_dest = common[0] if common else cpp_files[0]
 
-    if not confirm(f"Generate implementation files (yes/no)? "):
+    if not confirm("Generate implementation files (yes/no)? "):
         return False
     print(
         "Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)..."
@@ -320,7 +320,7 @@ def get_valid_input(prompt):
         name = input(prompt)
         char = is_valid_name(name)
         if char != "valid":
-            print("'" + char + "' is not a valid character")
+            print(f"'{char}' is not a valid character")
         else:
             valid_name = True
     return name
@@ -467,7 +467,7 @@ def new_deployment(parsed_args):
         os.path.dirname(__file__)
         + "/../cookiecutter_templates/cookiecutter-fprime-deployment"
     )
-    print(f"[INFO] Cookiecutter: using builtin template for new deployment")
+    print("[INFO] Cookiecutter: using builtin template for new deployment")
     try:
         gen_path = cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
     except OutputDirExistsException as out_directory_error:
