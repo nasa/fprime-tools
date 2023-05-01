@@ -4,7 +4,7 @@ Defines general-purpose command processing. Those are commands that do not belon
 Current commands include:
     - info: Prints out information about the build
     - hash-to-file: Processes hash-to-file to locate file
-    - new: Creates a new component, port, or deployment
+    - new: Creates a new component, deployment, or project
     - format: Formats code using clang-format
 
 @author thomas-bc
@@ -20,7 +20,6 @@ from fprime.fbuild.builder import Build, InvalidBuildCacheException
 
 from fprime.util.cookiecutter_wrapper import (
     new_component,
-    new_port,
     new_deployment,
     new_project,
 )
@@ -121,7 +120,7 @@ def run_new(
     """Processes new command
 
     Args:
-        build: build used to inform new component and new port calls
+        build: build used to inform new_* calls
         parsed: parsed arguments
         _: unused cmake arguments
         __: unused make arguments
@@ -129,8 +128,6 @@ def run_new(
     """
     if parsed.new_component:
         return new_component(build)
-    if parsed.new_port:
-        return new_port(build)
     if parsed.new_deployment:
         return new_deployment(parsed)
     if parsed.new_project:
