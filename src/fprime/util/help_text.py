@@ -294,8 +294,6 @@ Usage:
   Generate a new F' component within a F' project. This command prompts for what type of component and what it should
   include. At the end of the generation, the user can chose to automatically add the component to the build system and
   run the implementation generator.
-  -- New Port --
-  WARNING: prototype code generating XML only. Not recommended for inexperienced users. Please check back later.
 """,
     "format": f"""{EXECUTABLE} format ({VERSION}): Formats C/C++ files using clang-format
 

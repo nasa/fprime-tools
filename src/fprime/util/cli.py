@@ -120,13 +120,6 @@ def add_special_parsers(
         help="Tells the new command to generate a component",
     )
     new_exclusive.add_argument(
-        "--port",
-        default=False,
-        action="store_true",
-        dest="new_port",
-        help="Tells the new command to generate a port",
-    )
-    new_exclusive.add_argument(
         "--deployment",
         default=False,
         action="store_true",

@@ -1,5 +1,4 @@
 """ fprime.fbuild.gcovr: coverage target implementations """
-import atexit
 import itertools
 import shutil
 import subprocess

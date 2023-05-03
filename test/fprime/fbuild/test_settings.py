@@ -5,8 +5,6 @@ Tests the F prime settings module.
 @author joshuaa
 """
 
-import pytest
-import os
 from pathlib import Path
 
 from fprime.fbuild.settings import IniSettings
