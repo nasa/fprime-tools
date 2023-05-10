@@ -223,6 +223,7 @@ stderr
 stdin
 stdint
 stdout
+STest
 strftime
 stylesheet
 subdir
