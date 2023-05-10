@@ -160,7 +160,9 @@ class Gcovr(ExecutableAction):
             if _using_root(builder, context, self.scope)
             else _get_project_path(builder, context)
         ).resolve()
-        framework_path = builder.get_settings("framework_path", builder.build_dir.parent.parent)
+        framework_path = builder.get_settings(
+            "framework_path", builder.build_dir.parent.parent
+        )
         # gcovr is an unhappy beast
         cli_args = (
             [
@@ -192,7 +194,7 @@ class Gcovr(ExecutableAction):
 
         if builder.cmake.verbose:
             joined_args = "' '".join(cli_args)
-            print(f'[INFO] Running "\'{ joined_args }\'"')
+            print(f"[INFO] Running \"'{ joined_args }'\"")
         # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
         subprocess.call(cli_args)
 
