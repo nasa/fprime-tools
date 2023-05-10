@@ -105,24 +105,42 @@ class Gcovr(ExecutableAction):
         build_cache_resolved = Path(builder.build_dir).resolve()
 
         _, pass_through_args, options = args
-        include_all_ac = options["--all-ac"]
-        include_comp_ac = include_all_ac or options["--comp-ac"]
-        include_port_ac = include_all_ac or options["--port-ac"]
-        include_type_ac = include_all_ac or options["--type-ac"]
-
-        exclusion_filter_bases = [
+        include_all = options["--all-sources"]
+        include_comp_ac = include_all or options["--comp-ac"]
+        include_port_ac = include_all or options["--port-ac"]
+        include_type_ac = include_all or options["--type-ac"]
+        include_test_ac = include_all or options["--test-ac"]
+        include_test = include_all or options["--test-sources"]
+        build_cache_exclusion_filter_bases = [
             None if include_comp_ac else ".*ComponentAc.[ch]pp",
             None if include_port_ac else ".*PortAc.[ch]pp",
             None if include_type_ac else ".*SerializableAc.[ch]pp",
             None if include_type_ac else ".*ArrayAc.[ch]pp",
             None if include_type_ac else ".*EnumAc.[ch]pp",
+            None if include_test_ac else ".*/GTestBase.[ch]pp",
+            None if include_test_ac else ".*/TesterBase.[ch]pp",
+            None if include_test_ac else ".*/TesterHelpers.[ch]pp",
         ]
-        exclusion_filter_bases = filter(
-            lambda item: item is not None, exclusion_filter_bases
+        raw_source_exclusion_filter_bases = [
+            None if include_test else ".*/test/ut/.*",
+            None if include_test else ".*/GTest/.*",
+            None if include_test else "test/ut/.*",
+        ]
+
+        build_cache_exclusion_filter_bases = filter(
+            lambda item: item is not None, build_cache_exclusion_filter_bases
         )
+
+        raw_source_exclusion_filter_bases = filter(
+            lambda item: item is not None, raw_source_exclusion_filter_bases
+        )
+
         exclusion_filter_bases = [
             ["--exclude", f"{build_cache_resolved}/{exclusion}"]
-            for exclusion in exclusion_filter_bases
+            for exclusion in build_cache_exclusion_filter_bases
+        ] + [
+            ["--exclude", f"{exclusion}"]
+            for exclusion in raw_source_exclusion_filter_bases
         ]
 
         build_cache_path = (
@@ -142,15 +160,7 @@ class Gcovr(ExecutableAction):
             if _using_root(builder, context, self.scope)
             else _get_project_path(builder, context)
         ).resolve()
-        exclude_autocoders = (
-            builder.get_settings("framework_path", builder.build_dir.parent.parent)
-            / "Autocoders"
-        )
-        exclude_gtest = (
-            builder.get_settings("framework_path", builder.build_dir.parent.parent)
-            / "gtest"
-        )
-
+        framework_path = builder.get_settings("framework_path", builder.build_dir.parent.parent)
         # gcovr is an unhappy beast
         cli_args = (
             [
@@ -162,9 +172,11 @@ class Gcovr(ExecutableAction):
             + list(itertools.chain.from_iterable(exclusion_filter_bases))
             + [
                 "--exclude",
-                f"{exclude_autocoders}",
+                f"{framework_path}/Autocoders",
                 "--exclude",
-                f"{exclude_gtest}",
+                f"{framework_path}/gtest",
+                "--exclude",
+                f"{framework_path}/STest",
                 "--filter",
                 f"{filter_path}",
                 "--filter",
@@ -179,18 +191,20 @@ class Gcovr(ExecutableAction):
         cli_args.extend(pass_through_args)
 
         if builder.cmake.verbose:
-            joined_args = " ".join(cli_args)
-            print(f'[INFO] Running "{ joined_args }"')
+            joined_args = "' '".join(cli_args)
+            print(f'[INFO] Running "\'{ joined_args }\'"')
         # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
         subprocess.call(cli_args)
 
     def option_args(self):
         """Option arguments"""
         return [
-            ("--all-ac", "[coverage only] Include all autocode in coverage"),
+            ("--all-sources", "[coverage only] Include all sources in coverage"),
             ("--comp-ac", "[coverage only] Include component autocode in coverage"),
             ("--port-ac", "[coverage only] Include port autocode in coverage"),
             ("--type-ac", "[coverage only] Include data type autocode in coverage"),
+            ("--test-ac", "[coverage only] Include data test autocode in coverage"),
+            ("--test-sources", "[coverage only] Include unit test sources in coverage"),
         ]
 
     def allows_pass_args(self):
