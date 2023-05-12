@@ -7,11 +7,12 @@ target operations.
 """
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Callable
-from fprime.fbuild.types import BuildType
-from fprime.fbuild.target import Target
-from fprime.fbuild.builder import Build
+from typing import Callable, Dict, List, Tuple
+
 from fprime.common.utils import confirm
+from fprime.fbuild.builder import Build
+from fprime.fbuild.target import Target
+from fprime.fbuild.types import BuildType
 
 
 def get_target(parsed: argparse.Namespace) -> Target:

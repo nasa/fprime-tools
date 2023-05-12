@@ -18,7 +18,6 @@ long paragraph description
 import os
 import sys
 
-
 # Attempt to get pkg_resources from "setuptools"
 try:
     import pkg_resources

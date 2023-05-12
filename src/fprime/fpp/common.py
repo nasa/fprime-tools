@@ -6,8 +6,8 @@ Common implementations for FPP tool wrapping.
 """
 import itertools
 import subprocess
-from typing import List, Dict, Tuple
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build

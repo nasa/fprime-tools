@@ -1,19 +1,19 @@
 """ Cookie cutter wrapper used to template out components
 """
-import os
 import glob
-import sys
-from pathlib import Path
-from contextlib import contextmanager
+import os
 import shutil
+import sys
+from contextlib import contextmanager
+from pathlib import Path
 
-from cookiecutter.main import cookiecutter
 from cookiecutter.exceptions import OutputDirExistsException
+from cookiecutter.main import cookiecutter
 
 from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
-from fprime.fbuild.target import Target
 from fprime.fbuild.cmake import CMakeExecutionException
+from fprime.fbuild.target import Target
 from fprime.util.code_formatter import ClangFormatter
 
 

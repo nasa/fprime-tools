@@ -21,9 +21,10 @@ import datetime
 import math
 from enum import Enum
 
+from fprime.common.models.serialize import type_base
+
 # Custom Python Modules
 from fprime.common.models.serialize.numerical_types import U8Type, U16Type, U32Type
-from fprime.common.models.serialize import type_base
 from fprime.common.models.serialize.type_exceptions import TypeRangeException
 
 TimeBase = Enum(
