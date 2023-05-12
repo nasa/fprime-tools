@@ -90,7 +90,8 @@ class Build:
         """
         self.__setup_default(platform, build_dir)
         if self.build_dir.exists():
-            raise InvalidBuildCacheException(f"{self.build_dir} already exists.")
+            msg = f"{self.build_dir} already exists."
+            raise InvalidBuildCacheException(msg)
 
     def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
@@ -124,8 +125,9 @@ class Build:
                     and platform != "default"
                     else ""
                 )
+            msg = f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'"
             raise InvalidBuildCacheException(
-                f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'",
+                msg,
                 self.build_dir,
             )
 
@@ -165,8 +167,9 @@ class Build:
         """
         hashes_file = self.build_dir / "hashes.txt"
         if not hashes_file.exists():
+            msg = f"Failed to find {hashes_file}, was the build generated?"
             raise InvalidBuildCacheException(
-                f"Failed to find {hashes_file}, was the build generated?",
+                msg,
                 self.build_dir,
             )
         with open(hashes_file) as file_handle:
@@ -280,12 +283,14 @@ class Build:
             }
         )
         if not toolchains:
+            msg = f"Could not find toolchain file for {self.platform} at any of: {' '.join(toolchains_paths)}"
             raise NoSuchToolchainException(
-                f'Could not find toolchain file for {self.platform} at any of: {" ".join(toolchains_paths)}'
+                msg
             )
         if len(toolchains) > 1:
+            msg = f"Found conflicting toolchain files for {self.platform} at: {' '.join(toolchains)}"
             raise AmbiguousToolchainException(
-                f'Found conflicting toolchain files for {self.platform} at: {" ".join(toolchains)}'
+                msg
             )
         return toolchains[0]
 
@@ -350,7 +355,8 @@ class Build:
             possible_path = self.build_dir / possible / project_relative_path
             if possible_path.exists():
                 return possible_path
-        raise MissingBuildCachePath(f"{context} has no associated build cache path")
+        msg = f"{context} has no associated build cache path"
+        raise MissingBuildCachePath(msg)
 
     def get_relative_path(self, path: Path) -> Path:
         """Gets path relative to project"""

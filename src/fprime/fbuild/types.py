@@ -57,7 +57,8 @@ class BuildType(Enum):
             return ""
         if self == BuildType.BUILD_TESTING:
             return "-ut"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
+        msg = f"{self.name} is not a supported build type"
+        raise InvalidBuildTypeException(msg)
 
     def get_cmake_build_type(self):
         """Get the suffix of a directory supporting this build"""
@@ -69,7 +70,8 @@ class BuildType(Enum):
             return "Release"
         if self == BuildType.BUILD_CUSTOM:
             return "Custom"
-        raise InvalidBuildTypeException(f"{self.name} is not a supported build type")
+        msg = f"{self.name} is not a supported build type"
+        raise InvalidBuildTypeException(msg)
 
     @staticmethod
     def get_public_types() -> List["BuildType"]:

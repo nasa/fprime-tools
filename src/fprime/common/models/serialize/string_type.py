@@ -60,8 +60,9 @@ class StringType(type_base.DictionaryType):
             val_size = struct.unpack_from(">H", data, offset)[0]
             # Deal with not enough data left in the buffer
             if len(data[offset + 2 :]) < val_size:
+                msg = f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2:])}"
                 raise DeserializeException(
-                    f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2 :])}"
+                    msg
                 )
             # Deal with a string that is larger than max string
             if self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:

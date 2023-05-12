@@ -509,8 +509,9 @@ class CMakeHandler:
         # Raising an exception when the return code is non-zero allows us to handle the exception internally if it is
         # needed. Thus we do not just exit.
         if ret != 0:
+            msg = f"CMake erred with return code {proc.returncode}"
             raise CMakeExecutionException(
-                f"CMake erred with return code {proc.returncode}",
+                msg,
                 stderr,
                 print_output,
                 ret,

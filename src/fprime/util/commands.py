@@ -106,8 +106,9 @@ def run_hash_to_file(
     """
     lines = build.find_hashed_file(parsed.hash)
     if not lines:
+        msg = f"Hash 0x{parsed.hash:x} not found. Do you need '--ut' for a unittest run?"
         raise InvalidBuildCacheException(
-            f"Hash 0x{parsed.hash:x} not found. Do you need '--ut' for a unittest run?"
+            msg
         )
     print("[INFO] File(s) associated with hash 0x{:x}".format(parsed.hash))
     for line in lines:
