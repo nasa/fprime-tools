@@ -41,3 +41,4 @@ ignore$
 ^test/fprime/fbuild/cmake-data/testbuild/CMakeLists\.txt$
 ^test/fprime/fbuild/settings-data/settings-empty\.ini$
 ^\.github/
+\pyproject.toml$
