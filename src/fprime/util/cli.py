@@ -216,9 +216,7 @@ def validate(parsed, unknown):
     if unknown:
         runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"
         msg = f"'{runnable}' supplied invalid arguments: {','.join(unknown)}"
-        raise ArgValidationException(
-            msg
-        )
+        raise ArgValidationException(msg)
     parsed.build_cache = (
         None if parsed.build_cache is None else Path(parsed.build_cache)
     )

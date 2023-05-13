@@ -216,9 +216,7 @@ class Target(ExecutableAction):
         ]
         if not matching:
             msg = f"Could not find target '{cls.config_string(mnemonic, flags)}'"
-            raise NoSuchTargetException(
-                msg
-            )
+            raise NoSuchTargetException(msg)
         assert len(matching) == 1, "Conflicting targets specified in code"
         return matching[0]
 

@@ -284,14 +284,10 @@ class Build:
         )
         if not toolchains:
             msg = f"Could not find toolchain file for {self.platform} at any of: {' '.join(toolchains_paths)}"
-            raise NoSuchToolchainException(
-                msg
-            )
+            raise NoSuchToolchainException(msg)
         if len(toolchains) > 1:
             msg = f"Found conflicting toolchain files for {self.platform} at: {' '.join(toolchains)}"
-            raise AmbiguousToolchainException(
-                msg
-            )
+            raise AmbiguousToolchainException(msg)
         return toolchains[0]
 
     def get_cmake_args(self) -> dict:

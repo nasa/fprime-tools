@@ -61,9 +61,7 @@ class StringType(type_base.DictionaryType):
             # Deal with not enough data left in the buffer
             if len(data[offset + 2 :]) < val_size:
                 msg = f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2:])}"
-                raise DeserializeException(
-                    msg
-                )
+                raise DeserializeException(msg)
             # Deal with a string that is larger than max string
             if self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:
                 raise StringSizeException(val_size, self.MAX_LENGTH)

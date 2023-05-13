@@ -29,17 +29,13 @@ def get_version(package: str, requirements: Path):
     valid_lines = [line for line in matching_lines if "==" in line or "@" in line]
     if not valid_lines:
         msg = f"{package} has inexact version, use '==' or '@' format. Found: {matching_lines}"
-        raise VersionException(
-            msg
-        )
+        raise VersionException(msg)
 
     # Collapse versions that match
     versions = list({line.split("==")[-1].split("@")[-1] for line in valid_lines})
     if len(versions) != 1:
         msg = f"Conflicting versions specified for {package}: {versions}"
-        raise VersionException(
-            msg
-        )
+        raise VersionException(msg)
     return versions[0]
 
 

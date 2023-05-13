@@ -1,5 +1,6 @@
 from fprime.util.cookiecutter_wrapper import is_valid_name
 
+
 # Check to ensure Component Name is valid
 def verify_inputs(component_name, commands, events, telemetry, parameters):
     if is_valid_name(component_name) != "valid":

@@ -312,7 +312,6 @@ class TimeType(type_base.BaseType):
         dt = None
 
         if tb in [TimeBase["TB_WORKSTATION_TIME"], TimeBase["TB_SC_TIME"]]:
-
             # This finds the local time corresponding to the timestamp and
             # timezone object, or local time zone if tz=None
             dt = datetime.datetime.fromtimestamp(self.__secs.val, tz)

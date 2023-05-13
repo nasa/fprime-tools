@@ -471,10 +471,10 @@ def test_time_type():
     assert size == TIME_SIZE
     assert val.getMaxSize() == TIME_SIZE
 
-    for (t_base, t_context, secs, usecs) in in_no_err_list:
+    for t_base, t_context, secs, usecs in in_no_err_list:
         ser_deser_time_test(t_base, t_context, secs, usecs)
 
-    for (t_base, t_context, secs, usecs) in in_err_list:
+    for t_base, t_context, secs, usecs in in_err_list:
         with pytest.raises(TypeRangeException):
             ser_deser_time_test(t_base, t_context, secs, usecs)
 
