@@ -5,15 +5,13 @@ Wrapper for clang-format utility.
 @author thomas-bc
 """
 
+import re
+import shutil
+import subprocess
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from fprime.fbuild.target import ExecutableAction, TargetScope
-from pathlib import Path
-
-import subprocess
-import shutil
-import re
-
 
 # MARKER is needed to differentiate at postprocess between access specifiers
 # that were previously an uppercase MACRO, and those that were originally lowercase.

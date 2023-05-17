@@ -15,10 +15,11 @@ are supported herein:
 """
 from pathlib import Path
 
-from fprime.fbuild.target import NoSuchTargetException
 from fprime.fbuild.builder import Build, BuildType
-from .versioning import get_version, VersionException
 from fprime.fbuild.cli import get_target
+from fprime.fbuild.target import NoSuchTargetException
+
+from .versioning import VersionException, get_version
 
 # Attempt to get pkg_resources from "setuptools"
 try:

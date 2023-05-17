@@ -4,9 +4,9 @@ Defines all the targets for fprime-util. Each target is a singleton that is regi
 as such, each target need only be instantiated but need not be assigned to anything.
 
 """
-from .types import BuildType
-from .target import TargetScope, BuildSystemTarget
 from .gcovr import GcovrTarget
+from .target import BuildSystemTarget, TargetScope
+from .types import BuildType
 
 #### "build" targets for components, deployments, unittests for both normal and testing builds ####
 BuildSystemTarget(

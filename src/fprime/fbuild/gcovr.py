@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from .target import ExecutableAction, Target, TargetScope, CompositeTarget
+from .target import CompositeTarget, ExecutableAction, Target, TargetScope
 
 
 def _get_project_path(builder: "Build", module: Union[str, Path]) -> Path:

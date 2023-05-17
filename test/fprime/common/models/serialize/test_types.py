@@ -8,7 +8,6 @@ import json
 from collections.abc import Iterable
 
 import pytest
-
 from fprime.common.models.serialize.array_type import ArrayType
 from fprime.common.models.serialize.bool_type import BoolType
 from fprime.common.models.serialize.enum_type import EnumType
@@ -28,7 +27,6 @@ from fprime.common.models.serialize.serializable_type import SerializableType
 from fprime.common.models.serialize.string_type import StringType
 from fprime.common.models.serialize.time_type import TimeBase, TimeType
 from fprime.common.models.serialize.type_base import BaseType, DictionaryType, ValueType
-
 from fprime.common.models.serialize.type_exceptions import (
     AbstractMethodException,
     ArrayLengthException,
@@ -41,7 +39,6 @@ from fprime.common.models.serialize.type_exceptions import (
     TypeMismatchException,
     TypeRangeException,
 )
-
 
 PYTHON_TESTABLE_TYPES = [
     True,

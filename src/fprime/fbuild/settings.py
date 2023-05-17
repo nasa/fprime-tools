@@ -6,12 +6,12 @@ settings from the settings.default file that is part of the F prime deployment d
 
 @author mstarch
 """
-import os
 import configparser
-from functools import partial
+import os
 from enum import Enum
-from typing import Dict, List, Union, Callable, Any
+from functools import partial
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Union
 
 
 class SettingType(Enum):

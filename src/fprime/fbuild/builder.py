@@ -7,21 +7,20 @@ import re
 from pathlib import Path
 from typing import Iterable, List, Union
 
+# Forces targets into existence
+import fprime.fbuild.target_definitions  # lgtm[py/unused-import]
+from fprime.common.error import FprimeException
+from fprime.fbuild.cmake import CMakeException, CMakeHandler
+from fprime.fbuild.settings import IniSettings
+from fprime.fbuild.target import Target, TargetScope
 from fprime.fbuild.types import (
+    AmbiguousToolchainException,
     BuildType,
     InvalidBuildCacheException,
     MissingBuildCachePath,
     NoSuchToolchainException,
-    AmbiguousToolchainException,
     UnableToDetectDeploymentException,
 )
-from fprime.fbuild.target import TargetScope, Target
-from fprime.common.error import FprimeException
-from fprime.fbuild.settings import IniSettings
-from fprime.fbuild.cmake import CMakeHandler, CMakeException
-
-# Forces targets into existence
-import fprime.fbuild.target_definitions  # lgtm[py/unused-import]
 
 
 class Build:

@@ -9,8 +9,8 @@ It does the following:
 
 @author thomas-bc
 """
-import sys
 import subprocess
+import sys
 
 DEFAULT_BRANCH = "devel"
 

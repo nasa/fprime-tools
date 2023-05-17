@@ -3,15 +3,15 @@
 Created on May 29, 2020
 @author: jishii
 """
+from fprime.util.string_util import format_string_template
+
+from . import serializable_type
 from .type_base import DictionaryType
 from .type_exceptions import (
     ArrayLengthException,
     NotInitializedException,
     TypeMismatchException,
 )
-
-from . import serializable_type
-from fprime.util.string_util import format_string_template
 
 
 class ArrayType(DictionaryType):
