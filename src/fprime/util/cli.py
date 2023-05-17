@@ -5,22 +5,19 @@ Defines main entrypoint for fprime-util and sets up parsers for general CLI targ
 @author mstarch
 """
 import argparse
-import sys
-import re
 import os
-
+import re
+import sys
 from pathlib import Path
-from typing import Dict, Callable
+from typing import Callable, Dict
 
-from fprime.fbuild.target import Target
-from fprime.fbuild.cli import add_fbuild_parsers
 from fprime.fbuild.builder import GenerateException, UnableToDetectDeploymentException
-
+from fprime.fbuild.cli import add_fbuild_parsers
+from fprime.fbuild.target import Target
 from fprime.fpp.cli import add_fpp_parsers
-
-from fprime.util.help_text import HelpText
 from fprime.util.build_helper import load_build
-from fprime.util.commands import run_hash_to_file, run_info, run_new, run_code_format
+from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new
+from fprime.util.help_text import HelpText
 
 
 def utility_entry(args):

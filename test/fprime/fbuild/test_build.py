@@ -9,10 +9,9 @@ that they function as expected.
 import os
 import pathlib
 
-import pytest
-
-import fprime.fbuild.cmake
 import fprime.fbuild.builder
+import fprime.fbuild.cmake
+import pytest
 
 
 def get_cmake_builder():

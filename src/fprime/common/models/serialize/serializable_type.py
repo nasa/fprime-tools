@@ -4,6 +4,9 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
+from fprime.util.string_util import format_string_template
+
+from . import array_type
 from .type_base import BaseType, DictionaryType
 from .type_exceptions import (
     IncorrectMembersException,
@@ -11,9 +14,6 @@ from .type_exceptions import (
     NotInitializedException,
     TypeMismatchException,
 )
-
-from . import array_type
-from fprime.util.string_util import format_string_template
 
 
 class SerializableType(DictionaryType):

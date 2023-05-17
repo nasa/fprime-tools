@@ -12,18 +12,16 @@ Current commands include:
 
 import argparse
 import sys
-
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-
+from fprime.util.code_formatter import ClangFormatter
 from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
     new_project,
 )
-from fprime.util.code_formatter import ClangFormatter
 
 
 def run_info(

@@ -5,7 +5,8 @@ Processing and command line functions for FPP tools wrappers in fprime-util.
 @mstarch
 """
 import argparse
-from typing import Dict, List, Tuple, Callable
+from typing import Callable, Dict, List, Tuple
+
 from fprime.fpp.common import FppUtility
 
 
