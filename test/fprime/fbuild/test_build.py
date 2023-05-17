@@ -32,9 +32,8 @@ def get_data_dir():
     """
     if type(get_cmake_builder()) is fprime.fbuild.cmake.CMakeHandler:
         return os.path.join(os.path.dirname(__file__), "cmake-data")
-    raise Exception(
-        f"Test data directory not setup for {type(get_cmake_builder())} builder class"
-    )
+    msg = f"Test data directory not setup for {type(get_cmake_builder())} builder class"
+    raise Exception(msg)
 
 
 def test_hash_finder():
