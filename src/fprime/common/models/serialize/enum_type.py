@@ -76,9 +76,8 @@ class EnumType(DictionaryType):
         try:
             int_val = struct.unpack_from(">i", data, offset)[0]
         except struct.error:
-            raise DeserializeException(
-                f"Could not deserialize enum value. Needed: {self.getSize()} bytes Found: {len(data[offset:])}"
-            )
+            msg = f"Could not deserialize enum value. Needed: {self.getSize()} bytes Found: {len(data[offset:])}"
+            raise DeserializeException(msg)
         for key, val in self.ENUM_DICT.items():
             if int_val == val:
                 self._val = key
