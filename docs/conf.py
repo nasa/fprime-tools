@@ -3,14 +3,13 @@
 Documentation:
 https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
-# pylint: disable=invalid-name
 
 import re
 from datetime import datetime
 from importlib import import_module
 from pathlib import Path
 
-import sphinx_rtd_theme  # pylint: disable=unused-import
+import sphinx_rtd_theme
 
 
 # importlib.metadata is implemented in Python 3.8
@@ -25,7 +24,7 @@ except ModuleNotFoundError:
 metadata_ = metadata.metadata("fprime")
 project = metadata_.get("Name")
 author = metadata_.get("Author")
-copyright = f"{datetime.now().year}, {author}"  # pylint: disable=redefined-builtin
+copyright = f"{datetime.now().year}, {author}"
 
 # The full version, including alpha/beta/rc tags
 release = metadata_.get("Version")

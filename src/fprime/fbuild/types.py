@@ -42,9 +42,9 @@ class BuildType(Enum):
     types of targets underneath. i.e. the unit-test build may build unit test executables.
     """
 
-    """ Normal build normal binaries for a deployment mapping to CMake 'Release'"""  # pylint: disable=W0105
+    """ Normal build normal binaries for a deployment mapping to CMake 'Release'"""
     BUILD_NORMAL = (0,)
-    """ Testing build allowing unit testing mapping to CMake 'Testing'"""  # pylint: disable=W0105
+    """ Testing build allowing unit testing mapping to CMake 'Testing'"""
     BUILD_TESTING = 1
     """ FPP locations build """
     BUILD_FPP_LOCS = 2

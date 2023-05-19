@@ -1,7 +1,7 @@
 """
 Provided constants for use within the fprime system.
 """
-# pylint: disable=W0105
+
 """
 In order to transmit data in a serialized format, string objects need to be encoded. Otherwise,
 it is unclear how the characters are translated into raw bytes on the wire. This value should be
