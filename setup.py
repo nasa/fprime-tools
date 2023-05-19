@@ -101,6 +101,7 @@ to interact with the data coming from the FSW.
             "sphinx-autoapi",
             "sphinx-autoapi",
             "recommonmark",
+            "ruff",
         ]
     },
     # Setup and test requirements, not needed by normal install
