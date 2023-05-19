@@ -92,8 +92,6 @@ to interact with the data coming from the FSW.
     extras_require={
         "dev": [
             "black",
-            "pylama",
-            "pylint",
             "pre-commit",
             "sphinx",
             "sphinxcontrib.mermaid",
