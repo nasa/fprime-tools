@@ -99,7 +99,7 @@ to interact with the data coming from the FSW.
             "sphinx-autoapi",
             "sphinx-autoapi",
             "recommonmark",
-            "ruff",
+            "ruff=0.0.269",
         ]
     },
     # Setup and test requirements, not needed by normal install

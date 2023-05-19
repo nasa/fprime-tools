@@ -61,6 +61,7 @@ ignore = [
     # flake8-executable
     "EXE001",  # shebang is present but file is not executable
     "EXE002",  # file executable but no shebang present
+    "FA100",   # Missing `from __future__ import annotations`, but uses `typing.List` 
     # flake8-boolean-trap
     "FBT001",  # boolean positional arg in function definition
     "FBT002",  # boolean default value in function definition
@@ -114,6 +115,7 @@ ignore = [
     "RUF002",  # Docstring contains ambiguous unicode character `´` (did you mean ```?)
     "RUF003",  # comment contains ambiguous unicode character
     "RUF005",  # consider unpacking instead of concatenation
+    "RUF010",  # Use conversion in f-string
     # flake8-bandit
     "S101",  # assert used
     "S105",  # possible hardcoded password
