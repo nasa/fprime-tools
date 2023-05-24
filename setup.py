@@ -88,6 +88,7 @@ to interact with the data coming from the FSW.
         "Cheetah3>=3.2.6",
         "cookiecutter>=1.7.2",
         "gcovr>=6.0",
+        "urllib3<2.0.0",
     ],
     extras_require={
         "dev": [
