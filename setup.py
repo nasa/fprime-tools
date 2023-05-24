@@ -87,7 +87,7 @@ to interact with the data coming from the FSW.
         "pytest>=6.2.4",
         "Cheetah3>=3.2.6",
         "cookiecutter>=1.7.2",
-        "gcovr>=5.0",
+        "gcovr>=6.0",
     ],
     extras_require={
         "dev": [
