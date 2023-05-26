@@ -12,7 +12,7 @@ It does the following:
 import subprocess
 import sys
 
-DEFAULT_BRANCH = "devel"
+DEFAULT_BRANCH = "master"
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
