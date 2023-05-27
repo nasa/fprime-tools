@@ -217,7 +217,7 @@ def new_component(build: Build):
     return 1
 
 
-def new_deployment(parsed_args):
+def new_deployment(build: Build, parsed_args):
     """Creates a new deployment using cookiecutter"""
     source = (
         os.path.dirname(__file__)
@@ -225,7 +225,22 @@ def new_deployment(parsed_args):
     )
     print("[INFO] Cookiecutter: using builtin template for new deployment")
     try:
-        gen_path = cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
+        gen_path = Path(cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)).resolve()
+
+        proj_root = build.get_settings("project_root", None)
+        # Attempt to register to CMakeLists.txt or project.cmake
+        proj_root = Path(proj_root)
+        cmake_file = find_nearest_cmake_file(gen_path, build.deployment, proj_root)
+        if cmake_file is None or not add_to_cmake(
+            cmake_file,
+            gen_path.relative_to(cmake_file.parent),
+            proj_root,
+        ):
+            print(
+                f"[INFO] Could not register {gen_path} with build system. Please add it manually."
+            )
+            return 0
+
     except OutputDirExistsException as out_directory_error:
         print(
             f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",

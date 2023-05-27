@@ -25,7 +25,11 @@ def utility_entry(args):
     parsed, cmake_args, make_args, parser, runners = parse_args(args)
 
     try:
-        build = None if skip_build_loading(parsed) else load_build(parsed)
+        build = (
+            None
+            if skip_build_loading(parsed)
+            else load_build(parsed, skip_build_cache_validation(parsed))
+        )
 
         # runners is a Dict[str, Callable] of {command_name: handler_functions} pairs
         return runners[parsed.command](
@@ -46,10 +50,24 @@ def utility_entry(args):
 
 def skip_build_loading(parsed):
     """Determines if the build load step should be skipped. Commands that do not require a build object
-    should manually be added here by the developer."""
-    if parsed.command == "new" and parsed.new_deployment:
-        return True
+    should manually be added here by the developer.
+    """
     if parsed.command == "new" and parsed.new_project:
+        return True
+    return False
+
+
+def skip_build_cache_validation(parsed):
+    """Determines if the build cache validation step should be skipped. Commands that do not require a
+    build **cache** should manually be added here by the developer.
+    """
+    if parsed.command in [
+        "purge",
+        "info",
+        "format",
+    ]:
+        return True
+    if parsed.command == "new" and parsed.new_deployment:
         return True
     return False
 

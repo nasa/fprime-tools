@@ -128,7 +128,7 @@ def run_new(
     if parsed.new_component:
         return new_component(build)
     if parsed.new_deployment:
-        return new_deployment(parsed)
+        return new_deployment(build, parsed)
     if parsed.new_project:
         return new_project(parsed)
     raise NotImplementedError(
