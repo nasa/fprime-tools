@@ -80,7 +80,7 @@ def validate_tools_from_requirements(build: Build):
             print(message)
 
 
-def load_build(parsed):
+def load_build(parsed, skip_validation=False):
     """
     Loads Build object and returns it to the caller. Additionally, this will validate the
     installed tool versions (such as fpp and other F' utilities) against the requirements.txt
@@ -110,15 +110,11 @@ def load_build(parsed):
     if parsed.command == "generate":
         build.invent(parsed.platform, build_dir=parsed.build_cache)
     else:
-        does_not_need_cache_directory = parsed.command in [
-            "purge",
-            "info",
-            "format",
-        ]
+
         build.load(
             parsed.platform,
             parsed.build_cache,
-            skip_validation=does_not_need_cache_directory,
+            skip_validation=skip_validation,
         )
     validate_tools_from_requirements(build)
     return build

@@ -1,6 +1,8 @@
 ####
-# 
+# This sets up the build system for the '{{cookiecutter.project_name}}' project, including
+# components and deployments from project.cmake. In addition, it imports the core F Prime components.
 ####
+
 cmake_minimum_required(VERSION 3.13)
 project({{cookiecutter.project_name}} C CXX)
 

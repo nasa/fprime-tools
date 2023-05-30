@@ -12,7 +12,8 @@ It does the following:
 import subprocess
 import sys
 
-DEFAULT_BRANCH = "master"
+# Fail-safe in case user input is invalid branch/tag
+DEFAULT_BRANCH = "{{ cookiecutter.__default_branch }}"
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
