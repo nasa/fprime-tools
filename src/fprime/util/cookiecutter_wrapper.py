@@ -225,7 +225,9 @@ def new_deployment(build: Build, parsed_args):
     )
     print("[INFO] Cookiecutter: using builtin template for new deployment")
     try:
-        gen_path = Path(cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)).resolve()
+        gen_path = Path(
+            cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
+        ).resolve()
 
         proj_root = build.get_settings("project_root", None)
         # Attempt to register to CMakeLists.txt or project.cmake
