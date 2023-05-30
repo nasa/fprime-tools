@@ -55,6 +55,7 @@ class IniSettings:
         ("default_ut_toolchain", SettingType.STRING, "native"),
         ("library_locations", SettingType.PATH_LIST, []),
         ("component_cookiecutter", SettingType.STRING, "default"),
+        ("deployment_cookiecutter", SettingType.STRING, "default"),
     ]
 
     PLATFORM_FIELDS = [

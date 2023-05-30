@@ -219,11 +219,19 @@ def new_component(build: Build):
 
 def new_deployment(build: Build, parsed_args):
     """Creates a new deployment using cookiecutter"""
-    source = (
-        os.path.dirname(__file__)
-        + "/../cookiecutter_templates/cookiecutter-fprime-deployment"
-    )
-    print("[INFO] Cookiecutter: using builtin template for new deployment")
+    # Checks if deployment_cookiecutter is set in settings.ini file, else uses local install template as default
+    if (
+        build.get_settings("deployment_cookiecutter", None) is not None
+        and build.get_settings("deployment_cookiecutter", None) != "default"
+    ):
+        source = build.get_settings("deployment_cookiecutter", None)
+        print(f"[INFO] Cookiecutter source: {source}")
+    else:
+        source = (
+            os.path.dirname(__file__)
+            + "/../cookiecutter_templates/cookiecutter-fprime-deployment"
+        )
+        print("[INFO] Cookiecutter: using builtin template for new deployment")
     try:
         gen_path = Path(
             cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
