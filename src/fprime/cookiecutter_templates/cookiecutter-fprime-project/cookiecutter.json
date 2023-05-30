@@ -1,6 +1,7 @@
 {
+    "__default_branch": "master",
     "project_name": "MyProject",
-    "fprime_branch_or_tag": "devel",
+    "fprime_branch_or_tag": "{{ cookiecutter.__default_branch }}",
     "install_venv": ["yes", "no"],
     "venv_install_path": "{% if cookiecutter.install_venv == 'yes' %}./venv{% else %}None{% endif %}"
 }
