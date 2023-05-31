@@ -26,7 +26,9 @@ module {{cookiecutter.deployment_name}} {
     instance tlmSend
     instance cmdDisp
     instance cmdSeq
-    instance comm
+    instance comDriver
+    instance comQueue
+    instance comStub
     instance downlink
     instance eventLogger
     instance fatalAdapter
@@ -70,16 +72,26 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
 
-      tlmSend.PktSend -> downlink.comIn
-      eventLogger.PktSend -> downlink.comIn
-      fileDownlink.bufferSendOut -> downlink.bufferIn
+      tlmSend.PktSend -> comQueue.comQueueIn[0]
+      eventLogger.PktSend -> comQueue.comQueueIn[1]
+      fileDownlink.bufferSendOut -> comQueue.buffQueueIn[0]
 
+      # should these staticMemory be comBufferManager instead?
       downlink.framedAllocate -> staticMemory.bufferAllocate[Ports_StaticMemory.downlink]
-      downlink.framedOut -> comm.send
+      downlink.framedOut -> comStub.comDataIn
       downlink.bufferDeallocate -> fileDownlink.bufferReturn
 
-      comm.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
+      comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
 
+      comQueue.comQueueSend -> downlink.comIn
+      comQueue.buffQueueSend -> downlink.bufferIn
+
+      comStub.comStatus -> comQueue.comStatusIn
+
+      # ComStub <--> ComDriver connections
+      comStub.drvDataOut -> comDriver.send
+      comDriver.ready -> comStub.drvConnected
+      
     }
 
     connections FaultProtection {
@@ -114,8 +126,12 @@ module {{cookiecutter.deployment_name}} {
 
     connections Uplink {
 
-      comm.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.uplink]
-      comm.$recv -> uplink.framedIn
+      comDriver.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.uplink]
+      comDriver.$recv -> comStub.drvDataIn
+
+      # I don't understand what this port connection does
+      comStub.comDataOut -> uplink.framedIn
+
       uplink.framedDeallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.uplink]
 
       uplink.comOut -> cmdDisp.seqCmdBuff

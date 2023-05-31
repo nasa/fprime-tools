@@ -43,17 +43,22 @@ module {{cookiecutter.deployment_name}} {
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileDownlink: Svc.FileDownlink base id 0x0700 \
+  instance comQueue: Svc.ComQueue base id 0x0700 \
+      queue size Default.QUEUE_SIZE \
+      stack size Default.STACK_SIZE \
+      priority 100 \
+
+  instance fileDownlink: Svc.FileDownlink base id 0x0800 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileManager: Svc.FileManager base id 0x0800 \
+  instance fileManager: Svc.FileManager base id 0x0900 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileUplink: Svc.FileUplink base id 0x0900 \
+  instance fileUplink: Svc.FileUplink base id 0x0A00 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
@@ -95,7 +100,7 @@ module {{cookiecutter.deployment_name}} {
 
   @ Communications driver. May be swapped with other comm drivers like UART
   @ Note: Here we have TCP reliable uplink and UDP (low latency) downlink
-  instance comm: Drv.ByteStreamDriverModel base id 0x4000 \
+  instance comDriver: Drv.ByteStreamDriverModel base id 0x4000 \
     type "Drv::TcpClient" \ # type specified to select implementor of ByteStreamDriverModel
     at "../../Drv/TcpClient/TcpClient.hpp" # location of above implementor must also be specified
 
@@ -120,5 +125,7 @@ module {{cookiecutter.deployment_name}} {
   instance uplink: Svc.Deframer base id 0x4900
 
   instance systemResources: Svc.SystemResources base id 0x4A00
+
+  instance comStub: Svc.ComStub base id 0x4B00
 
 }

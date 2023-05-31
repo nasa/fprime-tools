@@ -41,6 +41,11 @@
         <channel name="blockDrv.BD_Cycles"/>
     </packet>
 
+    <packet name="Comms" id="4" level="1">
+        <channel name="comQueue.comQueueDepth"/>
+        <channel name="comQueue.buffQueueDepth"/>
+    </packet>
+
     <packet name="SystemRes1" id="5" level="2">
         <channel name="systemResources.MEMORY_TOTAL"/>
         <channel name="systemResources.MEMORY_USED"/>
