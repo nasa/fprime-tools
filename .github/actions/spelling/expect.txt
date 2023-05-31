@@ -12,6 +12,7 @@ cmake
 cmakelists
 cmp
 commonprefix
+comms
 config
 configparser
 configs
@@ -50,7 +51,7 @@ dirone
 dirs
 distutils
 doctest
-Drv
+drv
 dumpable
 Dxyz
 elif
