@@ -76,22 +76,19 @@ module {{cookiecutter.deployment_name}} {
       eventLogger.PktSend -> comQueue.comQueueIn[1]
       fileDownlink.bufferSendOut -> comQueue.buffQueueIn[0]
 
-      # should these staticMemory be comBufferManager instead?
       downlink.framedAllocate -> staticMemory.bufferAllocate[Ports_StaticMemory.downlink]
       downlink.framedOut -> comStub.comDataIn
       downlink.bufferDeallocate -> fileDownlink.bufferReturn
 
-      comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
-
       comQueue.comQueueSend -> downlink.comIn
       comQueue.buffQueueSend -> downlink.bufferIn
 
-      comStub.comStatus -> comQueue.comStatusIn
-
-      # ComStub <--> ComDriver connections
-      comStub.drvDataOut -> comDriver.send
+      comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
       comDriver.ready -> comStub.drvConnected
-      
+
+      comStub.comStatus -> comQueue.comStatusIn
+      comStub.drvDataOut -> comDriver.send
+
     }
 
     connections FaultProtection {
@@ -128,13 +125,11 @@ module {{cookiecutter.deployment_name}} {
 
       comDriver.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.uplink]
       comDriver.$recv -> comStub.drvDataIn
-
-      # I don't understand what this port connection does
       comStub.comDataOut -> uplink.framedIn
 
       uplink.framedDeallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.uplink]
-
       uplink.comOut -> cmdDisp.seqCmdBuff
+
       cmdDisp.seqCmdStatus -> uplink.cmdResponseIn
 
       uplink.bufferAllocate -> fileUplinkBufferManager.bufferGetCallee
