@@ -33,7 +33,7 @@ datetime
 dedent
 deduplicated
 deepcopy
-Deframer
+deframer
 deframing
 DEPS
 deser

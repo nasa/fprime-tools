@@ -110,15 +110,13 @@ module {{cookiecutter.deployment_name}} {
 
   instance fatalHandler: Svc.FatalHandler base id 0x4300
 
-  instance fileUplinkBufferManager: Svc.BufferManager base id 0x4400
+  instance bufferManager: Svc.BufferManager base id 0x4400
 
   instance linuxTime: Svc.Time base id 0x4500 \
     type "Svc::LinuxTime" \
     at "../../Svc/LinuxTime/LinuxTime.hpp"
 
   instance rateGroupDriver: Svc.RateGroupDriver base id 0x4600
-
-  instance staticMemory: Svc.StaticMemory base id 0x4700
 
   instance textLogger: Svc.PassiveTextLogger base id 0x4800
 

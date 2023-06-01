@@ -50,9 +50,14 @@ enum TopologyConstants {
     FILE_DOWNLINK_FILE_QUEUE_DEPTH = 10,
     HEALTH_WATCHDOG_CODE = 0x123,
     COMM_PRIORITY = 100,
-    UPLINK_BUFFER_MANAGER_STORE_SIZE = 3000,
-    UPLINK_BUFFER_MANAGER_QUEUE_SIZE = 30,
-    UPLINK_BUFFER_MANAGER_ID = 200
+    // bufferManager constants
+    FRAMER_BUFFER_SIZE = 3000,
+    FRAMER_BUFFER_COUNT = 30,
+    DEFRAMER_BUFFER_SIZE = 3000,
+    DEFRAMER_BUFFER_COUNT = 30,
+    COM_DRIVER_BUFFER_SIZE = 3000,
+    COM_DRIVER_BUFFER_COUNT = 30,
+    BUFFER_MANAGER_ID = 200
 };
 
 // Ping entries are autocoded, however; this code is not properly exported. Thus, it is copied here.
@@ -104,9 +109,13 @@ void configureTopology() {
     // Buffer managers need a configured set of buckets and an allocator used to allocate memory for those buckets.
     Svc::BufferManager::BufferBins upBuffMgrBins;
     memset(&upBuffMgrBins, 0, sizeof(upBuffMgrBins));
-    upBuffMgrBins.bins[0].bufferSize = UPLINK_BUFFER_MANAGER_STORE_SIZE;
-    upBuffMgrBins.bins[0].numBuffers = UPLINK_BUFFER_MANAGER_QUEUE_SIZE;
-    fileUplinkBufferManager.setup(UPLINK_BUFFER_MANAGER_ID, 0, mallocator, upBuffMgrBins);
+    upBuffMgrBins.bins[0].bufferSize = FRAMER_BUFFER_SIZE;
+    upBuffMgrBins.bins[0].numBuffers = FRAMER_BUFFER_COUNT;
+    upBuffMgrBins.bins[1].bufferSize = DEFRAMER_BUFFER_SIZE;
+    upBuffMgrBins.bins[1].numBuffers = DEFRAMER_BUFFER_COUNT;
+    upBuffMgrBins.bins[2].bufferSize = COM_DRIVER_BUFFER_SIZE;
+    upBuffMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
+    bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, upBuffMgrBins);
 
     // Framer and Deframer components need to be passed a protocol handler
     framer.setup(framing);
@@ -188,6 +197,6 @@ void teardownTopology(const TopologyState& state) {
 
     // Resource deallocation
     cmdSeq.deallocateBuffer(mallocator);
-    fileUplinkBufferManager.cleanup();
+    bufferManager.cleanup();
 }
 };  // namespace {{cookiecutter.deployment_name}}
