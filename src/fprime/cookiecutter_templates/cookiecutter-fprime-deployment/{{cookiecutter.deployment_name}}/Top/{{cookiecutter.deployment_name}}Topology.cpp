@@ -109,8 +109,8 @@ void configureTopology() {
     fileUplinkBufferManager.setup(UPLINK_BUFFER_MANAGER_ID, 0, mallocator, upBuffMgrBins);
 
     // Framer and Deframer components need to be passed a protocol handler
-    downlink.setup(framing);
-    uplink.setup(deframing);
+    framer.setup(framing);
+    deframer.setup(deframing);
 
     // Note: Uncomment when using Svc:TlmPacketizer
     //tlmSend.setPacketList({{cookiecutter.deployment_name}}PacketsPkts, {{cookiecutter.deployment_name}}PacketsIgnore, 1);

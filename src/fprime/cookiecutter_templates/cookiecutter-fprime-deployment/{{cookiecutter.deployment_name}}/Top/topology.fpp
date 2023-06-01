@@ -11,8 +11,8 @@ module {{cookiecutter.deployment_name}} {
     }
 
     enum Ports_StaticMemory {
-      downlink
-      uplink
+      framer
+      deframer
     }
 
   topology {{cookiecutter.deployment_name}} {
@@ -29,7 +29,8 @@ module {{cookiecutter.deployment_name}} {
     instance comDriver
     instance comQueue
     instance comStub
-    instance downlink
+    instance framer
+    instance deframer
     instance eventLogger
     instance fatalAdapter
     instance fatalHandler
@@ -45,7 +46,6 @@ module {{cookiecutter.deployment_name}} {
     instance rateGroupDriver
     instance staticMemory
     instance textLogger
-    instance uplink
     instance systemResources
 
     # ----------------------------------------------------------------------
@@ -86,8 +86,9 @@ module {{cookiecutter.deployment_name}} {
       comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.framer]
       comDriver.ready -> comStub.drvConnected
 
-      comStub.comStatus -> framer.comStatusIn
-      framer.comStatusOut -> comQueue.comStatusIn
+      comStub.comStatus -> comQueue.comStatusIn
+      # comStub.comStatus -> framer.comStatusIn
+      # framer.comStatusOut -> comQueue.comStatusIn
       comStub.drvDataOut -> comDriver.send
 
     }

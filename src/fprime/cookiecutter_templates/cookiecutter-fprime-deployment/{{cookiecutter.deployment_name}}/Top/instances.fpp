@@ -104,7 +104,7 @@ module {{cookiecutter.deployment_name}} {
     type "Drv::TcpClient" \ # type specified to select implementor of ByteStreamDriverModel
     at "../../Drv/TcpClient/TcpClient.hpp" # location of above implementor must also be specified
 
-  instance downlink: Svc.Framer base id 0x4100
+  instance framer: Svc.Framer base id 0x4100
 
   instance fatalAdapter: Svc.AssertFatalAdapter base id 0x4200
 
@@ -122,7 +122,7 @@ module {{cookiecutter.deployment_name}} {
 
   instance textLogger: Svc.PassiveTextLogger base id 0x4800
 
-  instance uplink: Svc.Deframer base id 0x4900
+  instance deframer: Svc.Deframer base id 0x4900
 
   instance systemResources: Svc.SystemResources base id 0x4A00
 
