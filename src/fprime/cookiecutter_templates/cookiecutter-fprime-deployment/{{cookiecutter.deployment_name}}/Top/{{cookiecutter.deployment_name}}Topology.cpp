@@ -115,10 +115,10 @@ void configureTopology() {
     // Note: Uncomment when using Svc:TlmPacketizer
     //tlmSend.setPacketList({{cookiecutter.deployment_name}}PacketsPkts, {{cookiecutter.deployment_name}}PacketsIgnore, 1);
 
-    // Configure ComQueue
-    configurationTable.entries[0] = {.depth = 500, .priority = 2};
-    // Events , highest-priority
-    configurationTable.entries[1] = {.depth = 100, .priority = 0};
+    // Events (highest-priority)
+    configurationTable.entries[0] = {.depth = 100, .priority = 0};
+    // Telemetry
+    configurationTable.entries[1] = {.depth = 500, .priority = 2};
     // File Downlink
     configurationTable.entries[2] = {.depth = 100, .priority = 1};
     // Allocation identifier is 0 as the MallocAllocator discards it

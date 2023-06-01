@@ -72,21 +72,22 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
 
-      tlmSend.PktSend -> comQueue.comQueueIn[0]
-      eventLogger.PktSend -> comQueue.comQueueIn[1]
+      eventLogger.PktSend -> comQueue.comQueueIn[0]
+      tlmSend.PktSend -> comQueue.comQueueIn[1]
       fileDownlink.bufferSendOut -> comQueue.buffQueueIn[0]
 
-      downlink.framedAllocate -> staticMemory.bufferAllocate[Ports_StaticMemory.downlink]
-      downlink.framedOut -> comStub.comDataIn
-      downlink.bufferDeallocate -> fileDownlink.bufferReturn
+      comQueue.comQueueSend -> framer.comIn
+      comQueue.buffQueueSend -> framer.bufferIn
 
-      comQueue.comQueueSend -> downlink.comIn
-      comQueue.buffQueueSend -> downlink.bufferIn
+      framer.framedAllocate -> staticMemory.bufferAllocate[Ports_StaticMemory.framer]
+      framer.framedOut -> comStub.comDataIn
+      framer.bufferDeallocate -> fileDownlink.bufferReturn
 
-      comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
+      comDriver.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.framer]
       comDriver.ready -> comStub.drvConnected
 
-      comStub.comStatus -> comQueue.comStatusIn
+      comStub.comStatus -> framer.comStatusIn
+      framer.comStatusOut -> comQueue.comStatusIn
       comStub.drvDataOut -> comDriver.send
 
     }
@@ -123,18 +124,18 @@ module {{cookiecutter.deployment_name}} {
 
     connections Uplink {
 
-      comDriver.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.uplink]
+      comDriver.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.deframer]
       comDriver.$recv -> comStub.drvDataIn
-      comStub.comDataOut -> uplink.framedIn
+      comStub.comDataOut -> deframer.framedIn
 
-      uplink.framedDeallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.uplink]
-      uplink.comOut -> cmdDisp.seqCmdBuff
+      deframer.framedDeallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.deframer]
+      deframer.comOut -> cmdDisp.seqCmdBuff
 
-      cmdDisp.seqCmdStatus -> uplink.cmdResponseIn
+      cmdDisp.seqCmdStatus -> deframer.cmdResponseIn
 
-      uplink.bufferAllocate -> fileUplinkBufferManager.bufferGetCallee
-      uplink.bufferOut -> fileUplink.bufferSendIn
-      uplink.bufferDeallocate -> fileUplinkBufferManager.bufferSendIn
+      deframer.bufferAllocate -> fileUplinkBufferManager.bufferGetCallee
+      deframer.bufferOut -> fileUplink.bufferSendIn
+      deframer.bufferDeallocate -> fileUplinkBufferManager.bufferSendIn
       fileUplink.bufferSendOut -> fileUplinkBufferManager.bufferSendIn
     }
 

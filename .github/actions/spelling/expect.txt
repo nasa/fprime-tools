@@ -12,7 +12,7 @@ cmake
 cmakelists
 cmp
 commonprefix
-comms
+Comms
 config
 configparser
 configs
