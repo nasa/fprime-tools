@@ -80,9 +80,8 @@ module {{cookiecutter.deployment_name}} {
       comDriver.deallocate -> bufferManager.bufferSendIn
       comDriver.ready -> comStub.drvConnected
 
-      comStub.comStatus -> comQueue.comStatusIn
-      # comStub.comStatus -> framer.comStatusIn
-      # framer.comStatusOut -> comQueue.comStatusIn
+      comStub.comStatus -> framer.comStatusIn
+      framer.comStatusOut -> comQueue.comStatusIn
       comStub.drvDataOut -> comDriver.send
 
     }
