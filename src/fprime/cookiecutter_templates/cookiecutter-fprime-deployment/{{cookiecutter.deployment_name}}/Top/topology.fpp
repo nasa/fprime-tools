@@ -10,11 +10,6 @@ module {{cookiecutter.deployment_name}} {
       rateGroup3
     }
 
-    enum Ports_StaticMemory {
-      downlink
-      uplink
-    }
-
   topology {{cookiecutter.deployment_name}} {
 
     # ----------------------------------------------------------------------
@@ -26,24 +21,25 @@ module {{cookiecutter.deployment_name}} {
     instance tlmSend
     instance cmdDisp
     instance cmdSeq
-    instance comm
-    instance downlink
+    instance comDriver
+    instance comQueue
+    instance comStub
+    instance deframer
     instance eventLogger
     instance fatalAdapter
     instance fatalHandler
     instance fileDownlink
     instance fileManager
     instance fileUplink
-    instance fileUplinkBufferManager
+    instance bufferManager
+    instance framer
     instance linuxTime
     instance prmDb
     instance rateGroup1
     instance rateGroup2
     instance rateGroup3
     instance rateGroupDriver
-    instance staticMemory
     instance textLogger
-    instance uplink
     instance systemResources
 
     # ----------------------------------------------------------------------
@@ -70,15 +66,23 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
 
-      tlmSend.PktSend -> downlink.comIn
-      eventLogger.PktSend -> downlink.comIn
-      fileDownlink.bufferSendOut -> downlink.bufferIn
+      eventLogger.PktSend -> comQueue.comQueueIn[0]
+      tlmSend.PktSend -> comQueue.comQueueIn[1]
+      fileDownlink.bufferSendOut -> comQueue.buffQueueIn[0]
 
-      downlink.framedAllocate -> staticMemory.bufferAllocate[Ports_StaticMemory.downlink]
-      downlink.framedOut -> comm.send
-      downlink.bufferDeallocate -> fileDownlink.bufferReturn
+      comQueue.comQueueSend -> framer.comIn
+      comQueue.buffQueueSend -> framer.bufferIn
 
-      comm.deallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.downlink]
+      framer.framedAllocate -> bufferManager.bufferGetCallee
+      framer.framedOut -> comStub.comDataIn
+      framer.bufferDeallocate -> fileDownlink.bufferReturn
+
+      comDriver.deallocate -> bufferManager.bufferSendIn
+      comDriver.ready -> comStub.drvConnected
+
+      comStub.comStatus -> framer.comStatusIn
+      framer.comStatusOut -> comQueue.comStatusIn
+      comStub.drvDataOut -> comDriver.send
 
     }
 
@@ -104,7 +108,7 @@ module {{cookiecutter.deployment_name}} {
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
       rateGroup3.RateGroupMemberOut[0] -> $health.Run
       rateGroup3.RateGroupMemberOut[1] -> blockDrv.Sched
-      rateGroup3.RateGroupMemberOut[2] -> fileUplinkBufferManager.schedIn
+      rateGroup3.RateGroupMemberOut[2] -> bufferManager.schedIn
     }
 
     connections Sequencer {
@@ -114,17 +118,19 @@ module {{cookiecutter.deployment_name}} {
 
     connections Uplink {
 
-      comm.allocate -> staticMemory.bufferAllocate[Ports_StaticMemory.uplink]
-      comm.$recv -> uplink.framedIn
-      uplink.framedDeallocate -> staticMemory.bufferDeallocate[Ports_StaticMemory.uplink]
+      comDriver.allocate -> bufferManager.bufferGetCallee
+      comDriver.$recv -> comStub.drvDataIn
+      comStub.comDataOut -> deframer.framedIn
 
-      uplink.comOut -> cmdDisp.seqCmdBuff
-      cmdDisp.seqCmdStatus -> uplink.cmdResponseIn
+      deframer.framedDeallocate -> bufferManager.bufferSendIn
+      deframer.comOut -> cmdDisp.seqCmdBuff
 
-      uplink.bufferAllocate -> fileUplinkBufferManager.bufferGetCallee
-      uplink.bufferOut -> fileUplink.bufferSendIn
-      uplink.bufferDeallocate -> fileUplinkBufferManager.bufferSendIn
-      fileUplink.bufferSendOut -> fileUplinkBufferManager.bufferSendIn
+      cmdDisp.seqCmdStatus -> deframer.cmdResponseIn
+
+      deframer.bufferAllocate -> bufferManager.bufferGetCallee
+      deframer.bufferOut -> fileUplink.bufferSendIn
+      deframer.bufferDeallocate -> bufferManager.bufferSendIn
+      fileUplink.bufferSendOut -> bufferManager.bufferSendIn
     }
 
     connections {{cookiecutter.deployment_name}} {

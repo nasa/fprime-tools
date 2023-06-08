@@ -43,17 +43,22 @@ module {{cookiecutter.deployment_name}} {
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileDownlink: Svc.FileDownlink base id 0x0700 \
+  instance comQueue: Svc.ComQueue base id 0x0700 \
+      queue size Default.QUEUE_SIZE \
+      stack size Default.STACK_SIZE \
+      priority 100 \
+
+  instance fileDownlink: Svc.FileDownlink base id 0x0800 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileManager: Svc.FileManager base id 0x0800 \
+  instance fileManager: Svc.FileManager base id 0x0900 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
 
-  instance fileUplink: Svc.FileUplink base id 0x0900 \
+  instance fileUplink: Svc.FileUplink base id 0x0A00 \
     queue size 30 \
     stack size Default.STACK_SIZE \
     priority 100
@@ -95,17 +100,17 @@ module {{cookiecutter.deployment_name}} {
 
   @ Communications driver. May be swapped with other comm drivers like UART
   @ Note: Here we have TCP reliable uplink and UDP (low latency) downlink
-  instance comm: Drv.ByteStreamDriverModel base id 0x4000 \
+  instance comDriver: Drv.ByteStreamDriverModel base id 0x4000 \
     type "Drv::TcpClient" \ # type specified to select implementor of ByteStreamDriverModel
     at "../../Drv/TcpClient/TcpClient.hpp" # location of above implementor must also be specified
 
-  instance downlink: Svc.Framer base id 0x4100
+  instance framer: Svc.Framer base id 0x4100
 
   instance fatalAdapter: Svc.AssertFatalAdapter base id 0x4200
 
   instance fatalHandler: Svc.FatalHandler base id 0x4300
 
-  instance fileUplinkBufferManager: Svc.BufferManager base id 0x4400
+  instance bufferManager: Svc.BufferManager base id 0x4400
 
   instance linuxTime: Svc.Time base id 0x4500 \
     type "Svc::LinuxTime" \
@@ -113,12 +118,12 @@ module {{cookiecutter.deployment_name}} {
 
   instance rateGroupDriver: Svc.RateGroupDriver base id 0x4600
 
-  instance staticMemory: Svc.StaticMemory base id 0x4700
-
   instance textLogger: Svc.PassiveTextLogger base id 0x4800
 
-  instance uplink: Svc.Deframer base id 0x4900
+  instance deframer: Svc.Deframer base id 0x4900
 
   instance systemResources: Svc.SystemResources base id 0x4A00
+
+  instance comStub: Svc.ComStub base id 0x4B00
 
 }

@@ -12,6 +12,7 @@ cmake
 cmakelists
 cmp
 commonprefix
+Comms
 config
 configparser
 configs
@@ -32,7 +33,7 @@ datetime
 dedent
 deduplicated
 deepcopy
-Deframer
+deframer
 deframing
 DEPS
 deser
@@ -50,7 +51,7 @@ dirone
 dirs
 distutils
 doctest
-Drv
+drv
 dumpable
 Dxyz
 elif
