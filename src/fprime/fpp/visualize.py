@@ -14,7 +14,7 @@ from fprime.fpp.common import FppUtility
 FPL_INSTALL_DIR = "/Users/chammard/Work/fp/fprime-layout/bin"
 FPV_INSTALL_DIR = "/Users/chammard/Work/fp/fprime-visual"
 
-def run_fprime_viz(
+def run_fpp_viz(
     build: "Build",
     parsed: argparse.Namespace,
     _: Dict[str, str],
@@ -76,7 +76,7 @@ def run_fprime_viz(
 
 
 
-def add_fprime_viz_parsers(
+def add_fpp_viz_parsers(
     subparsers, common: argparse.ArgumentParser
 ) -> Tuple[Dict[str, Callable], Dict[str, argparse.ArgumentParser]]:
     """Sets up the fprime-viz command line parsers
@@ -97,4 +97,4 @@ def add_fprime_viz_parsers(
     viz_parser.add_argument(
         "-z", "--test", default=None, help="Test"
     )
-    return {"fpp-viz": run_fprime_viz}, {"fpp-viz": viz_parser}
+    return {"fpp-viz": run_fpp_viz}, {"fpp-viz": viz_parser}

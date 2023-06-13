@@ -18,7 +18,7 @@ from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.build_helper import load_build
 from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new
 from fprime.util.help_text import HelpText
-from fprime.visualize.cli import add_fprime_viz_parsers
+from fprime.fpp.visualize import add_fpp_viz_parsers
 
 
 def utility_entry(args):
@@ -302,7 +302,7 @@ def parse_args(args):
         subparsers, common_parser, HelpText
     )
     fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
-    viz_runners, viz_parsers = add_fprime_viz_parsers(subparsers, common_parser)
+    viz_runners, viz_parsers = add_fpp_viz_parsers(subparsers, common_parser)
     parsers.update(fbuild_parsers)
     parsers.update(fpp_parsers)
     parsers.update(viz_parsers)
