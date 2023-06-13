@@ -7,6 +7,8 @@ Common implementations for FPP tool wrapping.
 import itertools
 import subprocess
 from pathlib import Path
+import shutil
+import sys
 from typing import Dict, List, Tuple
 
 from fprime.common.error import FprimeException
@@ -42,6 +44,10 @@ class FppUtility(ExecutableAction):
         """
         super().__init__(TargetScope.LOCAL)
         self.utility = name
+    
+    def is_supported(self):
+        """Returns whether this utility is supported"""
+        return bool(shutil.which(self.utility))
 
     @staticmethod
     def get_locations_file(builder: Build) -> Path:
@@ -98,6 +104,14 @@ class FppUtility(ExecutableAction):
             args: extra arguments to supply to the utility
         """
         # First refresh the cache but only if it detects it needs too
+
+        if not self.is_supported():
+            print(
+                f"[ERROR] Cannot find executable: {self.utility}.",
+                file=sys.stderr,
+            )
+            return 1
+
         builder.cmake.cmake_refresh_cache(builder.build_dir, False)
 
         # Read files and arguments
