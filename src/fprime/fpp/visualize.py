@@ -1,18 +1,20 @@
-""" fprime.visualize.cli: Command line targets for fprime-viz
+""" fprime.fpp.visualize: Command line targets for fprime-viz
 
-@thomas-bc
+@author thomas-bc
 """
 import argparse
-from pathlib import Path
-# import os
-# import shutil
+import os
 import subprocess
+from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 from fprime.fpp.common import FppUtility
 
-FPL_INSTALL_DIR = "/Users/chammard/Work/fp/fprime-layout/bin"
-FPV_INSTALL_DIR = "/Users/chammard/Work/fp/fprime-visual"
+from fprime_visual.flask.app import construct_app
+
+
+FPL_INSTALL_DIR = os.getenv('FPL_INSTALL_DIR', '.')
+FPV_INSTALL_DIR = os.getenv('FPV_INSTALL_DIR', '.')
 
 def run_fpp_viz(
     build: "Build",
@@ -34,10 +36,12 @@ def run_fpp_viz(
         __: unused make_args
         ___: unused pass-through arguments
     """
+    
+    # We could use the build directory, but it's quirky because not managed by CMake ??
     viz_cache = Path(".fpp-viz-cache")
     xml_cache = Path(".fpp-viz-cache/xml")
     xml_cache.mkdir(parents=True, exist_ok=True)
-    
+
     # Run fpp-to-xml
     FppUtility("fpp-to-xml").execute(
         build,
@@ -50,7 +54,7 @@ def run_fpp_viz(
     else:
         raise Exception(f"Found {len(topology_match)} '*TopologyAppAi.xml' topology files - expected 1")
     
-    print(f"Found topology XML file: {topology_xml.resolve()}")
+    print(f"Generated topology XML file: {topology_xml.resolve()}")
 
     topology_txt = viz_cache / "Topology.txt"
     topology_json = viz_cache / "Topology.json"
@@ -64,16 +68,32 @@ def run_fpp_viz(
         with open(topology_txt.resolve(), "r") as txt_file: 
             subprocess.run([f"{FPL_INSTALL_DIR}/fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
-    # Run nodemon - this will eventually be replaced with Flask app so whatevs' is fine for now
-    fpv_env = viz_cache / ".fpv-env"
-    with open(fpv_env.resolve(), "w") as env_file:
-        env_file.write(f"DATA_FOLDER={viz_cache.resolve()}\n")
-    print("[INFO] Starting nodemon server...")
-    subprocess.run(["nodemon", f"{FPV_INSTALL_DIR}/server/index.js", fpv_env.resolve()], check=True)
+    print("Extracting subtopologies...")
+    # Extract subtopologies from Topology.xml
+    extract_cache = viz_cache / "extracted"
+    extract_cache.mkdir(parents=True, exist_ok=True)
+    # Execute: fpl-extract-xml -d extracted/ Topology.xml
+    subprocess.run([f"{FPL_INSTALL_DIR}/fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()], check=True)
+    subtopologies = list(extract_cache.glob("*.xml"))
+    for subtopology in subtopologies:
+        # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
+        subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
+        with open(subtopology_txt.resolve(), "w") as txt_file:
+            subprocess.run([f"{FPL_INSTALL_DIR}/fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True)
+        # Execute: fpl-layout < subtopology.txt > subtopology.json
+        subtopology_json = viz_cache / f"{subtopology.stem}.json"
+        with open(subtopology_json.resolve(), "w") as json_file:
+            with open(subtopology_txt.resolve(), "r") as txt_file: 
+                subprocess.run([f"{FPL_INSTALL_DIR}/fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+
+    print("[INFO] Starting fprime-visual server...")
+    config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
+    app = construct_app(config)
+    try:
+        app.run(port=7000)
+    except KeyboardInterrupt:
+        print("[INFO] CTRL-C received. Exiting.")
     return 0
-
-
-
 
 
 def add_fpp_viz_parsers(
@@ -92,9 +112,9 @@ def add_fpp_viz_parsers(
         Tuple of dictionary mapping command name to processor, and command to parser
     """
     viz_parser = subparsers.add_parser(
-        "fpp-viz", help="Runs visualization pipeline", parents=[common], add_help=False
+        "visualize", help="Runs visualization pipeline", parents=[common], add_help=False
     )
     viz_parser.add_argument(
-        "-z", "--test", default=None, help="Test"
+        "--gui-port", help="Set the GUI port for fprime-visual [default: 7000]", required=False, default=7000
     )
-    return {"fpp-viz": run_fpp_viz}, {"fpp-viz": viz_parser}
+    return {"visualize": run_fpp_viz}, {"visualize": viz_parser}
