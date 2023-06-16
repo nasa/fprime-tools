@@ -3,7 +3,6 @@
 @author thomas-bc
 """
 import argparse
-import os
 import subprocess
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
@@ -13,7 +12,7 @@ from fprime.fpp.common import FppUtility
 from fprime_visual.flask.app import construct_app
 
 
-def run_fpp_viz(
+def run_fprime_visualize(
     build: "Build",
     parsed: argparse.Namespace,
     _: Dict[str, str],
@@ -114,4 +113,4 @@ def add_fpp_viz_parsers(
     viz_parser.add_argument(
         "--gui-port", help="Set the GUI port for fprime-visual [default: 7000]", required=False, default=7000
     )
-    return {"visualize": run_fpp_viz}, {"visualize": viz_parser}
+    return {"visualize": run_fprime_visualize}, {"visualize": viz_parser}
