@@ -13,9 +13,6 @@ from fprime.fpp.common import FppUtility
 from fprime_visual.flask.app import construct_app
 
 
-FPL_INSTALL_DIR = os.getenv('FPL_INSTALL_DIR', '.')
-FPV_INSTALL_DIR = os.getenv('FPV_INSTALL_DIR', '.')
-
 def run_fpp_viz(
     build: "Build",
     parsed: argparse.Namespace,
@@ -27,7 +24,7 @@ def run_fpp_viz(
     - fpp-to-xml
     - fpl-convert-xml
     - fpl-layout
-    - start nodemon process to serve visualization
+    - start fprime-visual Flask app to serve visualization
 
     Args:
         build: build directory output
@@ -61,36 +58,36 @@ def run_fpp_viz(
 
     # Execute: fpl-convert-xml Topology.xml > Topology.txt
     with open(topology_txt.resolve(), "w") as txt_file:
-        subprocess.run([f"{FPL_INSTALL_DIR}/fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True)
+        subprocess.run(["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True)
     
     # Execute: fpl-layout < Topology.txt > Topology.json
     with open(topology_json.resolve(), "w") as json_file:
         with open(topology_txt.resolve(), "r") as txt_file: 
-            subprocess.run([f"{FPL_INSTALL_DIR}/fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+            subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
     print("Extracting subtopologies...")
     # Extract subtopologies from Topology.xml
     extract_cache = viz_cache / "extracted"
     extract_cache.mkdir(parents=True, exist_ok=True)
     # Execute: fpl-extract-xml -d extracted/ Topology.xml
-    subprocess.run([f"{FPL_INSTALL_DIR}/fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()], check=True)
+    subprocess.run(["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()], check=True)
     subtopologies = list(extract_cache.glob("*.xml"))
     for subtopology in subtopologies:
         # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
         subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
         with open(subtopology_txt.resolve(), "w") as txt_file:
-            subprocess.run([f"{FPL_INSTALL_DIR}/fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True)
+            subprocess.run(["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True)
         # Execute: fpl-layout < subtopology.txt > subtopology.json
         subtopology_json = viz_cache / f"{subtopology.stem}.json"
         with open(subtopology_json.resolve(), "w") as json_file:
             with open(subtopology_txt.resolve(), "r") as txt_file: 
-                subprocess.run([f"{FPL_INSTALL_DIR}/fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+                subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
     print("[INFO] Starting fprime-visual server...")
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
     app = construct_app(config)
     try:
-        app.run(port=7000)
+        app.run(port=parsed.gui_port)
     except KeyboardInterrupt:
         print("[INFO] CTRL-C received. Exiting.")
     return 0
