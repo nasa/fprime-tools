@@ -212,6 +212,12 @@ def new_component(build: Build):
         print(f"{out_directory_error}", file=sys.stderr)
     except CMakeExecutionException as exc:
         print(f"[ERROR] Failed to create component. {exc}", file=sys.stderr)
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
     except OSError as ose:
         print(f"[ERROR] {ose}")
     return 1
@@ -257,6 +263,12 @@ def new_deployment(build: Build, parsed_args):
             file=sys.stderr,
         )
         return 1
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
     print(f"[INFO] New deployment successfully created: {gen_path}")
     return 0
 
@@ -285,6 +297,12 @@ def new_project(parsed_args):
     except OutputDirExistsException as out_directory_error:
         print(
             f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
             file=sys.stderr,
         )
         return 1
