@@ -32,7 +32,7 @@ def run_fprime_visualize(
         __: unused make_args
         ___: unused pass-through arguments
     """
-    
+
     # We could use the build directory, but it's quirky because not managed by CMake ??
     viz_cache = Path(".fpp-viz-cache")
     xml_cache = Path(".fpp-viz-cache/xml")
@@ -42,14 +42,19 @@ def run_fprime_visualize(
     FppUtility("fpp-to-xml").execute(
         build,
         parsed.path,
-        args=({}, ["--directory", ".fpp-viz-cache/xml"]) #["--directory", parsed.directory] if parsed.directory else ["--directory", ".fpp-viz-cache"]),
+        args=(
+            {},
+            ["--directory", ".fpp-viz-cache/xml"],
+        ),  # ["--directory", parsed.directory] if parsed.directory else ["--directory", ".fpp-viz-cache"]),
     )
     topology_match = list(xml_cache.glob("*TopologyAppAi.xml"))
     if len(topology_match) == 1:
         topology_xml = topology_match[0]
     else:
-        raise Exception(f"Found {len(topology_match)} '*TopologyAppAi.xml' topology files - expected 1")
-    
+        raise Exception(
+            f"Found {len(topology_match)} '*TopologyAppAi.xml' topology files - expected 1"
+        )
+
     print(f"Generated topology XML file: {topology_xml.resolve()}")
 
     topology_txt = viz_cache / "Topology.txt"
@@ -57,11 +62,13 @@ def run_fprime_visualize(
 
     # Execute: fpl-convert-xml Topology.xml > Topology.txt
     with open(topology_txt.resolve(), "w") as txt_file:
-        subprocess.run(["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True)
-    
+        subprocess.run(
+            ["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True
+        )
+
     # Execute: fpl-layout < Topology.txt > Topology.json
     with open(topology_json.resolve(), "w") as json_file:
-        with open(topology_txt.resolve(), "r") as txt_file: 
+        with open(topology_txt.resolve(), "r") as txt_file:
             subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
     print("Extracting subtopologies...")
@@ -69,18 +76,25 @@ def run_fprime_visualize(
     extract_cache = viz_cache / "extracted"
     extract_cache.mkdir(parents=True, exist_ok=True)
     # Execute: fpl-extract-xml -d extracted/ Topology.xml
-    subprocess.run(["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()], check=True)
+    subprocess.run(
+        ["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()],
+        check=True,
+    )
     subtopologies = list(extract_cache.glob("*.xml"))
     for subtopology in subtopologies:
         # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
         subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
         with open(subtopology_txt.resolve(), "w") as txt_file:
-            subprocess.run(["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True)
+            subprocess.run(
+                ["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True
+            )
         # Execute: fpl-layout < subtopology.txt > subtopology.json
         subtopology_json = viz_cache / f"{subtopology.stem}.json"
         with open(subtopology_json.resolve(), "w") as json_file:
-            with open(subtopology_txt.resolve(), "r") as txt_file: 
-                subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+            with open(subtopology_txt.resolve(), "r") as txt_file:
+                subprocess.run(
+                    ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
+                )
 
     print("[INFO] Starting fprime-visual server...")
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
@@ -108,9 +122,15 @@ def add_fpp_viz_parsers(
         Tuple of dictionary mapping command name to processor, and command to parser
     """
     viz_parser = subparsers.add_parser(
-        "visualize", help="Runs visualization pipeline", parents=[common], add_help=False
+        "visualize",
+        help="Runs visualization pipeline",
+        parents=[common],
+        add_help=False,
     )
     viz_parser.add_argument(
-        "--gui-port", help="Set the GUI port for fprime-visual [default: 7000]", required=False, default=7000
+        "--gui-port",
+        help="Set the GUI port for fprime-visual [default: 7000]",
+        required=False,
+        default=7000,
     )
     return {"visualize": run_fprime_visualize}, {"visualize": viz_parser}

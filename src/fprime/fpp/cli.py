@@ -34,6 +34,7 @@ def run_fpp_check(
         args=({}, ["-u", parsed.unconnected] if parsed.unconnected else []),
     )
 
+
 def run_fpp_to_xml(
     build: "Build",
     parsed: argparse.Namespace,
@@ -83,7 +84,8 @@ def add_fpp_parsers(
     fpp_to_xml_parser = subparsers.add_parser(
         "fpp-to-xml", help="Runs fpp-to-xml utility", parents=[common], add_help=False
     )
-    fpp_to_xml_parser.add_argument(
-        "--directory", default=None, help="Output directory"
-    )
-    return {"fpp-check": run_fpp_check, "fpp-to-xml": run_fpp_to_xml}, {"fpp-check": check_parser, "fpp-to-xml": fpp_to_xml_parser}
+    fpp_to_xml_parser.add_argument("--directory", default=None, help="Output directory")
+    return {"fpp-check": run_fpp_check, "fpp-to-xml": run_fpp_to_xml}, {
+        "fpp-check": check_parser,
+        "fpp-to-xml": fpp_to_xml_parser,
+    }
