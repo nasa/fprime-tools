@@ -1,15 +1,19 @@
-""" fprime.fpp.visualize: Command line targets for fprime-viz
+""" fprime.fpp.visualize: Command line targets for fprime-util visualize
 
 @author thomas-bc
 """
 import argparse
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 from fprime.fpp.common import FppUtility
 
-from fprime_visual.flask.app import construct_app
+try:
+    from fprime_visual.flask.app import construct_app
+except ImportError:
+    construct_app = None
 
 
 def run_fprime_visualize(
@@ -32,6 +36,15 @@ def run_fprime_visualize(
         __: unused make_args
         ___: unused pass-through arguments
     """
+    if construct_app is None:
+        raise ModuleNotFoundError(
+            "fprime-visual is not installed. Please install with `pip install fprime-visual`"
+        )
+
+    if not (shutil.which("fpl-convert-xml") and shutil.which("fpl-layout")):
+        raise FileNotFoundError(
+            "fpl-layout is not installed. Please install with `pip install fprime-fpp>1.2.0`"
+        )
 
     # We could use the build directory, but it's quirky because not managed by CMake ??
     viz_cache = Path(".fpp-viz-cache")
@@ -72,7 +85,6 @@ def run_fprime_visualize(
             subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
     print("Extracting subtopologies...")
-    # Extract subtopologies from Topology.xml
     extract_cache = viz_cache / "extracted"
     extract_cache.mkdir(parents=True, exist_ok=True)
     # Execute: fpl-extract-xml -d extracted/ Topology.xml
