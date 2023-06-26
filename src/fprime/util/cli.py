@@ -220,6 +220,7 @@ def validate(parsed, unknown):
         d_args = {
             match.group(1): match.group(2)
             for match in [CMAKE_REG.match(arg) for arg in unknown]
+            if match is not None
         }
         cmake_args.update(d_args)
         unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
