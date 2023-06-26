@@ -1,7 +1,7 @@
 {
     "component_name": "MyComponent",
     "component_short_description": "Example Component for F Prime FSW framework.",
-    "component_namespace": "{{cookiecutter.component_name}}",
+    "component_namespace": "Components",
     "component_kind": ["active", "passive", "queued"],
     "enable_commands": ["yes","no"],
     "enable_telemetry": ["yes","no"],
