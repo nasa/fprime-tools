@@ -46,9 +46,8 @@ def run_fprime_visualize(
             "fpl-layout is not installed. Please install with `pip install fprime-fpp>1.2.0`"
         )
 
-    # We could use the build directory, but it's quirky because not managed by CMake ??
-    viz_cache = Path(".fpp-viz-cache")
-    xml_cache = Path(".fpp-viz-cache/xml")
+    viz_cache = Path(parsed.cache_dir).resolve()
+    xml_cache = (viz_cache / "xml").resolve()
     xml_cache.mkdir(parents=True, exist_ok=True)
 
     # Run fpp-to-xml
@@ -57,8 +56,8 @@ def run_fprime_visualize(
         parsed.path,
         args=(
             {},
-            ["--directory", ".fpp-viz-cache/xml"],
-        ),  # ["--directory", parsed.directory] if parsed.directory else ["--directory", ".fpp-viz-cache"]),
+            ["--directory", str(xml_cache)],
+        ),
     )
     topology_match = list(xml_cache.glob("*TopologyAppAi.xml"))
     if len(topology_match) == 1:
@@ -108,7 +107,8 @@ def run_fprime_visualize(
                     ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
                 )
 
-    print("[INFO] Starting fprime-visual server...")
+    print( "[INFO] Starting fprime-visual server...")
+    print(f"[INFO] Serving files in {str(viz_cache.resolve())}")
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
     app = construct_app(config)
     try:
@@ -141,8 +141,14 @@ def add_fpp_viz_parsers(
     )
     viz_parser.add_argument(
         "--gui-port",
-        help="Set the GUI port for fprime-visual [default: 7000]",
+        help="Set the GUI port for fprime-visual [default: %(default)s]",
         required=False,
         default=7000,
+    )
+    viz_parser.add_argument(
+        "--cache-dir",
+        help="Set the directory to store layout files in [default: %(default)s]",
+        required=False,
+        default=".visualize-cache",
     )
     return {"visualize": run_fprime_visualize}, {"visualize": viz_parser}

@@ -44,7 +44,7 @@ class FppUtility(ExecutableAction):
         """
         super().__init__(TargetScope.LOCAL)
         self.utility = name
-    
+
     def is_supported(self):
         """Returns whether this utility is supported"""
         return bool(shutil.which(self.utility))
