@@ -107,7 +107,7 @@ def run_fprime_visualize(
                     ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
                 )
 
-    print( "[INFO] Starting fprime-visual server...")
+    print("[INFO] Starting fprime-visual server...")
     print(f"[INFO] Serving files in {str(viz_cache.resolve())}")
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
     app = construct_app(config)
