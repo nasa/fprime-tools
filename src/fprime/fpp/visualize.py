@@ -48,7 +48,12 @@ def run_fprime_visualize(
 
     viz_cache = Path(parsed.working_dir).resolve()
     xml_cache = (viz_cache / "xml").resolve()
-    xml_cache.mkdir(parents=True, exist_ok=True)
+    try:
+        xml_cache.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        raise PermissionError(
+            f"Unable to write to {viz_cache.resolve()}. Use --working-dir to set a different location."
+        )
 
     # Run fpp-to-xml
     FppUtility("fpp-to-xml").execute(
