@@ -55,7 +55,7 @@ def run_fprime_visualize(
             tempfile.TemporaryDirectory(prefix="fprime-visual-").name
         ).resolve()
 
-    # Set subpaths for different types of generated files
+    # Set sub-paths for different types of generated files
     xml_cache = (viz_cache / "xml").resolve()
     extract_cache = (viz_cache / "extracted").resolve()
     try:
