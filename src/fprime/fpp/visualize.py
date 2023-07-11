@@ -46,7 +46,7 @@ def run_fprime_visualize(
             "fpl-layout is not installed. Please install with `pip install fprime-fpp>1.2.0`"
         )
 
-    viz_cache = Path(parsed.cache_dir).resolve()
+    viz_cache = Path(parsed.working_dir).resolve()
     xml_cache = (viz_cache / "xml").resolve()
     xml_cache.mkdir(parents=True, exist_ok=True)
 
@@ -146,9 +146,9 @@ def add_fpp_viz_parsers(
         default=7000,
     )
     viz_parser.add_argument(
-        "--cache-dir",
+        "--working-dir",
         help="Set the directory to store layout files in [default: %(default)s]",
         required=False,
-        default=".visualize-cache",
+        default="/tmp/fprime-visualize",
     )
     return {"visualize": run_fprime_visualize}, {"visualize": viz_parser}

@@ -42,9 +42,7 @@ def run_fpp_to_xml(
     __: Dict[str, str],
     ___: List[str],
 ):
-    """Run fpp check application
-
-    Handles the fpp-check endpoint by running the utility fpp-check.
+    """Run the fpp-to-xml utility
 
     Args:
         build: build directory output
