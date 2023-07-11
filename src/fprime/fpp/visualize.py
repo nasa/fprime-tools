@@ -5,6 +5,7 @@
 import argparse
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
@@ -46,10 +47,20 @@ def run_fprime_visualize(
             "fpl-layout is not installed. Please install with `pip install fprime-fpp>1.2.0`"
         )
 
-    viz_cache = Path(parsed.working_dir).resolve()
+    # Set up working directory using specified directory, or create a temporary one
+    if parsed.working_dir:
+        viz_cache = Path(parsed.working_dir).resolve()
+    else:
+        viz_cache = Path(
+            tempfile.TemporaryDirectory(prefix="fprime-visual-").name
+        ).resolve()
+
+    # Set subpaths for different types of generated files
     xml_cache = (viz_cache / "xml").resolve()
+    extract_cache = (viz_cache / "extracted").resolve()
     try:
         xml_cache.mkdir(parents=True, exist_ok=True)
+        extract_cache.mkdir(parents=True, exist_ok=True)
     except PermissionError:
         raise PermissionError(
             f"Unable to write to {viz_cache.resolve()}. Use --working-dir to set a different location."
@@ -89,8 +100,6 @@ def run_fprime_visualize(
             subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
 
     print("Extracting subtopologies...")
-    extract_cache = viz_cache / "extracted"
-    extract_cache.mkdir(parents=True, exist_ok=True)
     # Execute: fpl-extract-xml -d extracted/ Topology.xml
     subprocess.run(
         ["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()],
@@ -152,8 +161,7 @@ def add_fpp_viz_parsers(
     )
     viz_parser.add_argument(
         "--working-dir",
-        help="Set the directory to store layout files in [default: %(default)s]",
+        help="Set the directory to store layout files in (default to ephemeral location)",
         required=False,
-        default="/tmp/fprime-visualize",
     )
     return {"visualize": run_fprime_visualize}, {"visualize": viz_parser}
