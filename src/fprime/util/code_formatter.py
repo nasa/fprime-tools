@@ -55,7 +55,7 @@ class ClangFormatter(ExecutableAction):
         self.allowed_extensions = ALLOWED_EXTENSIONS.copy()
         self._files_to_format: List[Path] = []
 
-    def is_supported(self) -> bool:
+    def is_supported(self, _ = None, __ = None) -> bool:
         return bool(shutil.which(self.executable))
 
     def allow_extension(self, file_ext: str) -> None:
