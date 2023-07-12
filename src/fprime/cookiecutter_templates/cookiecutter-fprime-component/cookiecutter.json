@@ -11,20 +11,10 @@
         "component_name": "Component name",
         "component_short_description": "Component short description",
         "component_namespace": "Component namespace",
-        "component_kind": {
-          "__prompt__": "Select component kind"
-        },
-        "enable_commands": {
-            "__prompt__": "Enable Commands?"
-        },
-        "enable_telemetry": {
-            "__prompt__": "Enable Telemetry?"
-        },
-        "enable_events": {
-            "__prompt__": "Enable Events?"
-        },
-        "enable_parameters": {
-            "__prompt__": "Enable Parameters?"
-        }
+        "component_kind": "Select component kind",
+        "enable_commands": "Enable Commands?",
+        "enable_telemetry": "Enable Telemetry?",
+        "enable_events": "Enable Events?",
+        "enable_parameters": "Enable Parameters?"
       }
 }
