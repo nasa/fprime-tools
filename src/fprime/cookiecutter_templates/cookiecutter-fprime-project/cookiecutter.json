@@ -6,7 +6,7 @@
     "venv_install_path": "{% if cookiecutter.install_venv == 'yes' %}./venv{% else %}None{% endif %}",
     "__prompts__": {
         "project_name": "Project name",
-        "fprime_branch_or_tag": "F' version (select branch or tag)",
+        "fprime_branch_or_tag": "F´ version (select branch or tag)",
         "install_venv": "Install virtual environment?",
         "venv_install_path": "Virtual environment install path"
     }
