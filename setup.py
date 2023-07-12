@@ -86,7 +86,7 @@ to interact with the data coming from the FSW.
         "pexpect>=4.8.0",
         "pytest>=6.2.4",
         "Cheetah3>=3.2.6",
-        "cookiecutter>=1.7.2",
+        "cookiecutter>=2.2.3",
         "gcovr>=6.0",
         "urllib3<2.0.0",
     ],

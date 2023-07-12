@@ -1,10 +1,20 @@
 {
     "component_name": "MyComponent",
-    "component_short_description": "Example Component for F Prime FSW framework.",
+    "component_short_description": "Component for F Prime FSW framework.",
     "component_namespace": "Components",
     "component_kind": ["active", "passive", "queued"],
     "enable_commands": ["yes","no"],
     "enable_telemetry": ["yes","no"],
     "enable_events": ["yes","no"],
-    "enable_parameters": ["yes","no"]
+    "enable_parameters": ["yes","no"],
+    "__prompts__": {
+        "component_name": "Component name",
+        "component_short_description": "Component short description",
+        "component_namespace": "Component namespace",
+        "component_kind": "Select component kind",
+        "enable_commands": "Enable Commands?",
+        "enable_telemetry": "Enable Telemetry?",
+        "enable_events": "Enable Events?",
+        "enable_parameters": "Enable Parameters?"
+      }
 }

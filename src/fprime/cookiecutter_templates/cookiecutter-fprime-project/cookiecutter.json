@@ -3,5 +3,11 @@
     "project_name": "MyProject",
     "fprime_branch_or_tag": "{{ cookiecutter.__default_branch }}",
     "install_venv": ["yes", "no"],
-    "venv_install_path": "{% if cookiecutter.install_venv == 'yes' %}./venv{% else %}None{% endif %}"
+    "venv_install_path": "{% if cookiecutter.install_venv == 'yes' %}./venv{% else %}None{% endif %}",
+    "__prompts__": {
+        "project_name": "Project name",
+        "fprime_branch_or_tag": "F´ version (select branch or tag)",
+        "install_venv": "Install virtual environment?",
+        "venv_install_path": "Virtual environment install path"
+    }
 }
