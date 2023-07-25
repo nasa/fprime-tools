@@ -110,7 +110,6 @@ def load_build(parsed, skip_validation=False):
     if parsed.command == "generate":
         build.invent(parsed.platform, build_dir=parsed.build_cache)
     else:
-
         build.load(
             parsed.platform,
             parsed.build_cache,

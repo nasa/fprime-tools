@@ -442,7 +442,7 @@ class Build:
         exist.
 
         Notes:
-            Historically, the root of the CMake project was an F' deployment. In F' > v3.2.0, this is more often an 
+            Historically, the root of the CMake project was an F' deployment. In F' > v3.2.0, this is more often an
             F' project root.
 
         Returns;

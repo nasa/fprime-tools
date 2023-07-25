@@ -179,7 +179,10 @@ class IniSettings:
         else:
             print(f"[WARNING] {settings_file} does not exist")
 
-        settings = {"settings_file": settings_file, "_cmake_project_root": settings_file.parent}
+        settings = {
+            "settings_file": settings_file,
+            "_cmake_project_root": settings_file.parent,
+        }
 
         # Read fprime and platform settings from the "fprime" section
         for key, settings_type, default in (

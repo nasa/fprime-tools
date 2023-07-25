@@ -171,9 +171,7 @@ def new_component(build: Build):
             )
             print("[INFO] Cookiecutter source: using builtin")
 
-        final_component_dir = Path(
-            cookiecutter(source)
-        ).resolve()
+        final_component_dir = Path(cookiecutter(source)).resolve()
 
         if proj_root is None:
             print(
@@ -183,7 +181,9 @@ def new_component(build: Build):
 
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(final_component_dir, build.cmake_root, proj_root)
+        cmake_file = find_nearest_cmake_file(
+            final_component_dir, build.cmake_root, proj_root
+        )
         if cmake_file is None or not add_to_cmake(
             cmake_file,
             final_component_dir.relative_to(cmake_file.parent),
