@@ -117,7 +117,7 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Path):
+def find_nearest_cmake_file(component_dir: Path, cmake_root: Path, proj_root: Path):
     """Find the nearest CMake file, i.e. CMakeLists.txt or project.cmake
 
     The "nearest" file is defined as the closest parent that is not the project root CMakeLists.txt.
@@ -140,7 +140,7 @@ def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Pa
     """
     test_path = component_dir.parent
     # First iterate from where we are, then from the deployment to find the nearest CMakeList.txt nearby
-    for test_path, end_path in [(test_path, proj_root), (deployment, proj_root.parent)]:
+    for test_path, end_path in [(test_path, proj_root), (cmake_root, proj_root.parent)]:
         while proj_root is not None and test_path != proj_root.parent:
             project_file = test_path / "project.cmake"
             if project_file.is_file():
@@ -155,7 +155,6 @@ def find_nearest_cmake_file(component_dir: Path, deployment: Path, proj_root: Pa
 def new_component(build: Build):
     """Uses cookiecutter for making new components"""
     try:
-        deployment = build.deployment
         proj_root = build.get_settings("project_root", None)
 
         # Checks if component_cookiecutter is set in settings.ini file, else uses local component_cookiecutter template as default
@@ -172,13 +171,8 @@ def new_component(build: Build):
             )
             print("[INFO] Cookiecutter source: using builtin")
 
-        # Use deployment name as default namespace if a deployment was found
-        extra_context = {}
-        if not proj_root.samefile(deployment):
-            extra_context["component_namespace"] = deployment.name
-
         final_component_dir = Path(
-            cookiecutter(source, extra_context=extra_context)
+            cookiecutter(source)
         ).resolve()
 
         if proj_root is None:
@@ -189,7 +183,7 @@ def new_component(build: Build):
 
         # Attempt to register to CMakeLists.txt
         proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(final_component_dir, deployment, proj_root)
+        cmake_file = find_nearest_cmake_file(final_component_dir, build.cmake_root, proj_root)
         if cmake_file is None or not add_to_cmake(
             cmake_file,
             final_component_dir.relative_to(cmake_file.parent),
@@ -246,7 +240,7 @@ def new_deployment(build: Build, parsed_args):
         proj_root = build.get_settings("project_root", None)
         # Attempt to register to CMakeLists.txt or project.cmake
         proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(gen_path, build.deployment, proj_root)
+        cmake_file = find_nearest_cmake_file(gen_path, build.cmake_root, proj_root)
         if cmake_file is None or not add_to_cmake(
             cmake_file,
             gen_path.relative_to(cmake_file.parent),

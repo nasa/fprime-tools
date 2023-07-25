@@ -19,19 +19,19 @@ from fprime.fbuild.types import (
     InvalidBuildCacheException,
     MissingBuildCachePath,
     NoSuchToolchainException,
-    UnableToDetectDeploymentException,
+    UnableToDetectProjectException,
 )
 
 
 class Build:
     """Represents a build configuration
 
-    Builds in F´ consist of a build type (normal, testing), a deployment directory, a set of settings, and a target
+    Builds in F´ consist of a build type (normal, testing), a cmake project directory, a set of settings, and a target
     platform. These are tracked as part of this Build class. This helps setup a build cache directory, load default
     settings, and track what type of build is being run.
 
     BuildType represents the type of build as explained in that enum type.
-    Deployments are an individual build of fprime, and should define the CMakeLists.txt file as a child of this
+    Projects are an individual build of fprime, and should define the CMakeLists.txt file as a child of this
     directory. A default settings.ini file may be found here.
     Platforms represent the target hardware to build from. This is translated to the CMake toolchain file.
 
@@ -41,27 +41,27 @@ class Build:
     Examples:
         To use in generation run the following code.
 
-        build = Build(BuildType.BUILD_NORMAL, path/to/deployment)
+        build = Build(BuildType.BUILD_NORMAL, path/to/project)
         build.invent("raspberrypi")
 
         To use at any step after generation:
 
-        build = Build(BuildType.BUILD_NORMAL, path/to/deployment)
+        build = Build(BuildType.BUILD_NORMAL, path/to/project)
         build.load()
     """
 
     VALID_CMAKE_LIST = re.compile(r"^\s*project\(.*\)", re.MULTILINE)
     CMAKE_DEFAULT_BUILD_NAME = "build-fprime-automatic-{platform}{suffix}"
 
-    def __init__(self, build_type: BuildType, deployment: Path, verbose: bool = False):
+    def __init__(self, build_type: BuildType, project: Path, verbose: bool = False):
         """Constructs a build object from its constituent parts
 
         Args:
             build_type: member of the enum BuildType specifying fprime build type
-            deployment: path to deployment that this build represents
+            project: path to cmake project that this build represents
         """
         self.build_type = build_type
-        self.deployment = deployment
+        self.cmake_root = project
         self.settings = None
         self.platform = None
         self.build_dir = None
@@ -189,7 +189,7 @@ class Build:
             Path to a build cache directory
 
         """
-        return self.deployment / Build.CMAKE_DEFAULT_BUILD_NAME.format(
+        return self.cmake_root / Build.CMAKE_DEFAULT_BUILD_NAME.format(
             platform=self.platform, suffix=self.build_type.get_suffix()
         )
 
@@ -232,14 +232,14 @@ class Build:
             "build_dir": self.build_dir,
         }
 
-    def is_deployment(self, context: Path) -> bool:
-        """Check if given path represents a deployment
+    def is_project_root(self, context: Path) -> bool:
+        """Check if given path represents a project root
 
         Args:
             context: contextual path to list various information about the build
 
         Returns:
-            True if the context is a deployment, false otherwise
+            True if the context is a project, false otherwise
         """
         try:
             self.cmake.cmake_validate_source_dir(context)
@@ -260,7 +260,7 @@ class Build:
             self.platform != "default"
         ), "Default toolchain should have been decided already"
         toolchain_locations = self.get_settings(
-            ["framework_path", "project_root"], [None, self.deployment]
+            ["framework_path", "project_root"], [None, self.cmake_root]
         )
         toolchain_locations += self.get_settings("library_locations", [])
 
@@ -290,7 +290,7 @@ class Build:
         return toolchains[0]
 
     def get_cmake_args(self) -> dict:
-        """Generates CMake arguments from deployment settings (settings.ini file)
+        """Generates CMake arguments from project settings (settings.ini file)
 
         Returns:
             A dictionary of cmake settings
@@ -406,7 +406,7 @@ class Build:
             }
 
             self.cmake.generate_build(
-                self.deployment,
+                self.cmake_root,
                 self.build_dir,
                 {**default_cmake_args, **cmake_args, **self.get_cmake_args()},
                 environment=self.settings.get("environment", None),
@@ -434,33 +434,33 @@ class Build:
         return path if path.exists() else None
 
     @staticmethod
-    def find_nearest_deployment(path: Path) -> Path:
-        """Recurse up the directory stack looking for a valid deployment
+    def find_nearest_parent_project(path: Path) -> Path:
+        """Recurse up the directory stack looking for a valid CMake project.
 
-        Recurse up the directory tree from the given path, looking for a deployment definition directory. This means it
+        Recurse up the directory tree from the given path, looking for a project definition directory. This means it
         defines a CMakeLists.txt with a project call. This finds where the automatic build directories are allowed to
         exist.
 
         Notes:
-            This replaced the former build directory recursive detector as that can "slip" past a deployment should the
-            build directory not be generated yet.
+            Historically, the root of the CMake project was an F' deployment. In F' > v3.2.0, this is more often an 
+            F' project root.
 
         Returns;
-            Path to the nearest deployment directory searching up the directory tree
+            Path to the nearest project directory searching up the directory tree
 
         Raises;
-            UnableToDetectDeploymentException: was unable to detect a deployment directory
+            UnableToDetectProjectException: was unable to detect a project directory
         """
         full_path = path.resolve()
         list_file = full_path / "CMakeLists.txt"
         if not full_path.parents:
-            raise UnableToDetectDeploymentException()
+            raise UnableToDetectProjectException()
         if list_file.exists():
             with open(list_file, encoding="utf8") as file_handle:
                 text = file_handle.read()
             if Build.VALID_CMAKE_LIST.search(text):
                 return full_path
-        return Build.find_nearest_deployment(full_path.parent)
+        return Build.find_nearest_parent_project(full_path.parent)
 
     @staticmethod
     def get_build_list(base, build_cache=None, ignore_invalid=False):
@@ -484,7 +484,7 @@ class Build:
         )
         builds = []
         for build_type in build_types:
-            build = Build(build_type, base.deployment, verbose=base.cmake.verbose)
+            build = Build(build_type, base.cmake_root, verbose=base.cmake.verbose)
             try:
                 build.load(
                     base.platform, build_dir=build_cache, skip_validation=ignore_invalid
@@ -518,7 +518,7 @@ class Build:
         assert self.build_dir is None, "Already setup it is invalid to re-setup"
 
         self.settings = IniSettings.load(
-            self.deployment / "settings.ini",
+            self.cmake_root / "settings.ini",
             platform,
             self.build_type == BuildType.BUILD_TESTING,
         )

@@ -37,7 +37,7 @@ build system targets defined for that context. i.e. a developer can change direc
 commands restricted to that component.
 
 Almost all {EXECUTABLE} commands require a valid build cache to run. Thus users should start by running '{EXECUTABLE}
-generate' in their desired deployment before running command. Once a build cache has been generated other commands can
+generate' in their desired project before running command. Once a build cache has been generated other commands can
 be run. The '--ut' flag sets up a testing build cache and enables unit test commands to be run. An explanation of how
 {EXECUTABLE} determines the build cache is included below. More information on creating build caches can be found with:
 '{EXECUTABLE} generate --help'.
@@ -65,10 +65,10 @@ to determine two build properties: build cache (created by 'fprime-util generate
 execute. The build cache is chosen by recurring upward from the current working directory looking for the first build
 cache matching the specified platform. If '--ut' is specified, only UT caches will be selected. The platform is read
 from the optional positional argument 'platform'. If not specified on the command line, the 'default_toolchain' setting
-in the deployment's settings.ini file is read. In not specified there, the default toolchain "native" is used.
+in the project's settings.ini file is read. If not specified there, the default toolchain "native" is used.
 
-If a different deployment is desired, the recursive search behavior can be altered with the '-d/--deployment'. When
-'-d/--deployment' is specified, a matching build cache will be selected from within the supplied deployment directory.
+If a different CMake root is desired, the recursive search behavior can be altered with the '-r/--root'. When
+'-r/--root' is specified, a matching build cache will be selected from within the supplied root directory.
 '--build-cache' may be supplied to force '{EXECUTABLE}' to use the supplied build cache regardless of other conditions.
 
 Once the build cache has been selected, the build target is chosen. {EXECUTABLE} will run the supplied command for
@@ -92,7 +92,7 @@ Contextual Examples:
 
   -- Build Command Dispatcher UTs for Ref Deployment --
   cd Svc/CmdDispatcher
-  {EXECUTABLE} build --ut -d ../../Ref/
+  {EXECUTABLE} build --ut -r ../../Ref/
 
   -- Build Command Dispatcher UTs for Ref Deployment (Alternate) --
   cd Ref
@@ -189,9 +189,9 @@ Examples:
     "generate": f"""{EXECUTABLE} generate ({VERSION}): Generate build caches for the specified deployment
 
 '{EXECUTABLE} generate' is used to setup a build cache to support other commands run by {EXECUTABLE}. Without additional
-arguments a build cache will be created for the deployment in the specified directory ('-p/--path', or current working
-directory). It will use the default settings specified in the deployment's settings.ini file for the target platform,
-fprime libraries, etc. Specifying '-d/--deployment' generates the deployment at the supplied directory overriding the
+arguments a build cache will be created for the project in the specified directory ('-p/--path', or current working
+directory). It will use the default settings specified in the project's settings.ini file for the target platform,
+fprime libraries, etc. Specifying '-r/--root' generates the project at the supplied directory overriding the
 directory specified with '-p/--path' and the current working directory. '--ut' should be specified to generate testing
 build caches for running unit tests.
 
@@ -236,10 +236,10 @@ CMake Flag Examples:
   {EXECUTABLE} generate --build-cache `pwd`/build-ref-with-baremetal -DFPRIME_USE_BAREMETAL_SCHEDULER=ON
 
 """,
-    "purge": f"""{EXECUTABLE} purge ({VERSION}): Removes build caches for specified deployment
+    "purge": f"""{EXECUTABLE} purge ({VERSION}): Removes build caches for specified project
     
-'{EXECUTABLE} purge' removes build caches for the specified deployment. It also removes the build_artifacts directory
-in that deployment as well. Caches are searched in pairs: normal build cache, paired unit testing build cache. The
+'{EXECUTABLE} purge' removes build caches for the specified project. It also removes the build_artifacts directory
+in that project as well. Caches are searched in pairs: normal build cache, paired unit testing build cache. The
 user will be asked to confirm when a build cache is being removed unless the '--force' flag is specified. The platform
 will use the settings specified in 'settings.ini' or as specified with the optional positional argument. The
 '--build-cache' flag can be used to remove an exact build cache without looking at other build caches.
@@ -250,7 +250,7 @@ supplied. In this case, the build cache will be removed with reckless abandon.
     "info": f"""Print contextual target and build cache information before exiting
 
 '{EXECUTABLE} info' is used to print contextual information to the user before exiting. It will print the available]
-commands within the current context (working directory, '-p/--path', '-d/--deployment', etc.) and then exit. Users may
+commands within the current context (working directory, '-p/--path', '-r/--root', etc.) and then exit. Users may
 use the info command as a way to test and understand how {EXECUTABLE} is mapping to the context and targets used. info
 may also be used to locate the artifact output folders within the build cache in order to see generated files, compiler
 outputs, etc.

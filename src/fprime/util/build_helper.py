@@ -92,13 +92,13 @@ def load_build(parsed, skip_validation=False):
     except NoSuchTargetException:
         build_type = BuildType.BUILD_TESTING if parsed.ut else BuildType.BUILD_NORMAL
 
-    deployment = (
-        Path(parsed.deploy)
-        if parsed.deploy is not None
-        else Build.find_nearest_deployment(Path.cwd())  # Deployments look in CWD
+    cmake_root = (
+        Path(parsed.root)
+        if parsed.root is not None
+        else Build.find_nearest_parent_project(Path.cwd())
     )
 
-    build = Build(build_type, deployment, verbose=parsed.verbose)
+    build = Build(build_type, cmake_root, verbose=parsed.verbose)
 
     # All commands need to load the build cache to setup the basic information for the build with the exception of
     # generate, which is run before the creation of the build cache and thus must invent the cache instead. This

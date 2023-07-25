@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Callable, Dict
 
-from fprime.fbuild.builder import GenerateException, UnableToDetectDeploymentException
+from fprime.fbuild.builder import GenerateException, UnableToDetectProjectException
 from fprime.fbuild.cli import add_fbuild_parsers
 from fprime.fbuild.target import Target
 from fprime.fpp.cli import add_fpp_parsers
@@ -41,8 +41,8 @@ def utility_entry(args):
             f"[ERROR] {genex}. Partial build cache remains. Run purge to clean-up.",
             file=sys.stderr,
         )
-    except UnableToDetectDeploymentException:
-        print(f"[ERROR] Could not detect deployment directory for: {parsed.path}")
+    except UnableToDetectProjectException:
+        print(f"[ERROR] Could not detect project directory for: {parsed.path}")
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
     return 1
@@ -256,11 +256,10 @@ def parse_args(args):
         help="F prime build platform (e.g. Linux, Darwin). Default specified in settings.ini",
     )
     common_parser.add_argument(
-        "-d",
-        "--deploy",
-        dest="deploy",
+        "-r",
+        "--root",
         default=None,
-        help="F prime deployment directory to use. May contain multiple build directories.",
+        help="Root of CMake project to use. May contain multiple build directories.",
     )
     common_parser.add_argument(
         "-p",
