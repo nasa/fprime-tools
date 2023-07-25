@@ -171,7 +171,14 @@ def new_component(build: Build):
             )
             print("[INFO] Cookiecutter source: using builtin")
 
-        final_component_dir = Path(cookiecutter(source)).resolve()
+        # Use current working directory name as default namespace, unless at project root
+        extra_context = {}
+        if not proj_root.samefile(Path.cwd()):
+            extra_context["component_namespace"] = Path.cwd().name
+
+        final_component_dir = Path(
+            cookiecutter(source, extra_context=extra_context)
+        ).resolve()
 
         if proj_root is None:
             print(
