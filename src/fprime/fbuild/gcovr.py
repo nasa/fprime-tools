@@ -31,7 +31,7 @@ def _get_project_path(builder: "Build", module: Union[str, Path]) -> Path:
 
 def _using_root(builder: "Build", context: Path, scope: TargetScope):
     """Are we using repository root for things"""
-    return builder.is_deployment(context) or scope == TargetScope.GLOBAL
+    return builder.is_project_root(context) or scope == TargetScope.GLOBAL
 
 
 class GcovClean(ExecutableAction):

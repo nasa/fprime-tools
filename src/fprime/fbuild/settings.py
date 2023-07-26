@@ -1,8 +1,8 @@
 """
 fprime.fbuild.settings:
 
-An implementation used to pull settings into the fprime build.  This version uses INI files in order to load the
-settings from the settings.default file that is part of the F prime deployment directory.
+An implementation used to pull settings into the fprime build. This version uses INI files in order
+to load the settings from the settings.default file that is part of the F prime project directory.
 
 @author mstarch
 """
@@ -26,11 +26,11 @@ def find_fprime(settings: dict) -> Path:
     """
     Finds F prime by recursing parent to parent until a matching directory is found.
     """
-    needle = Path("cmake/FPrime.cmake")
-    path = settings["_deployment"]
+    needle = Path("fprime/cmake/FPrime.cmake")
+    path = settings["_cmake_project_root"]
     while path != path.parent:
         if (path / needle).is_file():
-            return path
+            return path / "fprime"
         path = path.parent
     raise FprimeLocationUnknownException(
         "Please set 'framework_path' in [fprime] section in 'settings.ini"
@@ -72,7 +72,7 @@ class IniSettings:
         (
             "install_destination",
             SettingType.PATH,
-            partial(join, "_deployment", "build-artifacts"),
+            partial(join, "_cmake_project_root", "build-artifacts"),
         ),
         (
             "environment_file",
@@ -179,7 +179,10 @@ class IniSettings:
         else:
             print(f"[WARNING] {settings_file} does not exist")
 
-        settings = {"settings_file": settings_file, "_deployment": settings_file.parent}
+        settings = {
+            "settings_file": settings_file,
+            "_cmake_project_root": settings_file.parent,
+        }
 
         # Read fprime and platform settings from the "fprime" section
         for key, settings_type, default in (
@@ -211,7 +214,7 @@ class IniSettings:
         settings["environment"] = IniSettings.load_environment(
             settings["environment_file"]
         )
-        del settings["_deployment"]
+        del settings["_cmake_project_root"]
         return settings
 
     @staticmethod

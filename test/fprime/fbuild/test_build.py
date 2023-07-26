@@ -172,7 +172,7 @@ def test_get_include_info():
                 assert value == truth
 
 
-def test_find_nearest_deployment():
+def test_find_nearest_parent_project():
     """
     This will test the ability for the system to detect valid deployment directories
     """
@@ -188,8 +188,8 @@ def test_find_nearest_deployment():
         path = test_dir / path
         if truth is not None:
             truth = test_dir / truth
-            value = fprime.fbuild.builder.Build.find_nearest_deployment(path)
+            value = fprime.fbuild.builder.Build.find_nearest_parent_project(path)
             assert value == truth
         else:
-            with pytest.raises(fprime.fbuild.builder.UnableToDetectDeploymentException):
-                fprime.fbuild.builder.Build.find_nearest_deployment(path)
+            with pytest.raises(fprime.fbuild.builder.UnableToDetectProjectException):
+                fprime.fbuild.builder.Build.find_nearest_parent_project(path)

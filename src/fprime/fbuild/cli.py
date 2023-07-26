@@ -194,10 +194,10 @@ def add_special_targets(
     generate_parser = subparsers.add_parser(
         "generate",
         help=help_text.short(
-            "generate", "Generate a build cache for specified deployment"
+            "generate", "Generate a build cache for specified project"
         ),
         description=help_text.long(
-            "generate", "Generate a build cache for specified deployment"
+            "generate", "Generate a build cache for specified project"
         ),
         parents=[common],
         add_help=False,
@@ -218,9 +218,9 @@ def add_special_targets(
     )
     purge_parser = subparsers.add_parser(
         "purge",
-        help=help_text.short("purge", "Remove build caches for specified deployment"),
+        help=help_text.short("purge", "Remove build caches for specified project"),
         description=help_text.long(
-            "purge", "Remove build caches for specified deployment"
+            "purge", "Remove build caches for specified project"
         ),
         add_help=False,
         parents=[common],

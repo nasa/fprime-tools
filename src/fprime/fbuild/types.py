@@ -12,7 +12,7 @@ class InvalidBuildCacheException(FprimeException):
         self.cache = build_cache
 
 
-class UnableToDetectDeploymentException(FprimeException):
+class UnableToDetectProjectException(FprimeException):
     """An exception indicating a build cache"""
 
 
