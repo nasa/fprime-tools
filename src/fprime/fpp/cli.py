@@ -35,6 +35,29 @@ def run_fpp_check(
     )
 
 
+def run_fpp_to_xml(
+    build: "Build",
+    parsed: argparse.Namespace,
+    _: Dict[str, str],
+    __: Dict[str, str],
+    ___: List[str],
+):
+    """Run the fpp-to-xml utility
+
+    Args:
+        build: build directory output
+        parsed: parsed input arguments
+        _: unused cmake_args
+        __: unused make_args
+        ___: unused pass-through arguments
+    """
+    FppUtility("fpp-to-xml").execute(
+        build,
+        parsed.path,
+        args=({}, ["--directory", parsed.directory] if parsed.directory else []),
+    )
+
+
 def add_fpp_parsers(
     subparsers, common: argparse.ArgumentParser
 ) -> Tuple[Dict[str, Callable], Dict[str, argparse.ArgumentParser]]:
@@ -56,4 +79,11 @@ def add_fpp_parsers(
     check_parser.add_argument(
         "-u", "--unconnected", default=None, help="write unconnected ports to file"
     )
-    return {"fpp-check": run_fpp_check}, {"fpp-check": check_parser}
+    fpp_to_xml_parser = subparsers.add_parser(
+        "fpp-to-xml", help="Runs fpp-to-xml utility", parents=[common], add_help=False
+    )
+    fpp_to_xml_parser.add_argument("--directory", default=None, help="Output directory")
+    return {"fpp-check": run_fpp_check, "fpp-to-xml": run_fpp_to_xml}, {
+        "fpp-check": check_parser,
+        "fpp-to-xml": fpp_to_xml_parser,
+    }
