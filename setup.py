@@ -56,6 +56,7 @@ to interact with the data coming from the FSW.
             "cookiecutter_templates/*/*",
             "cookiecutter_templates/*/*/*",
             "cookiecutter_templates/*/*/*/*",
+            "cookiecutter_templates/**/.*",
         ]
     },
     ####
