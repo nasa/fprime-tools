@@ -1,6 +1,7 @@
 argc
 atoi
 bak
+baudrate
 Callee
 cargs
 CDH
@@ -168,6 +169,7 @@ Pkts
 Popen
 postprocessed
 printf
+PRIu
 proj
 ptf
 py
@@ -252,6 +254,7 @@ typehints
 typename
 tz
 tzinfo
+uart
 Udp
 uint
 Uncomment
