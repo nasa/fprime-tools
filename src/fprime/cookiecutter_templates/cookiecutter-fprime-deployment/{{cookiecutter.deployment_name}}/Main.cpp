@@ -60,14 +60,18 @@ int main(int argc, char* argv[]) {
 {%- endif %}
 
     // Loop while reading the getopt supplied options
+{%- if cookiecutter.com_driver_type == "UART" %}
+    while ((option = getopt(argc, argv, "hb:d:")) != -1) {  
+{%- else %}
     while ((option = getopt(argc, argv, "hp:a:")) != -1) {
+{%- endif %}
         switch (option) {
 {%- if cookiecutter.com_driver_type == "UART" %}
             // Handle the -b baud rate argument
             case 'b':
                 baud_rate = static_cast<U32>(atoi(optarg));
                 break;
-            // Handle the -p port number argument
+            // Handle the -d device argument
             case 'd':
                 uart_device = optarg;
                 break;
