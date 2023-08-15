@@ -44,6 +44,10 @@
     <packet name="Comms" id="4" level="1">
         <channel name="comQueue.comQueueDepth"/>
         <channel name="comQueue.buffQueueDepth"/>
+{%- if cookiecutter.com_driver_type == "UART" %}
+        <channel name="comDriver.BytesSent"/>
+        <channel name="comDriver.BytesRecv"/>
+{%- endif %}
     </packet>
 
     <packet name="SystemRes1" id="5" level="2">

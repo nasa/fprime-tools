@@ -20,7 +20,11 @@
  * @param app: name of application
  */
 void print_usage(const char* app) {
+{%- if cookiecutter.com_driver_type == "UART" %}
+    (void)printf("Usage: ./%s [options]\n-b\tBaud rate\n-d\tUART Device\n", app);
+{%- else %}
     (void)printf("Usage: ./%s [options]\n-a\thostname/IP address\n-p\tport_number\n", app);
+{%- endif %}
 }
 
 /**
@@ -46,13 +50,28 @@ static void signalHandler(int signum) {
  * @return: 0 on success, something else on failure
  */
 int main(int argc, char* argv[]) {
-    U32 port_number = 0;
     I32 option = 0;
+{%- if cookiecutter.com_driver_type == "UART" %}
+    char* uart_device = nullptr;
+    U32 baud_rate = 0;
+{%- else %}
     char* hostname = nullptr;
+    U32 port_number = 0;
+{%- endif %}
 
     // Loop while reading the getopt supplied options
     while ((option = getopt(argc, argv, "hp:a:")) != -1) {
         switch (option) {
+{%- if cookiecutter.com_driver_type == "UART" %}
+            // Handle the -b baud rate argument
+            case 'b':
+                baud_rate = static_cast<U32>(atoi(optarg));
+                break;
+            // Handle the -p port number argument
+            case 'd':
+                uart_device = optarg;
+                break;
+{%- else %}
             // Handle the -a argument for address/hostname
             case 'a':
                 hostname = optarg;
@@ -61,6 +80,7 @@ int main(int argc, char* argv[]) {
             case 'p':
                 port_number = static_cast<U32>(atoi(optarg));
                 break;
+{%- endif %}
             // Cascade intended: help output
             case 'h':
             // Cascade intended: help output
@@ -73,8 +93,13 @@ int main(int argc, char* argv[]) {
     }
     // Object for communicating state to the reference topology
     {{cookiecutter.deployment_name}}::TopologyState inputs;
+{%- if cookiecutter.com_driver_type == "UART" %}
+    inputs.baudRate = baud_rate;
+    inputs.uartDevice = uart_device;
+{%- else %}
     inputs.hostname = hostname;
     inputs.port = port_number;
+{%- endif %}
 
     // Setup program shutdown via Ctrl-C
     signal(SIGINT, signalHandler);

@@ -34,7 +34,7 @@ namespace {{cookiecutter.deployment_name}} {
  * The state argument carries command line inputs used to setup the topology. For an explanation of the required type
  * {{cookiecutter.deployment_name}}::TopologyState see: {{cookiecutter.deployment_name}}TopologyDefs.hpp.
  *
- * \param state: object shuttling CLI arguments (hostname, port) needed to construct the topology
+ * \param state: object shuttling CLI arguments (e.g. hostname/port, or UART baudrate) needed to construct the topology
  */
 void setupTopology(const TopologyState& state);
 

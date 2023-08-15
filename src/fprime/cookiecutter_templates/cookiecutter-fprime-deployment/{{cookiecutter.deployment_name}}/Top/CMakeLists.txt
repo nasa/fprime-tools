@@ -16,7 +16,13 @@ set(MOD_DEPS
   Svc/LinuxTime
   # Communication Implementations
   Drv/Udp
+{%- if cookiecutter.com_driver_type == "TcpClient" %}
   Drv/TcpClient
+{%- elif cookiecutter.com_driver_type == "TcpServer" %}
+  Drv/TcpServer
+{%- elif cookiecutter.com_driver_type == "UART" %}
+  Drv/LinuxUartDriver
+{%- endif %}
 )
 
 register_fprime_module()
