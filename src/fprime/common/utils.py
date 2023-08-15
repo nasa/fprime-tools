@@ -10,8 +10,9 @@ def confirm(msg):
     """Ask user for a yes or no input after displaying the given message"""
     # Loop "forever" intended
     while True:
-        confirm_input = input(msg)
-        if confirm_input.lower() in ["y", "yes"]:
+        confirm_input = input(msg + " (yes/no) [yes]: ")
+        # Default to yes when no input
+        if confirm_input.lower() in ["y", "yes", ""]:
             return True
         if confirm_input.lower() in ["n", "no"]:
             return False
