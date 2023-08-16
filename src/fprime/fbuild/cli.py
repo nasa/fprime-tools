@@ -69,7 +69,7 @@ def run_fbuild_cli(
             print(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
             )
-            if parsed.force or confirm("Purge this directory (yes/no)?"):
+            if parsed.force or confirm("Purge this directory?"):
                 purge_build.purge()
             install_dir = purge_build.install_dest_exists()
             if (
@@ -81,7 +81,7 @@ def run_fbuild_cli(
                     f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
                 )
                 if parsed.force or confirm(
-                    f"Purge installation directory at {install_dir} (yes/no)?"
+                    f"Purge installation directory at {install_dir} ?"
                 ):
                     purge_build.purge_install()
     else:

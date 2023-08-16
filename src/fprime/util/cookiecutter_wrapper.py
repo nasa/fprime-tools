@@ -36,7 +36,7 @@ def run_impl(build: Build, source_path: Path):
     hpp_dest = hpp_files[0]
     cpp_dest = common[0] if common else cpp_files[0]
 
-    if not confirm("Generate implementation files (yes/no)? "):
+    if not confirm("Generate implementation files?"):
         return False
     print(
         "Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)..."
@@ -96,7 +96,7 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
         return True
 
     if not confirm(
-        f"Add component {comp_path} to {short_display_path} at end of file (yes/no)? "
+        f"Add component {comp_path} to {short_display_path} at end of file?"
     ):
         return False
 
