@@ -53,7 +53,7 @@ if "{{cookiecutter.install_venv}}" == "yes":
     if sys.prefix != sys.base_prefix:
         subprocess.run(
             [
-                Path(sys.prefix) / "bin" / "pip"
+                Path(sys.prefix) / "bin" / "pip",
                 "install",
                 "-Ur",
                 Path("fprime") / "requirements.txt",
@@ -62,7 +62,7 @@ if "{{cookiecutter.install_venv}}" == "yes":
     else:
         # Print warning after the following message so users do not miss it
         PRINT_VENV_WARNING = True
-else: 
+else:
     print(
         "[INFO] requirements.txt has not been installed because you did not request it.",
         "Install with `pip install -Ur fprime/requirements.txt`",
