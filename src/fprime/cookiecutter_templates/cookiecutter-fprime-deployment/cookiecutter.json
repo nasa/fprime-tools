@@ -1,7 +1,9 @@
 {
     "deployment_name": "MyDeployment",
+    "com_driver_type": ["TcpClient", "TcpServer", "UART"],
     "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}",
     "__prompts__": {
-        "deployment_name": "Deployment name"
+        "deployment_name": "Deployment name",
+        "com_driver_type": "Select communication driver type"
     }
 }

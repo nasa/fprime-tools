@@ -19,13 +19,17 @@ namespace {{cookiecutter.deployment_name}} {
  * \brief required type definition to carry state
  *
  * The topology autocoder requires an object that carries state with the name `{{cookiecutter.deployment_name}}::TopologyState`. Only the type
- * definition is required by the autocoder and the contents of this object are otherwise opaque to the autocoder. The
- * contents are entirely up to the definition of the project. This reference application specifies hostname and port
- * fields, which are derived by command line inputs.
+ * definition is required by the autocoder and the contents of this object are otherwise opaque to the autocoder. The contents are entirely up
+ * to the definition of the project. Here, they are derived from command line inputs.
  */
 struct TopologyState {
-    const char* hostname;
-    U32 port;
+{%- if (cookiecutter.com_driver_type == "UART") %}
+    const CHAR* uartDevice;
+    U32 baudRate;
+{%- else %}
+    const CHAR* hostname;
+    U16 port;
+{%- endif %}
 };
 
 /**

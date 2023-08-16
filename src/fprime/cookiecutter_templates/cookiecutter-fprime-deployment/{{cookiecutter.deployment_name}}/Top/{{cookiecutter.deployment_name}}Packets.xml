@@ -82,5 +82,9 @@
 
     <ignore>
         <channel name="cmdDisp.CommandErrors"/>
+{%- if cookiecutter.com_driver_type == "UART" %}
+        <channel name="comDriver.BytesSent"/>
+        <channel name="comDriver.BytesRecv"/>
+{%- endif %}
     </ignore>
 </packets>
