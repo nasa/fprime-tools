@@ -307,7 +307,6 @@ def new_project(parsed_args):
             file=sys.stderr,
         )
         return 1
-    print(f"[INFO] New project successfully created: {gen_path}")
     return 0
 
 
