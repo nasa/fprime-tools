@@ -14,15 +14,13 @@ import sys
 import requests
 
 response = requests.get("https://api.github.com/repos/nasa/fprime/releases/latest")
-latest_tag_name = response.json()['tag_name']
+latest_tag_name = response.json()["tag_name"]
 
 PRINT_VENV_WARNING = False
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
-print(
-    f"[INFO] Checking out F' submodule at latest release: {latest_tag_name}"
-)
+print(f"[INFO] Checking out F' submodule at latest release: {latest_tag_name}")
 subprocess.run(
     [
         "git",
@@ -46,9 +44,7 @@ res = subprocess.run(
 )
 
 if res.returncode != 0:
-    print(
-        f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit..."
-    )
+    print(f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit...")
     sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
 # Install venv if requested
