@@ -4,56 +4,68 @@ This script is run as a cookiecutter hook after the project is generated.
 It does the following:
 - Initializes a git repository
 - Adds F' as a submodule
-- Checks out the requested branch/tag
+- Checks out the latest release of F'
 - Installs the virtual environment if requested
 
 @author thomas-bc
 """
 import subprocess
 import sys
+import requests
+from pathlib import Path
 
-# Fail-safe in case user input is invalid branch/tag
-DEFAULT_BRANCH = "{{ cookiecutter.__default_branch }}"
+response = requests.get("https://api.github.com/repos/nasa/fprime/releases/latest")
+latest_tag_name = response.json()["tag_name"]
+
+PRINT_VENV_WARNING = False
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
+print(f"[INFO] Checking out F' submodule at latest release: {latest_tag_name}")
 subprocess.run(
     [
         "git",
         "submodule",
         "add",
-        "-b",
-        DEFAULT_BRANCH,
+        "--depth",
+        "1",
         "https://github.com/nasa/fprime.git",
     ]
 )
-
-# Checkout requested branch/tag
-res = subprocess.run(
-    ["git", "checkout", "{{cookiecutter.fprime_branch_or_tag}}"],
+subprocess.run(
+    ["git", "fetch", "origin", "--depth", "1", "tag", latest_tag_name],
     cwd="./fprime",
     capture_output=True,
 )
+# Checkout requested branch/tag
+res = subprocess.run(
+    ["git", "checkout", latest_tag_name],
+    cwd="./fprime",
+    capture_output=True,
+)
+
 if res.returncode != 0:
-    print(
-        "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
-    )
-    print(f"[WARNING] Reverted to default branch: {DEFAULT_BRANCH}")
-else:
-    print(
-        "[INFO] F' submodule checked out to branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
-    )
+    print(f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit...")
+    sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
 # Install venv if requested
 if "{{cookiecutter.install_venv}}" == "yes":
-    subprocess.run([sys.executable, "-m", "venv", "{{cookiecutter.venv_install_path}}"])
-    subprocess.run(
-        [
-            "{{cookiecutter.venv_install_path}}/bin/pip",
-            "install",
-            "-r",
-            "fprime/requirements.txt",
-        ]
+    if sys.prefix != sys.base_prefix:
+        subprocess.run(
+            [
+                Path(sys.prefix) / "bin" / "pip",
+                "install",
+                "-Ur",
+                Path("fprime") / "requirements.txt",
+            ]
+        )
+    else:
+        # Print warning after the following message so users do not miss it
+        PRINT_VENV_WARNING = True
+else:
+    print(
+        "[INFO] requirements.txt has not been installed because you did not request it.",
+        "Install with `pip install -Ur fprime/requirements.txt`",
     )
 
 print(
@@ -67,9 +79,6 @@ submodule, you can now create your first commit.
 
 Get started with your F' project:
 
--- Activate the virtual environment --
-Linux/MacOS: source venv/bin/activate
-
 -- Generate a new component --
 fprime-util new --component
 
@@ -80,12 +89,8 @@ fprime-util new --deployment
 """
 )
 
-if res.returncode != 0:
+if PRINT_VENV_WARNING:
     print(
-        "[WARNING] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
-    )
-    print(f"[WARNING] Reverted to default branch: {DEFAULT_BRANCH}")
-else:
-    print(
-        "[INFO] F' submodule checked out to branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+        "[WARNING] requirements.txt has not been installed because you are not running in a virtual environment.",
+        "Install with `pip install -Ur fprime/requirements.txt`",
     )

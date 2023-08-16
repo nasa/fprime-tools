@@ -90,6 +90,7 @@ to interact with the data coming from the FSW.
         "cookiecutter>=2.2.3",
         "gcovr>=6.0",
         "urllib3<2.0.0",
+        "requests>=2.31.0",
     ],
     extras_require={
         "dev": [
