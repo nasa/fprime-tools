@@ -12,6 +12,7 @@ It does the following:
 import subprocess
 import sys
 import requests
+from pathlib import Path
 
 response = requests.get("https://api.github.com/repos/nasa/fprime/releases/latest")
 latest_tag_name = response.json()["tag_name"]
@@ -52,15 +53,20 @@ if "{{cookiecutter.install_venv}}" == "yes":
     if sys.prefix != sys.base_prefix:
         subprocess.run(
             [
-                sys.prefix + "/bin/pip",
+                Path(sys.prefix) / "bin" / "pip"
                 "install",
                 "-Ur",
-                "fprime/requirements.txt",
+                Path("fprime") / "requirements.txt",
             ]
         )
     else:
         # Print warning after the following message so users do not miss it
         PRINT_VENV_WARNING = True
+else: 
+    print(
+        "[INFO] requirements.txt has not been installed because you did not request it.",
+        "Install with `pip install -Ur fprime/requirements.txt`",
+    )
 
 print(
     """
