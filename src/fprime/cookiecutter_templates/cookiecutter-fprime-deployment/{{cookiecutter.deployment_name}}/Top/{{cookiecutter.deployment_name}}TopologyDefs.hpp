@@ -24,11 +24,11 @@ namespace {{cookiecutter.deployment_name}} {
  */
 struct TopologyState {
 {%- if (cookiecutter.com_driver_type == "UART") %}
-    const char* uartDevice;
-    PlatformUIntType baudRate;
+    const CHAR* uartDevice;
+    U32 baudRate;
 {%- else %}
-    const char* hostname;
-    PlatformUIntType port;
+    const CHAR* hostname;
+    U16 port;
 {%- endif %}
 };
 

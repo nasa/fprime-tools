@@ -52,11 +52,11 @@ static void signalHandler(int signum) {
 int main(int argc, char* argv[]) {
     I32 option = 0;
 {%- if cookiecutter.com_driver_type == "UART" %}
-    char* uart_device = nullptr;
+    CHAR* uart_device = nullptr;
     U32 baud_rate = 0;
 {%- else %}
-    char* hostname = nullptr;
-    U32 port_number = 0;
+    CHAR* hostname = nullptr;
+    U16 port_number = 0;
 {%- endif %}
 
     // Loop while reading the getopt supplied options
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
                 break;
             // Handle the -p port number argument
             case 'p':
-                port_number = static_cast<U32>(atoi(optarg));
+                port_number = static_cast<U16>(atoi(optarg));
                 break;
 {%- endif %}
             // Cascade intended: help output
