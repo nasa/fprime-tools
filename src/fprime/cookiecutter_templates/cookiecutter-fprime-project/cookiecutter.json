@@ -1,10 +1,8 @@
 {
     "project_name": "MyProject",
-    "fprime_branch_or_tag": "devel",
     "install_venv": ["yes", "no"],
     "__prompts__": {
         "project_name": "Project name",
-        "fprime_branch_or_tag": "F´ version (select branch or tag)",
         "install_venv": "Install F´ development tools in current virtual environment?"
     }
 }

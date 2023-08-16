@@ -4,20 +4,24 @@ This script is run as a cookiecutter hook after the project is generated.
 It does the following:
 - Initializes a git repository
 - Adds F' as a submodule
-- Checks out the requested branch/tag
+- Checks out the latest release of F'
 - Installs the virtual environment if requested
 
 @author thomas-bc
 """
 import subprocess
 import sys
+import requests
+
+response = requests.get("https://api.github.com/repos/nasa/fprime/releases/latest")
+latest_tag_name = response.json()['tag_name']
 
 PRINT_VENV_WARNING = False
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
 print(
-    "[INFO] Checking out F' submodule at branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+    f"[INFO] Checking out F' submodule at latest release: {latest_tag_name}"
 )
 subprocess.run(
     [
@@ -29,21 +33,21 @@ subprocess.run(
         "https://github.com/nasa/fprime.git",
     ]
 )
-res = subprocess.run(
-    ["git", "fetch", "origin", "--depth", "1", "{{cookiecutter.fprime_branch_or_tag}}"],
+subprocess.run(
+    ["git", "fetch", "origin", "--depth", "1", "tag", latest_tag_name],
     cwd="./fprime",
     capture_output=True,
 )
 # Checkout requested branch/tag
 res = subprocess.run(
-    ["git", "checkout", "-B", "{{cookiecutter.fprime_branch_or_tag}}", "FETCH_HEAD"],
+    ["git", "checkout", latest_tag_name],
     cwd="./fprime",
     capture_output=True,
 )
 
 if res.returncode != 0:
     print(
-        "[ERROR] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}. Exiting..."
+        f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit..."
     )
     sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
