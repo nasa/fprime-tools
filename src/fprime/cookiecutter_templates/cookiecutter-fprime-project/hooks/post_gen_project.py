@@ -16,13 +16,15 @@ PRINT_VENV_WARNING = False
 
 # Add F' as a submodule
 subprocess.run(["git", "init"])
-print("[INFO] Checking out F' submodule at branch/tag: {{cookiecutter.fprime_branch_or_tag}}")
+print(
+    "[INFO] Checking out F' submodule at branch/tag: {{cookiecutter.fprime_branch_or_tag}}"
+)
 subprocess.run(
     [
         "git",
         "submodule",
         "add",
-        "--depth", 
+        "--depth",
         "1",
         "https://github.com/nasa/fprime.git",
     ]
@@ -43,7 +45,7 @@ if res.returncode != 0:
     print(
         "[ERROR] Unable to checkout branch/tag: {{cookiecutter.fprime_branch_or_tag}}. Exiting..."
     )
-    sys.exit(1) # sys.exit(1) indicates failure to cookiecutter
+    sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
 # Install venv if requested
 if "{{cookiecutter.install_venv}}" == "yes":
@@ -84,5 +86,5 @@ fprime-util new --deployment
 if PRINT_VENV_WARNING:
     print(
         "[WARNING] requirements.txt has not been installed because you are not running in a virtual environment.",
-        "Install with `pip install -Ur fprime/requirements.txt`"
+        "Install with `pip install -Ur fprime/requirements.txt`",
     )
