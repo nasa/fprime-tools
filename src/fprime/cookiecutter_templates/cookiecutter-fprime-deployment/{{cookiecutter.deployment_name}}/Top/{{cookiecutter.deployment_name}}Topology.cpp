@@ -214,6 +214,10 @@ void teardownTopology(const TopologyState& state) {
 {%- else %}
     comDriver.stopSocketTask();
     (void)comDriver.joinSocketTask(nullptr);
+{%- if (cookiecutter.com_driver_type == "TcpServer") %}
+    // Shutdown
+    comDriver.shutdown();
+{%- endif %}
 {%- endif %}
 
     // Resource deallocation
