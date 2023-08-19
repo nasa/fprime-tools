@@ -64,7 +64,7 @@ class EnumType(DictionaryType):
             raise InvalidRepresentationTypeException(rep_type)
 
         for member in enum_dict.keys():
-            if enum_dict[member] < FPRIME_INTEGER_METADATA[rep_type]["min"] or
+            if enum_dict[member] < FPRIME_INTEGER_METADATA[rep_type]["min"] or \
                enum_dict[member] > FPRIME_INTEGER_METADATA[rep_type]["max"]:
                 raise RepresentationTypeRangeException(
                     member,
@@ -130,4 +130,4 @@ class EnumType(DictionaryType):
     @classmethod
     def getMaxSize(cls):
         """Maximum size of type"""
-        return struct.calcsize(FPRIME_INTEGER_METADATA["U64"]
+        return struct.calcsize(FPRIME_INTEGER_METADATA["U64"]["struct_formatter"])
