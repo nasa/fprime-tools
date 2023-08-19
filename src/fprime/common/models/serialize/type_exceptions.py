@@ -7,6 +7,7 @@ Created on Dec 18, 2014
 
 # Exception classes for all types
 from fprime.common.error import FprimeException
+from .enum_type import FPRIME_INTEGER_METADATA
 
 
 class TypeException(FprimeException):
@@ -126,3 +127,24 @@ class CompoundTypeLengthMismatchException(TypeException):
             "%d fields provided, but compound type expects %d fields!"
             % (field_length_given, field_length_actual)
         )
+
+class InvalidRepresentationTypeException(TypeException):
+    """Representation type of the given enumeration is not an F prime integer type"""
+
+    def __init__(self, given_rep_type):
+        super().__init__(
+            "Representation type {} not found in F prime types ({})").format(
+                given_rep_type,
+                str(FPRIME_INTEGER_METADATA.keys()))
+
+class RepresentationTypeRangeException(TypeException):
+    """Enumeration member is out of range of the representation type"""
+
+    def __init__(self, key, value, given_rep_type):
+        super().__init__(
+            "Enumeration member {} with value {} is out of range of representation type {} ({}-{})".format(
+                key,
+                value,
+                given_rep_type,
+                FPRIME_INTEGER_METADATA[given_rep_type]["min"],
+                FPRIME_INTEGER_METADATA[given_rep_type]["max"]))
