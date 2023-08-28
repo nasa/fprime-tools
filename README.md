@@ -6,6 +6,7 @@ A package containing tools to work with F´. Installation can be done using:
 pip install fprime-tools
 ```
 
+Issues for these tools should be reported here: [File an issue](https://github.com/nasa/fprime/issues/new/choose)
 See also: https://nasa.github.io/fprime to see the F´ framework.
 
 ## Developer Installation
