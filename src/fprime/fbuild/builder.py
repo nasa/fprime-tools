@@ -408,7 +408,7 @@ class Build:
             self.cmake.generate_build(
                 self.cmake_root,
                 self.build_dir,
-                {**default_cmake_args, **cmake_args, **self.get_cmake_args()},
+                {**default_cmake_args, **self.get_cmake_args(), **cmake_args},
                 environment=self.settings.get("environment", None),
             )
         except CMakeException as cexc:
