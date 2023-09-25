@@ -210,10 +210,9 @@ def add_special_targets(
         action="store_true",
     )
     # The following option is specified only to show up in --help.
-    # It is not handled by , in fprime.util.cli:validate()
+    # It is not handled by argparse, but in fprime.util.cli:validate()
     generate_parser.add_argument(
         "-D<VAR>=<VALUE>",
-        action="store_true",
         help="Pass -D flags through to CMake. Can be used multiple times.",
     )
     purge_parser = subparsers.add_parser(
