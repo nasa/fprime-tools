@@ -102,15 +102,8 @@ module {{cookiecutter.deployment_name}} {
 {%- if cookiecutter.com_driver_type == "UART" %}
   instance comDriver: Drv.LinuxUartDriver base id 0x4000
 {%- else %}
-  @ Note: Here we have TCP reliable uplink and UDP (low latency) downlink
-  instance comDriver: Drv.ByteStreamDriverModel base id 0x4000 \
-{%- if cookiecutter.com_driver_type == "TcpServer" %}
-    type "Drv::TcpServer" \ # type specified to select implementor of ByteStreamDriverModel
-    at "../../Drv/TcpServer/TcpServer.hpp" # location of above implementor must also be specified
-{%- elif cookiecutter.com_driver_type == "TcpClient" %}
-    type "Drv::TcpClient" \ # type specified to select implementor of ByteStreamDriverModel
-    at "../../Drv/TcpClient/TcpClient.hpp" # location of above implementor must also be specified
-{%- endif -%}{% endif %}
+  instance comDriver: Drv.{{cookiecutter.com_driver_type}} base id 0x4000 
+{%- endif %}
 
   instance framer: Svc.Framer base id 0x4100
 
