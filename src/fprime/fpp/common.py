@@ -21,7 +21,7 @@ class FppMissingSupportFiles(FprimeException):
 
     def __init__(self, file):
         super().__init__(
-            "Current directory does not define any FPP files. Did you intend to run in the topology directory?"
+            f"Can not find {file}. Does current directory define any FPP files?"
         )
 
 
@@ -127,6 +127,7 @@ class FppUtility(ExecutableAction):
             + user_args
             + [str(item) for item in itertools.chain([locations] + inputs)]
         )
+        # NOTE: This adds all fpp_inputs as source file arguments, not as --imports arguments
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
         subprocess.run(app_args, capture_output=False)

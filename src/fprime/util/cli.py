@@ -19,6 +19,7 @@ from fprime.util.build_helper import load_build
 from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new
 from fprime.util.help_text import HelpText
 from fprime.fpp.visualize import add_fpp_viz_parsers
+from fprime.fpp.impl import add_fpp_impl_parsers
 
 
 def utility_entry(args):
@@ -298,17 +299,21 @@ def parse_args(args):
     runners = {}
     parsers = {}
 
+    # Refactor the following so that each package defines its own
     fbuild_runners, fbuild_parsers = add_fbuild_parsers(
         subparsers, common_parser, HelpText
     )
     fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
     viz_runners, viz_parsers = add_fpp_viz_parsers(subparsers, common_parser)
+    impl_runners, impl_parsers = add_fpp_impl_parsers(subparsers, common_parser)
     parsers.update(fbuild_parsers)
     parsers.update(fpp_parsers)
     parsers.update(viz_parsers)
+    parsers.update(impl_parsers)
     runners.update(fbuild_runners)
     runners.update(fpp_runners)
     runners.update(viz_runners)
+    runners.update(impl_runners)
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
