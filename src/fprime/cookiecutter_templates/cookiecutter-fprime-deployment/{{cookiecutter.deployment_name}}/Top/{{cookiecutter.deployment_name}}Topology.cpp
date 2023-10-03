@@ -157,9 +157,6 @@ void setupTopology(const TopologyState& state) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
         comDriver.configure(state.hostname, state.port);
-{%-     if (cookiecutter.com_driver_type == "TcpServer") %}
-        comDriver.startup();
-{%-     endif %}
         comDriver.startSocketTask(name, true, COMM_PRIORITY, Default::STACK_SIZE);
     }
 {%- elif cookiecutter.com_driver_type == "UART" %}
@@ -212,9 +209,6 @@ void teardownTopology(const TopologyState& state) {
     comDriver.quitReadThread();
     (void)comDriver.join(nullptr);
 {%- else %}
-    {%- if (cookiecutter.com_driver_type == "TcpServer") %}
-    comDriver.shutdown();
-    {%- endif %}
     comDriver.stopSocketTask();
     (void)comDriver.joinSocketTask(nullptr);
 {%- endif %}
