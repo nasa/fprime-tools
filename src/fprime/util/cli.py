@@ -210,8 +210,8 @@ def validate(parsed, unknown):
     :param unknown: unknown arguments
     :return: cmake arguments to pass to CMake
     """
-    # regex pattern to detect -D<CMAKE_ARGUMENT>=<VALUE> arguments for CMake
-    CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+)=(.*)")
+    # regex pattern to detect -D<CMAKE_ARGUMENT>[:<TYPE>]=<VALUE> arguments for CMake
+    CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+(?::[A-Z]+)?)=(.*)")
     cmake_args = {}
     make_args = {}
     # Check platforms for existing toolchain, unless the default is specified.
