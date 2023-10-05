@@ -129,7 +129,7 @@ def add_special_parsers(
         "--prevent-tools-installation",
         default=False,
         action="store_true",
-        help="Prevent the installation of the tool suite in the current virtual enviornment",
+        help="Prevent the installation of the tool suite in the current virtual environment",
     )
     new_exclusive = new_parser.add_argument_group(
         "'new' targets"
@@ -139,21 +139,21 @@ def add_special_parsers(
         default=False,
         action="store_true",
         dest="new_component",
-        help="Tells the new command to generate a component",
+        help="Generate a new component",
     )
     new_exclusive.add_argument(
         "--deployment",
         default=False,
         action="store_true",
         dest="new_deployment",
-        help="Tells the new command to generate a deployment",
+        help="Generate a new deployment",
     )
     new_exclusive.add_argument(
         "--project",
         default=False,
         action="store_true",
         dest="new_project",
-        help="Tells the new command to generate a project",
+        help="Generate a new project",
     )
 
     # Code formatting with clang-format

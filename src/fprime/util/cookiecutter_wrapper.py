@@ -294,7 +294,11 @@ def new_project(parsed_args):
             source,
             overwrite_if_exists=parsed_args.overwrite,
             output_dir=parsed_args.path,
-            extra_context={"__install_venv": "no" if parsed_args.prevent_tools_installation else "yes"},
+            extra_context={
+                "__install_venv": "no"
+                if parsed_args.prevent_tools_installation
+                else "yes"
+            },
         )
     except OutputDirExistsException as out_directory_error:
         print(
