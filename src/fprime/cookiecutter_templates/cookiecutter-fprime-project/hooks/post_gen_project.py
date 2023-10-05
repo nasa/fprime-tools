@@ -49,7 +49,8 @@ if res.returncode != 0:
     sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
 # Install venv if requested
-if "{{cookiecutter.install_venv}}" == "yes":
+
+if "{{cookiecutter.__install_venv}}" == "yes":
     if sys.prefix != sys.base_prefix:
         subprocess.run(
             [
