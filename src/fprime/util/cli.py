@@ -125,6 +125,12 @@ def add_special_parsers(
         action="store_true",
         help="Generated files will overwrite existing ones",
     )
+    new_parser.add_argument(
+        "--prevent-tools-installation",
+        default=False,
+        action="store_true",
+        help="Prevent the installation of the tool suite in the current virtual enviornment",
+    )
     new_exclusive = new_parser.add_argument_group(
         "'new' targets"
     ).add_mutually_exclusive_group()
