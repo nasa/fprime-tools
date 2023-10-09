@@ -289,7 +289,7 @@ class Build:
             raise AmbiguousToolchainException(msg)
         return toolchains[0]
 
-    def get_cmake_args(self) -> dict:
+    def get_cmake_args(self, user_cmake_args) -> dict:
         """Generates CMake arguments from project settings (settings.ini file)
 
         Returns:
@@ -305,14 +305,16 @@ class Build:
             ("FPRIME_CONFIG_DIR", "config_directory"),
             ("FPRIME_INSTALL_DEST", "install_destination"),
         ]
+        for needed_setting in needed:
+            if user_cmake_args.get(needed_setting[0], None) is not None:
+                msg = f"Cannot override {needed_setting[0]} with command line argument. Use settings.ini file."
+                raise GenerateException(msg)
+
         cmake_args = {
             cache: self.get_settings(setting, None)
             for cache, setting in needed
             if self.get_settings(setting, None) is not None
         }
-
-        # Load in the default settings
-        self.get_settings("default_cmake_options", None)
 
         if "FPRIME_LIBRARY_LOCATIONS" in cmake_args:
             cmake_args["FPRIME_LIBRARY_LOCATIONS"] = ";".join(
@@ -327,7 +329,7 @@ class Build:
             and self.build_type == BuildType.BUILD_TESTING
         ):
             cmake_args["BUILD_TESTING"] = "ON"
-            cmake_args["CMAKE_BUILD_TYPE"] = cmake_args.get("CMAKE_BUILD_TYPE", "Debug")
+            cmake_args["CMAKE_BUILD_TYPE"] = user_cmake_args.get("CMAKE_BUILD_TYPE", "Debug")
         elif self.build_type == BuildType.BUILD_TESTING:
             cmake_args["CMAKE_BUILD_TYPE"] = "Testing"
         return cmake_args
@@ -408,7 +410,7 @@ class Build:
             self.cmake.generate_build(
                 self.cmake_root,
                 self.build_dir,
-                {**default_cmake_args, **self.get_cmake_args(), **cmake_args},
+                {**default_cmake_args, **cmake_args, **self.get_cmake_args(cmake_args)},
                 environment=self.settings.get("environment", None),
             )
         except CMakeException as cexc:
