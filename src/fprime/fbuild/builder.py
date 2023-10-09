@@ -396,11 +396,20 @@ class Build:
             cmake_args.update(user_cmake_args)  # User-supplied values from command line
             cmake_args.update(self.get_cmake_args())  # FPRIME_* values (settings.ini)
 
-            if self.build_type == BuildType.BUILD_TESTING:
+            # When the new v3 autocoder directory exists, this means we can use the new UT api and preserve the build type
+            v3_autocoder_directory = Path(
+                cmake_args.get("FPRIME_FRAMEWORK_PATH") / "cmake" / "autocoder"
+            )
+            if (
+                v3_autocoder_directory.exists()
+                and self.build_type == BuildType.BUILD_TESTING
+            ):
                 cmake_args["BUILD_TESTING"] = "ON"
                 cmake_args["CMAKE_BUILD_TYPE"] = user_cmake_args.get(
                     "CMAKE_BUILD_TYPE", "Debug"
                 )
+            elif self.build_type == BuildType.BUILD_TESTING:
+                cmake_args["CMAKE_BUILD_TYPE"] = "Testing"
 
             self.cmake.generate_build(
                 self.cmake_root,
