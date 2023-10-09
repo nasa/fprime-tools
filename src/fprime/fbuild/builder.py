@@ -289,7 +289,7 @@ class Build:
             raise AmbiguousToolchainException(msg)
         return toolchains[0]
 
-    def get_cmake_args(self, user_cmake_args) -> dict:
+    def get_cmake_args(self) -> dict:
         """Generates CMake arguments from project settings (settings.ini file)
 
         Returns:
@@ -305,10 +305,6 @@ class Build:
             ("FPRIME_CONFIG_DIR", "config_directory"),
             ("FPRIME_INSTALL_DEST", "install_destination"),
         ]
-        for needed_setting in needed:
-            if user_cmake_args.get(needed_setting[0], None) is not None:
-                msg = f"Cannot override {needed_setting[0]} with command line argument. Use settings.ini file."
-                raise GenerateException(msg)
 
         cmake_args = {
             cache: self.get_settings(setting, None)
@@ -320,20 +316,6 @@ class Build:
             cmake_args["FPRIME_LIBRARY_LOCATIONS"] = ";".join(
                 [str(location) for location in cmake_args["FPRIME_LIBRARY_LOCATIONS"]]
             )
-        # When the new v3 autocoder directory exists, this means we can use the new UT api and preserve the build type
-        v3_autocoder_directory = Path(
-            cmake_args.get("FPRIME_FRAMEWORK_PATH") / "cmake" / "autocoder"
-        )
-        if (
-            v3_autocoder_directory.exists()
-            and self.build_type == BuildType.BUILD_TESTING
-        ):
-            cmake_args["BUILD_TESTING"] = "ON"
-            cmake_args["CMAKE_BUILD_TYPE"] = user_cmake_args.get(
-                "CMAKE_BUILD_TYPE", "Debug"
-            )
-        elif self.build_type == BuildType.BUILD_TESTING:
-            cmake_args["CMAKE_BUILD_TYPE"] = "Testing"
         return cmake_args
 
     def get_module_name(self, path: Path):
@@ -386,14 +368,15 @@ class Build:
             environment=self.settings.get("environment", None),
         )
 
-    def generate(self, cmake_args):
+    def generate(self, user_cmake_args):
         """Generates a build given CMake arguments
 
         This will run a generate step of the cmake build process. This will take in any argument used/passed to CMake.
 
         Args:
-            cmake_args: cmake arguments to pass into the generate step
+            user_cmake_args: cmake arguments to pass into the generate step
         """
+        cmake_args = {}
         try:
 
             def split_pair(item):
@@ -403,16 +386,26 @@ class Build:
             default_options_text = self.get_settings("default_cmake_options", None)
             default_options = default_options_text.split("\n")
 
-            default_cmake_args = {
+            default_cmake_options = {
                 option: value
                 for (option, value) in [split_pair(item) for item in default_options]
                 if option != ""
             }
 
+            cmake_args.update(default_cmake_options)  # default_cmake_options
+            cmake_args.update(user_cmake_args)  # User-supplied values from command line
+            cmake_args.update(self.get_cmake_args())  # FPRIME_* values (settings.ini)
+
+            if self.build_type == BuildType.BUILD_TESTING:
+                cmake_args["BUILD_TESTING"] = "ON"
+                cmake_args["CMAKE_BUILD_TYPE"] = user_cmake_args.get(
+                    "CMAKE_BUILD_TYPE", "Debug"
+                )
+
             self.cmake.generate_build(
                 self.cmake_root,
                 self.build_dir,
-                {**default_cmake_args, **cmake_args, **self.get_cmake_args(cmake_args)},
+                cmake_args,
                 environment=self.settings.get("environment", None),
             )
         except CMakeException as cexc:
