@@ -44,20 +44,21 @@ def run_fpp_impl(
         *build.get_settings("library_locations", []),
         build.cmake_root,
         build.build_dir / "F-Prime",
-        # *[build.build_dir / lib for lib in build.get_settings("library_locations", [])],
         build.build_dir,
     ]
 
     gen_files = tempfile.NamedTemporaryFile(prefix="fprime-impl-")
-    # Run fpp-to-cpp -t
-    FppUtility("fpp-to-cpp").execute(
+    Path(parsed.output_dir).mkdir(parents=True, exist_ok=True)
+
+    # Run fpp-to-cpp --template
+    FppUtility("fpp-to-cpp", imports_as_sources = False).execute(
         build,
         parsed.path,
         args=(
             {},
             [
-                "-t",
-                "-n",
+                "--template",
+                "--names",
                 gen_files.name,
                 "--directory",
                 parsed.output_dir,
@@ -77,10 +78,11 @@ def run_fpp_impl(
 
     # Format generated files
     clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
-    if clang_formatter.is_supported():
+    if not parsed.no_format and clang_formatter.is_supported():
         for line in gen_files.readlines():
-            # NOTE: whether we need parsed.output_dir or not is dependent on FPP implementation
-            clang_formatter.stage_file(Path(parsed.output_dir) / Path(line.decode("utf-8").strip()))
+            # FPP --names outputs a list of file names. output_dir is added to get relative path
+            filename = Path(line.decode("utf-8").strip())
+            clang_formatter.stage_file(Path(parsed.output_dir) / filename)
         clang_formatter.execute(None, None, ({}, []))
 
     return 0
@@ -112,5 +114,11 @@ def add_fpp_impl_parsers(
         help="Directory to generate files in. Default: cwd",
         required=False,
         default=os.getcwd(),
+    )
+    impl_parser.add_argument(
+        "--no-format",
+        action="store_true",
+        help="Disable formatting (using clang-format) of generated files",
+        required=False,
     )
     return {"fpp_impl": run_fpp_impl}, {"fpp_impl": impl_parser}
