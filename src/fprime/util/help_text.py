@@ -108,7 +108,7 @@ These are the commands that may be run as part of {EXECUTABLE}. These commands w
 development process. One of these commands should be the first argument to an invocation of {EXECUTABLE}. For more
 explanation on an individual command, please run '{EXECUTABLE} <command> --help>'.
 """,
-    "build": f"""{EXECUTABLE} build ({VERSION}): Build fprime components, deployments, and unit tests
+    "build": f"""Build fprime components, deployments, and unit tests
 
 '{EXECUTABLE} build' builds in the selected directory ('-p/--path' or current working directory). When the selected
 directory contains a component, the component is built. When the current directory contains a deployment, the deployment
@@ -131,7 +131,7 @@ Examples:
   {EXECUTABLE} build --ut
 
 """,
-    "impl": f"""{EXECUTABLE} impl ({VERSION}): Generate fprime implementation templates.
+    "impl": f"""Generate fprime implementation templates.
 
 '{EXECUTABLE} impl' generates the implementation templates for the specified directory ('-p/--path' or current working
 directory). Implementation generation is only available for component directories and should not be used on deployments.
@@ -153,7 +153,7 @@ Example:
   {EXECUTABLE} impl --ut
 
 """,
-    "check": f"""{EXECUTABLE} check ({VERSION}): Run fprime unit tests with optional leak checking and test coverage.
+    "check": f"""Run fprime unit tests with optional leak checking and test coverage.
 
 '{EXECUTABLE} check' handles the running of unit tests. It can be used on components to run the component's unit tests,
 deployments to run deployment unit tests, and with the '--all' flag to run all unit tests found in the build system.
@@ -186,7 +186,7 @@ Examples:
   cd Ref/SignalGen
   {EXECUTABLE} check --coverage
 """,
-    "generate": f"""{EXECUTABLE} generate ({VERSION}): Generate build caches for the specified deployment
+    "generate": f"""Generate build caches for the specified deployment
 
 '{EXECUTABLE} generate' is used to setup a build cache to support other commands run by {EXECUTABLE}. Without additional
 arguments a build cache will be created for the project in the specified directory ('-p/--path', or current working
@@ -236,7 +236,7 @@ CMake Flag Examples:
   {EXECUTABLE} generate --build-cache `pwd`/build-ref-with-baremetal -DFPRIME_USE_BAREMETAL_SCHEDULER=ON
 
 """,
-    "purge": f"""{EXECUTABLE} purge ({VERSION}): Removes build caches for specified project
+    "purge": f"""Remove build caches for specified project
     
 '{EXECUTABLE} purge' removes build caches for the specified project. It also removes the build_artifacts directory
 in that project as well. Caches are searched in pairs: normal build cache, paired unit testing build cache. The
@@ -258,7 +258,7 @@ outputs, etc.
 '{EXECUTABLE} info' will print information for both normal and unit testing builds when possible. If '--build-cache' is
 specified then only the information for that build cache will be printed.
 """,
-    "hash-to-file": f"""{EXECUTABLE} hash-to-file ({VERSION}): Convert FW_ASSERT file id hash to file path
+    "hash-to-file": f"""Convert FW_ASSERT file id hash to file path
 
 When a project compiles fprime with 'FW_ASSERT_LEVEL' set to 'FW_FILEID_ASSERT' a hash will be emitted in place of the
 file path in order to keep assert messages succinct. '{EXECUTABLE} hash-to-file <hash>' will convert this hash value to
@@ -276,7 +276,7 @@ Examples:
   cd Ref
   {EXECUTABLE} hash-to-file raspberrypi 0xABCD1234
 """,
-    "new": f"""{EXECUTABLE} new ({VERSION}):       -- Creates a new fprime object
+    "new": f"""Generate a new fprime object
 
 '{EXECUTABLE} new' runs a wizard to create new objects in fprime (component, deployment, project).
 
@@ -294,7 +294,7 @@ Usage:
   include. At the end of the generation, the user can chose to automatically add the component to the build system and
   run the implementation generator.
 """,
-    "format": f"""{EXECUTABLE} format ({VERSION}): Formats C/C++ files using clang-format
+    "format": f"""Format C/C++ files using clang-format
 
 '{EXECUTABLE} format' uses 'clang-format' to format C/C++ files. It uses the style specified in the .clang-format file
 found at the root of the F' framework used by the project (i.e. the 'framework_path' specified in settings.ini).
