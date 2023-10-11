@@ -149,4 +149,4 @@ class FppUtility(ExecutableAction):
         # NOTE: This adds all fpp_inputs as source file arguments, not as --imports arguments
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
-        subprocess.run(app_args, capture_output=False)
+        return subprocess.run(app_args, capture_output=False).returncode
