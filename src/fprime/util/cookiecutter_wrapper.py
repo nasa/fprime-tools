@@ -15,13 +15,12 @@ from fprime.fbuild.builder import Build
 from fprime.fbuild.cmake import CMakeExecutionException
 from fprime.fpp.impl import fpp_generate_implementation
 
+
 def run_impl(build: Build, parsed_args, source_path: Path):
     """Run implementation of files in source_path"""
     if not confirm("Generate implementation files?"):
         return False
-    print(
-        "Refreshing cache and generating implementation files..."
-    )
+    print("Refreshing cache and generating implementation files...")
 
     hpp_files = glob.glob(f"{source_path}/*.hpp", recursive=False)
     cpp_files = glob.glob(f"{source_path}/*.cpp", recursive=False)
@@ -39,9 +38,7 @@ def run_impl(build: Build, parsed_args, source_path: Path):
     cpp_dest = common[0] if common else cpp_files[0]
 
     with suppress_stdout():
-        fpp_generate_implementation(
-            build, source_path, source_path, True, False
-        )
+        fpp_generate_implementation(build, source_path, source_path, True, False)
 
     hpp_files_template = glob.glob(f"{source_path}/*.template.hpp", recursive=False)
     cpp_files_template = glob.glob(f"{source_path}/*.template.cpp", recursive=False)
