@@ -32,24 +32,6 @@ BuildSystemTarget(
     build_type=BuildType.BUILD_TESTING,
 )
 
-
-#### Implementation targets ####
-BuildSystemTarget(
-    "impl",
-    mnemonic="impl",
-    desc="Generate implementation template files",
-    scope=TargetScope.LOCAL,
-)
-BuildSystemTarget(
-    "testimpl",
-    mnemonic="impl",
-    desc="Generate unit test files",
-    flags={"ut"},
-    build_type=BuildType.BUILD_TESTING,
-    scope=TargetScope.LOCAL,
-)
-
-
 #### Check targets ####
 check = BuildSystemTarget(
     "check",

@@ -136,7 +136,7 @@ def add_fpp_impl_parsers(
         Tuple of dictionary mapping command name to processor, and command to parser
     """
     impl_parser = subparsers.add_parser(
-        "fpp_impl",
+        "impl",
         help="Generate implementation templates",
         parents=[common],
         add_help=False,
@@ -153,4 +153,4 @@ def add_fpp_impl_parsers(
         help="Disable formatting (using clang-format) of generated files",
         required=False,
     )
-    return {"fpp_impl": run_fpp_impl}, {"fpp_impl": impl_parser}
+    return {"impl": run_fpp_impl}, {"impl": impl_parser}

@@ -135,12 +135,12 @@ Examples:
 
 '{EXECUTABLE} impl' generates the implementation templates for the specified directory ('-p/--path' or current working
 directory). Implementation generation is only available for component directories and should not be used on deployments.
-Two files will be created <component>.cpp-template and <component>.hpp-template. These contain the fill-in base code for
+Two files will be created <component>.template.cpp and <component>.template.hpp. These contain the fill-in base code for
 the component implementation as defined by the component's model. 
 
-When the '--ut' flag is specified the unit test implementation templates are created instead. The user should use the
-Tester.cpp, Tester.hpp and TestMain.cpp files as their fill-in templates. Other files created can be safely removed as
-they will be regenerated at build time.
+When the '--ut' flag is specified the unit test implementation templates are created instead, under <path>/test/ut. The
+user should use the Tester.cpp, Tester.hpp and TestMain.cpp files as their fill-in templates. Other files created can be
+safely removed as they will be regenerated at build time.
 
 Example:
 
