@@ -22,21 +22,22 @@ from fprime.fpp.common import FppUtility
 from fprime.util.code_formatter import ClangFormatter
 
 
-def run_fpp_impl(
+def fpp_generate_implementation(
     build: "Build",
-    parsed: argparse.Namespace,
-    _: Dict[str, str],
-    __: Dict[str, str],
-    ___: List[str],
-):
+    output_dir: Path,
+    context: Path,
+    apply_formatting: bool,
+    ut: bool,
+) -> int:
     """
+    Generate implementation files from FPP templates.
 
     Args:
-        build: build directory output
-        parsed: parsed input arguments
-        _: unused cmake_args
-        __: unused make_args
-        ___: unused pass-through arguments
+        build: Build object
+        output_dir: The directory where the generated files will be written
+        context: The path to the F´ module to generate files for
+        apply_formatting: Whether to format the generated files using clang-format
+        ut: Generates UT files if set to True
     """
 
     prefixes = [
@@ -50,20 +51,20 @@ def run_fpp_impl(
     # Holds the list of generated files to be passed to clang-format
     gen_files = tempfile.NamedTemporaryFile(prefix="fprime-impl-")
 
-    output_path = Path(parsed.output_dir)
-    if parsed.ut:
+    output_path = Path(output_dir)
+    if ut:
         output_path = output_path / "test/ut"
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Run fpp-to-cpp --template
-    FppUtility("fpp-to-cpp", imports_as_sources = False).execute(
+    FppUtility("fpp-to-cpp", imports_as_sources=False).execute(
         build,
-        parsed.path,
+        context,
         args=(
             {},
             [
                 "--template",
-                *(["--unit-test"] if parsed.ut else []),
+                *(["--unit-test"] if ut else []),
                 "--names",
                 gen_files.name,
                 "--directory",
@@ -82,9 +83,8 @@ def run_fpp_impl(
         )
         return 0
 
-    # Format generated files
     clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
-    if not parsed.no_format and clang_formatter.is_supported():
+    if apply_formatting and clang_formatter.is_supported():
         for line in gen_files.readlines():
             # FPP --names outputs a list of file names. output_dir is added to get relative path
             filename = Path(line.decode("utf-8").strip())
@@ -92,6 +92,32 @@ def run_fpp_impl(
         clang_formatter.execute(None, None, ({}, []))
 
     return 0
+
+
+def run_fpp_impl(
+    build: "Build",
+    parsed: argparse.Namespace,
+    _: Dict[str, str],
+    __: Dict[str, str],
+    ___: List[str],
+):
+    """
+
+    Args:
+        build: build object
+        parsed: parsed input arguments
+        _: unused cmake_args
+        __: unused make_args
+        ___: unused pass-through arguments
+    """
+
+    return fpp_generate_implementation(
+        build,
+        parsed.output_dir,
+        parsed.path,
+        not parsed.no_format,
+        parsed.ut,
+    )
 
 
 def add_fpp_impl_parsers(
