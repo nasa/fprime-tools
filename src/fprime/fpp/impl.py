@@ -47,8 +47,13 @@ def run_fpp_impl(
         build.build_dir,
     ]
 
+    # Holds the list of generated files to be passed to clang-format
     gen_files = tempfile.NamedTemporaryFile(prefix="fprime-impl-")
-    Path(parsed.output_dir).mkdir(parents=True, exist_ok=True)
+
+    output_path = Path(parsed.output_dir)
+    if parsed.ut:
+        output_path = output_path / "test/ut"
+    output_path.mkdir(parents=True, exist_ok=True)
 
     # Run fpp-to-cpp --template
     FppUtility("fpp-to-cpp", imports_as_sources = False).execute(
@@ -58,10 +63,11 @@ def run_fpp_impl(
             {},
             [
                 "--template",
+                *(["--unit-test"] if parsed.ut else []),
                 "--names",
                 gen_files.name,
                 "--directory",
-                parsed.output_dir,
+                output_path,
                 "--path-prefixes",
                 ",".join(map(str, prefixes)),
             ],
@@ -82,7 +88,7 @@ def run_fpp_impl(
         for line in gen_files.readlines():
             # FPP --names outputs a list of file names. output_dir is added to get relative path
             filename = Path(line.decode("utf-8").strip())
-            clang_formatter.stage_file(Path(parsed.output_dir) / filename)
+            clang_formatter.stage_file(output_path / filename)
         clang_formatter.execute(None, None, ({}, []))
 
     return 0
