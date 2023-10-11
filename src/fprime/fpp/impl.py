@@ -8,8 +8,6 @@ Processing and CLI entry points for `fprime-util impl` command line tool.
 
 import argparse
 import os
-import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 
