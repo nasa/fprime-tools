@@ -2,7 +2,7 @@
 
 Processing and CLI entry points for `fprime-util impl` command line tool.
 
-@author chammard
+@author thomas-bc
 """
 
 
