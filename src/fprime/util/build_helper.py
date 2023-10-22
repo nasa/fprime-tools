@@ -68,7 +68,21 @@ def validate_tools_from_requirements(build: Build):
         return
 
     # Now check each required tool for fprime
-    tools = ["fprime-fpp", "fprime-tools", "fprime-gds"]
+    tools = [
+        "fprime-tools",
+        "fprime-gds",
+        "fprime-fpp-to-xml",
+        "fprime-fpp-to-json",
+        "fprime-fpp-to-cpp",
+        "fprime-fpp-syntax",
+        "fprime-fpp-locate-uses",
+        "fprime-fpp-locate-defs",
+        "fprime-fpp-from-xml",
+        "fprime-fpp-format",
+        "fprime-fpp-filenames",
+        "fprime-fpp-depend",
+        "fprime-fpp-check",
+    ]
     for tool in tools:
         for possible in possibilities:
             try:

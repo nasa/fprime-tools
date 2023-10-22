@@ -209,12 +209,12 @@ def add_special_targets(
         help="Disable the compiler sanitizers. Sanitizers are only enabled by default when --ut is provided.",
         action="store_true",
     )
+    # The following option is specified only to show up in --help.
+    # It is not handled by argparse, but in fprime.util.cli:validate()
     generate_parser.add_argument(
-        "-Dxyz",
-        action="append",
-        help="Pass -D flags through to CMakes",
-        nargs=1,
-        default=[],
+        "-D<VAR>[:<TYPE>]=<VALUE>",
+        action="store_true",
+        help="Pass -D flags through to CMake. Can be used multiple times.",
     )
     purge_parser = subparsers.add_parser(
         "purge",
