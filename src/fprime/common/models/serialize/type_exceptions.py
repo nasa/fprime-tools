@@ -6,8 +6,8 @@ Created on Dec 18, 2014
 """
 
 # Exception classes for all types
-from fprime.common.error import FprimeException
-from .enum_type import FPRIME_INTEGER_METADATA
+from fprime.common.error      import FprimeException
+from .fprime_integer_metadata import FPRIME_INTEGER_METADATA
 
 
 class TypeException(FprimeException):
