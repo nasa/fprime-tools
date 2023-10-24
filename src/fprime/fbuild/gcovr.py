@@ -34,36 +34,6 @@ def _using_root(builder: "Build", context: Path, scope: TargetScope):
     return builder.is_project_root(context) or scope == TargetScope.GLOBAL
 
 
-class GcovClean(ExecutableAction):
-    """Target used to scrub gcov files before a coverage run
-
-    The way fprime builds unittests means it is easy to see gcov coverage files leak into the coverage report from other
-    runs. This target finds all gcov created files (.gcda) and removes them before the build. This applies to the
-    entire build cache as report should be complete and isolated to any given run.
-    """
-
-    REMOVAL_EXTENSIONS = [".gcda"]
-
-    def execute(
-        self,
-        builder: "Build",
-        context: Path,
-        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
-    ):
-        """Execute the clean using os.walk"""
-        print(f"[INFO] Scrubbing leftover { ', '.join(self.REMOVAL_EXTENSIONS)} files")
-        self._recurse(builder.build_dir)
-
-    @classmethod
-    def _recurse(cls, parent_path: Path):
-        """Recursive helper"""
-        for path in parent_path.iterdir():
-            if path.is_file() and path.suffix in cls.REMOVAL_EXTENSIONS:
-                path.unlink()
-            elif path.is_dir():
-                cls._recurse(path)
-
-
 class Gcovr(ExecutableAction):
     """Target invoking `gcovr` utility to calculate coverage
 
@@ -232,7 +202,7 @@ class GcovrTarget(CompositeTarget):
             TargetScope.BOTH,
         ], "Cannot create composite target from incompatible target"
         super().__init__(
-            [GcovClean(scope), check_target, Gcovr(scope)],
+            [check_target, Gcovr(scope)],
             scope=scope,
             *args,
             **kwargs,
