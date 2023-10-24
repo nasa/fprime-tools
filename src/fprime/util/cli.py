@@ -232,7 +232,7 @@ def validate(parsed, unknown):
         cmake_args.update(d_args)
         unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
     # Build type only for generate, jobs only for non-generate
-    elif parsed.command in Target.get_all_targets():
+    elif parsed.command in [target.mnemonic for target in Target.get_all_targets()]:
         parsed.settings = None  # Force to load from cache if possible
         make_args["--jobs"] = 1 if parsed.jobs <= 0 else parsed.jobs
     # Check if any arguments are still unknown
