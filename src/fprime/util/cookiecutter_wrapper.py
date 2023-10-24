@@ -22,37 +22,14 @@ def run_impl(build: Build, parsed_args, source_path: Path):
         return False
     print("Refreshing cache and generating implementation files...")
 
-    hpp_files = glob.glob(f"{source_path}/*.hpp", recursive=False)
-    cpp_files = glob.glob(f"{source_path}/*.cpp", recursive=False)
-    cpp_files.sort(key=len)
-
-    # Check destinations
-    if not hpp_files or not cpp_files:
-        print(
-            "[WARNING] Failed to find .cpp and .hpp destination files for implementation."
-        )
-        return False
-
-    common = [name for name in cpp_files if "Common" in name] + []
-    hpp_dest = hpp_files[0]
-    cpp_dest = common[0] if common else cpp_files[0]
-
     with suppress_stdout():
         fpp_generate_implementation(build, source_path, source_path, True, False)
 
-    hpp_files_template = glob.glob(f"{source_path}/*.template.hpp", recursive=False)
-    cpp_files_template = glob.glob(f"{source_path}/*.template.cpp", recursive=False)
-
-    if not hpp_files_template or not cpp_files_template:
-        print("[WARNING] Failed to find generated .template.cpp or .template.hpp files")
-        return False
-
-    hpp_src = hpp_files_template[0]
-    cpp_src = cpp_files_template[0]
-
-    # Move (and overwrite) files from *.template.(c|h)pp to *.(c|h)pp
-    shutil.move(hpp_src, hpp_dest)
-    shutil.move(cpp_src, cpp_dest)
+    # Path(source_path).
+    file_list = glob.glob(f"{source_path}/*.template.*pp", recursive=False)
+    for filename in file_list:
+        new_filename = filename.replace(".template", "")
+        os.rename(filename, new_filename)
 
     return True
 
