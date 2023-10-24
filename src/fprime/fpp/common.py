@@ -132,7 +132,7 @@ class FppUtility(ExecutableAction):
         imports, sources = self.get_fpp_inputs(builder, context)
 
         if not sources:
-            print("[WARNING] No FPP inputs found in this module.")
+            print("[WARNING] No FPP sources found in this module.")
 
         # Build the input argument list
         input_args = []
@@ -146,7 +146,6 @@ class FppUtility(ExecutableAction):
 
         user_args = args[1]
         app_args = [self.utility] + user_args + input_args
-        # NOTE: This adds all fpp_inputs as source file arguments, not as --imports arguments
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
         return subprocess.run(app_args, capture_output=False).returncode

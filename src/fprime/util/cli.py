@@ -299,7 +299,6 @@ def parse_args(args):
     runners = {}
     parsers = {}
 
-    # Refactor the following so that each package defines its own
     fbuild_runners, fbuild_parsers = add_fbuild_parsers(
         subparsers, common_parser, HelpText
     )

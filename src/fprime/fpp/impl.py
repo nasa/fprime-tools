@@ -26,6 +26,7 @@ def fpp_generate_implementation(
     context: Path,
     apply_formatting: bool,
     ut: bool,
+    auto_test_helpers: bool = False,
 ) -> int:
     """
     Generate implementation files from FPP templates.
@@ -63,6 +64,7 @@ def fpp_generate_implementation(
             [
                 "--template",
                 *(["--unit-test"] if ut else []),
+                *(["--auto-test-helpers"] if auto_test_helpers else []),
                 "--names",
                 gen_files.name,
                 "--directory",
@@ -115,6 +117,7 @@ def run_fpp_impl(
         parsed.path,
         not parsed.no_format,
         parsed.ut,
+        parsed.auto_test_helpers,
     )
 
 
@@ -149,6 +152,12 @@ def add_fpp_impl_parsers(
         "--no-format",
         action="store_true",
         help="Disable formatting (using clang-format) of generated files",
+        required=False,
+    )
+    impl_parser.add_argument(
+        "--auto-test-helpers",
+        action="store_true",
+        help="Enable automatic generation of test helper code",
         required=False,
     )
     return {"impl": run_fpp_impl}, {"impl": impl_parser}
