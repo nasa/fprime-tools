@@ -142,7 +142,8 @@ class FppUtility(ExecutableAction):
             ]
         else:
             input_args.extend(["-i", ",".join(map(str, imports))] if imports else [])
-            input_args.extend(sources)
+            input_args.extend([str(source) for source in sources])
+            input_args.append(str(locations))
 
         user_args = args[1]
         app_args = [self.utility] + user_args + input_args
