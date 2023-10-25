@@ -247,6 +247,15 @@ class Build:
         except CMakeException:
             return False
 
+    def is_submodule_build_structure(self) -> bool:
+        """Returns whether the F´ source code is a parent of the build.
+
+        Returns:
+            bool: True if the F´ code is a externally linked directory (e.g. a submodule)
+                  False if the build is self-contained within the F´ code (e.g. the Ref app)
+        """
+        return self.get_settings("framework_path", "") not in self.cmake_root.parents
+
     def find_toolchain(self):
         """Locates a toolchain file in know locations
 
