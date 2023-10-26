@@ -42,11 +42,10 @@ def fpp_generate_implementation(
     prefixes = [
         build.get_settings("framework_path", ""),
         *build.get_settings("library_locations", []),
+        build.get_settings("project_root", ""),
         build.build_dir / "F-Prime",
         build.build_dir,
     ]
-    if build.is_submodule_build_structure():
-        prefixes.append(build.cmake_root)
 
     # Holds the list of generated files to be passed to clang-format
     gen_files = tempfile.NamedTemporaryFile(prefix="fprime-impl-")
@@ -66,7 +65,7 @@ def fpp_generate_implementation(
                 "--names",
                 gen_files.name,
                 "--directory",
-                output_dir,
+                str(output_dir),
                 "--path-prefixes",
                 ",".join(map(str, prefixes)),
             ],

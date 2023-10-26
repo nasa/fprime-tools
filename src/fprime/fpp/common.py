@@ -137,13 +137,14 @@ class FppUtility(ExecutableAction):
         # Build the input argument list
         input_args = []
         if self.imports_as_sources:
-            input_args = [
+            input_args.extend(
                 str(item) for item in itertools.chain([locations] + imports + sources)
-            ]
+            )
         else:
             input_args.extend(["-i", ",".join(map(str, imports))] if imports else [])
-            input_args.extend([str(source) for source in sources])
-            input_args.append(str(locations))
+            input_args.extend(
+                str(item) for item in itertools.chain([locations] + sources)
+            )
 
         user_args = args[1]
         app_args = [self.utility] + user_args + input_args
