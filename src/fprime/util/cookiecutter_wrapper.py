@@ -13,65 +13,23 @@ from cookiecutter.main import cookiecutter
 from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
 from fprime.fbuild.cmake import CMakeExecutionException
-from fprime.fbuild.target import Target
-from fprime.util.code_formatter import ClangFormatter
+from fprime.fpp.impl import fpp_generate_implementation
 
 
-def run_impl(build: Build, source_path: Path):
+def run_impl(build: Build, parsed_args, source_path: Path):
     """Run implementation of files in source_path"""
-    target = Target.get_target("impl", set())
-
-    hpp_files = glob.glob(f"{source_path}/*.hpp", recursive=False)
-    cpp_files = glob.glob(f"{source_path}/*.cpp", recursive=False)
-    cpp_files.sort(key=len)
-
-    # Check destinations
-    if not hpp_files or not cpp_files:
-        print(
-            "[WARNING] Failed to find .cpp and .hpp destination files for implementation."
-        )
-        return False
-
-    common = [name for name in cpp_files if "Common" in name] + []
-    hpp_dest = hpp_files[0]
-    cpp_dest = common[0] if common else cpp_files[0]
-
     if not confirm("Generate implementation files?"):
         return False
-    print(
-        "Refreshing cache and generating implementation files (ignore 'Stop' CMake warning)..."
-    )
+    print("Refreshing cache and generating implementation files...")
+
     with suppress_stdout():
-        target.execute(build, source_path, ({}, [], {}))
+        fpp_generate_implementation(build, source_path, source_path, True, False)
 
-    hpp_files_template = glob.glob(f"{source_path}/*.hpp-template", recursive=False)
-    cpp_files_template = glob.glob(f"{source_path}/*.cpp-template", recursive=False)
-
-    if not hpp_files_template or not cpp_files_template:
-        print("[WARNING] Failed to find generated .cpp-template or .hpp-template files")
-        return False
-
-    hpp_src = hpp_files_template[0]
-    cpp_src = cpp_files_template[0]
-
-    # Move (and overwrite) files from *.(c|h)pp-template to *.(c|h)pp
-    shutil.move(hpp_src, hpp_dest)
-    shutil.move(cpp_src, cpp_dest)
-
-    # Format files if clang-format is available
-    format_file = build.settings.get("framework_path", Path(".")) / ".clang-format"
-    if not format_file.is_file():
-        print(
-            f"[WARNING] .clang-format file not found at {format_file.resolve()}. Skipping formatting."
-        )
-        return True
-    clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
-    if clang_formatter.is_supported():
-        clang_formatter.stage_file(Path(hpp_dest))
-        clang_formatter.stage_file(Path(cpp_dest))
-        clang_formatter.execute(None, None, ({}, []))
-    else:
-        print("[WARNING] clang-format not found in PATH. Skipping formatting.")
+    # Path(source_path).
+    file_list = glob.glob(f"{source_path}/*.template.*pp", recursive=False)
+    for filename in file_list:
+        new_filename = filename.replace(".template", "")
+        os.rename(filename, new_filename)
 
     return True
 
@@ -152,7 +110,7 @@ def find_nearest_cmake_file(component_dir: Path, cmake_root: Path, proj_root: Pa
     return None
 
 
-def new_component(build: Build):
+def new_component(build: Build, parsed_args: "argparse.Namespace"):
     """Uses cookiecutter for making new components"""
     try:
         proj_root = build.get_settings("project_root", None)
@@ -201,7 +159,7 @@ def new_component(build: Build):
             )
             return 0
         # Attempt implementation
-        if not run_impl(build, final_component_dir):
+        if not run_impl(build, parsed_args, final_component_dir):
             print(
                 f"[INFO] Did not generate implementations for {final_component_dir}. Please do so manually."
             )

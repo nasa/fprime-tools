@@ -149,7 +149,7 @@ def add_fpp_viz_parsers(
     """
     viz_parser = subparsers.add_parser(
         "visualize",
-        help="Runs visualization pipeline",
+        help="Visualize FPP model in a web GUI",
         parents=[common],
         add_help=False,
     )

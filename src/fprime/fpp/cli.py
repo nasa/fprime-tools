@@ -74,13 +74,13 @@ def add_fpp_parsers(
         Tuple of dictionary mapping command name to processor, and command to parser
     """
     check_parser = subparsers.add_parser(
-        "fpp-check", help="Runs fpp-check utility", parents=[common], add_help=False
+        "fpp-check", help="Run fpp-check utility", parents=[common], add_help=False
     )
     check_parser.add_argument(
         "-u", "--unconnected", default=None, help="write unconnected ports to file"
     )
     fpp_to_xml_parser = subparsers.add_parser(
-        "fpp-to-xml", help="Runs fpp-to-xml utility", parents=[common], add_help=False
+        "fpp-to-xml", help="Run fpp-to-xml utility", parents=[common], add_help=False
     )
     fpp_to_xml_parser.add_argument("--directory", default=None, help="Output directory")
     return {"fpp-check": run_fpp_check, "fpp-to-xml": run_fpp_to_xml}, {
