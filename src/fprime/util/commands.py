@@ -20,6 +20,7 @@ from fprime.util.code_formatter import ClangFormatter
 from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
+    new_module,
     new_project,
 )
 
@@ -129,6 +130,8 @@ def run_new(
         return new_component(build, parsed)
     if parsed.new_deployment:
         return new_deployment(build, parsed)
+    if parsed.new_module:
+        return new_module(build, parsed)
     if parsed.new_project:
         return new_project(parsed)
     raise NotImplementedError(
