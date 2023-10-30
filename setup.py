@@ -72,15 +72,15 @@ to interact with the data coming from the FSW.
         "Operating System :: POSIX",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
-    # Requires Python 3.7+
-    python_requires=">=3.7",
+    # Requires Python 3.8+
+    python_requires=">=3.8",
     install_requires=[
         "lxml>=4.6.3",
         "Markdown>=3.3.4",
