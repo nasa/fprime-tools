@@ -150,6 +150,13 @@ def add_special_parsers(
         help="Generate a new deployment",
     )
     new_exclusive.add_argument(
+        "--module",
+        default=False,
+        action="store_true",
+        dest="new_module",
+        help="Generate a new module",
+    )
+    new_exclusive.add_argument(
         "--project",
         default=False,
         action="store_true",

@@ -4,6 +4,8 @@ import glob
 import os
 import shutil
 import sys
+
+from typing import TYPE_CHECKING
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -15,8 +17,11 @@ from fprime.fbuild.builder import Build
 from fprime.fbuild.cmake import CMakeExecutionException
 from fprime.fpp.impl import fpp_generate_implementation
 
+if TYPE_CHECKING:
+    import argparse
 
-def run_impl(build: Build, parsed_args, source_path: Path):
+
+def run_impl(build: Build, source_path: Path):
     """Run implementation of files in source_path"""
     if not confirm("Generate implementation files?"):
         return False
@@ -31,36 +36,6 @@ def run_impl(build: Build, parsed_args, source_path: Path):
         new_filename = filename.replace(".template", "")
         os.rename(filename, new_filename)
 
-    return True
-
-
-def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
-    """Adds comp_path directory to CMakeLists.txt. If project_root is supplied,
-    the logged path will be relative to the project root instead of absolute"""
-    short_display_path = (
-        list_file
-        if project_root is None
-        else project_root.name / list_file.relative_to(project_root)
-    )
-    print(f"[INFO] Found CMake file at '{short_display_path}'")
-    with open(list_file, "r") as f:
-        lines = f.readlines()
-
-    addition = (
-        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
-    )
-    if addition in lines:
-        print("Already added to CMakeLists.txt")
-        return True
-
-    if not confirm(
-        f"Add component {comp_path} to {short_display_path} at end of file?"
-    ):
-        return False
-
-    lines.append(addition)
-    with open(list_file, "w") as f:
-        f.write("".join(lines))
     return True
 
 
@@ -134,34 +109,23 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
         if not proj_root.samefile(Path.cwd()):
             extra_context["component_namespace"] = Path.cwd().name
 
-        final_component_dir = Path(
-            cookiecutter(source, extra_context=extra_context)
-        ).resolve()
+        gen_path = Path(cookiecutter(source, extra_context=extra_context)).resolve()
 
         if proj_root is None:
             print(
-                f"[INFO] Created component directory without adding to build system nor generating implementation {final_component_dir}"
+                f"[INFO] Created component directory without adding to build system nor generating implementation {gen_path}"
             )
             return 0
-
-        # Attempt to register to CMakeLists.txt
-        proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(
-            final_component_dir, build.cmake_root, proj_root
+        # Attempt to register to CMakeLists.txt or project.cmake
+        register_with_cmake(
+            gen_path,
+            Path(proj_root).resolve(),
+            build.cmake_root,
         )
-        if cmake_file is None or not add_to_cmake(
-            cmake_file,
-            final_component_dir.relative_to(cmake_file.parent),
-            proj_root,
-        ):
-            print(
-                f"[INFO] Could not register {final_component_dir} with build system. Please add it and generate implementations manually."
-            )
-            return 0
         # Attempt implementation
-        if not run_impl(build, parsed_args, final_component_dir):
+        if not run_impl(build, gen_path):
             print(
-                f"[INFO] Did not generate implementations for {final_component_dir}. Please do so manually."
+                f"[INFO] Did not generate implementations for {gen_path}. Please do so manually."
             )
             return 0
 
@@ -182,7 +146,7 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
     return 1
 
 
-def new_deployment(build: Build, parsed_args):
+def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new deployment using cookiecutter"""
     # Checks if deployment_cookiecutter is set in settings.ini file, else uses local install template as default
     if (
@@ -201,20 +165,12 @@ def new_deployment(build: Build, parsed_args):
         gen_path = Path(
             cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
         ).resolve()
-
-        proj_root = build.get_settings("project_root", None)
         # Attempt to register to CMakeLists.txt or project.cmake
-        proj_root = Path(proj_root)
-        cmake_file = find_nearest_cmake_file(gen_path, build.cmake_root, proj_root)
-        if cmake_file is None or not add_to_cmake(
-            cmake_file,
-            gen_path.relative_to(cmake_file.parent),
-            proj_root,
-        ):
-            print(
-                f"[INFO] Could not register {gen_path} with build system. Please add it manually."
-            )
-            return 0
+        register_with_cmake(
+            gen_path,
+            Path(build.get_settings("project_root", None)).resolve(),
+            build.cmake_root,
+        )
 
     except OutputDirExistsException as out_directory_error:
         print(
@@ -232,7 +188,43 @@ def new_deployment(build: Build, parsed_args):
     return 0
 
 
-def new_project(parsed_args):
+def new_module(build: Build, parsed_args: "argparse.Namespace"):
+    """Creates a new F' project"""
+
+    source = (
+        os.path.dirname(__file__)
+        + "/../cookiecutter_templates/cookiecutter-fprime-module"
+    )
+    try:
+        gen_path = Path(
+            cookiecutter(
+                source,
+                overwrite_if_exists=parsed_args.overwrite,
+                output_dir=parsed_args.path,
+            )
+        ).resolve()
+        # Attempt to register to CMakeLists.txt or project.cmake
+        register_with_cmake(
+            gen_path,
+            Path(build.get_settings("project_root", None)).resolve(),
+            build.cmake_root,
+        )
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+def new_project(parsed_args: "argparse.Namespace"):
     """Creates a new F' project"""
 
     # Check if Git is installed and available - needed for cloning F' as submodule
@@ -248,7 +240,7 @@ def new_project(parsed_args):
         + "/../cookiecutter_templates/cookiecutter-fprime-project"
     )
     try:
-        gen_path = cookiecutter(
+        cookiecutter(
             source,
             overwrite_if_exists=parsed_args.overwrite,
             output_dir=parsed_args.path,
@@ -271,6 +263,46 @@ def new_project(parsed_args):
         )
         return 1
     return 0
+
+
+def register_with_cmake(gen_path: Path, proj_root: Path, cmake_root: Path):
+    cmake_file = find_nearest_cmake_file(gen_path, cmake_root, proj_root)
+    if cmake_file is None or not add_to_cmake(
+        cmake_file,
+        gen_path.relative_to(cmake_file.parent),
+        proj_root,
+    ):
+        print(
+            f"[INFO] Could not register {gen_path} with build system. Please add it manually."
+        )
+
+
+def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
+    """Adds comp_path directory to CMakeLists.txt. If project_root is supplied,
+    the logged path will be relative to the project root instead of absolute"""
+    short_display_path = (
+        list_file
+        if project_root is None
+        else project_root.name / list_file.relative_to(project_root)
+    )
+    print(f"[INFO] Found CMake file at '{short_display_path}'")
+    with open(list_file, "r") as f:
+        lines = f.readlines()
+
+    addition = (
+        'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
+    )
+    if addition in lines:
+        print("Already added to CMakeLists.txt")
+        return True
+
+    if not confirm(f"Add {comp_path} to {short_display_path} at end of file?"):
+        return False
+
+    lines.append(addition)
+    with open(list_file, "w") as f:
+        f.write("".join(lines))
+    return True
 
 
 def is_valid_name(word: str):
