@@ -130,7 +130,7 @@ def run_fprime_visualize(
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
     app = construct_app(config)
     try:
-        webbrowser.open(f"http://localhost:{parsed.gui_port}")       
+        webbrowser.open(f"http://localhost:{parsed.gui_port}")
         app.run(port=parsed.gui_port)
     except KeyboardInterrupt:
         print("[INFO] CTRL-C received. Exiting.")

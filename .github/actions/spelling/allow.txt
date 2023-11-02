@@ -29,6 +29,7 @@ lestarch
 LGTM
 lgtm
 Linux
+localhost
 Prm
 prm
 Serializables
@@ -36,3 +37,4 @@ serializables
 timezone
 Tlm
 tlm
+webbrowser
