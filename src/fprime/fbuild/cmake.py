@@ -306,6 +306,8 @@ class CMakeHandler:
         Returns:
             path string that is relative to some root of the project. i.e. used for target suffix names
         """
+        if path is None:
+            path = os.getcwd()
         # Get module name from the relative path to include root
         include_root = self.get_include_info(path, build_dir)[1]
         return os.path.relpath(path, include_root)
@@ -340,6 +342,17 @@ class CMakeHandler:
             for make in self.cached_help_targets
             if make.startswith(prefix)
         ]
+
+    def is_target_supported(self, build_dir: str, target: str):
+        """Checks if a target is supported by the current build directory
+
+        Args:
+            build_dir: build directory to use for detecting targets
+            target: target name to check
+        """
+        # Load in self.cached_help_targets
+        self.get_available_targets(build_dir, None)
+        return target in self.cached_help_targets
 
     @staticmethod
     def purge(build_dir):
@@ -425,7 +438,7 @@ class CMakeHandler:
         for before the utility gives up and produces.
 
         :param build_dir: directory to build in
-        :param full: full re-generate of the cache. Default: false, attempt to build 'noop' target instead
+        :param full: full re-generate of the cache. Default: false, attempt to build 'refresh_cache' target instead
         """
         if full:
             environment = {}
@@ -444,14 +457,25 @@ class CMakeHandler:
         else:
             if self.verbose:
                 print("[CMAKE] Checking CMake cache for rebuild")
-            self.execute_known_target(
-                "noop",
-                build_dir,
-                None,
-                top_target=True,
-                full_cache_rebuild=True,
-                print_output=True,
-            )
+            # Backwards compatibility: refresh_cache was named noop until v3.3.x
+            if self.is_target_supported(build_dir, "noop"):
+                self.execute_known_target(
+                    "noop",
+                    build_dir,
+                    None,
+                    top_target=True,
+                    full_cache_rebuild=True,
+                    print_output=True,
+                )
+            else:
+                self.execute_known_target(
+                    "refresh_cache",
+                    build_dir,
+                    None,
+                    top_target=True,
+                    full_cache_rebuild=True,
+                    print_output=True,
+                )
 
     def _run_cmake(
         self,
