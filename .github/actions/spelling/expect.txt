@@ -94,6 +94,7 @@ getcwd
 getopt
 gh
 github
+googletest
 gtest
 gui
 hasattr
