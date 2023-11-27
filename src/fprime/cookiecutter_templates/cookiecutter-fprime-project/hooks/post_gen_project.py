@@ -37,19 +37,26 @@ subprocess.run(
     cwd="./fprime",
     capture_output=True,
 )
+
 # Checkout requested branch/tag
 res = subprocess.run(
     ["git", "checkout", latest_tag_name],
     cwd="./fprime",
     capture_output=True,
 )
-
 if res.returncode != 0:
     print(f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit...")
     sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
-# Install venv if requested
+# Checkout submodules (e.g. googletest)
+res = subprocess.run(
+    ["git", "submodule", "update", "--init", "--recursive"],
+    capture_output=True,
+)
+if res.returncode != 0:
+    print("[WARNING] Unable to initialize submodules. Functionality may be limited.")
 
+# Install venv if requested
 if "{{cookiecutter.__install_venv}}" == "yes":
     if sys.prefix != sys.base_prefix:
         subprocess.run(
