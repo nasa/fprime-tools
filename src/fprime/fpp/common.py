@@ -150,4 +150,4 @@ class FppUtility(ExecutableAction):
         app_args = [self.utility] + user_args + input_args
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
-        return subprocess.run(app_args, capture_output=False).returncode
+        return subprocess.run(app_args, cwd=context, capture_output=False).returncode
