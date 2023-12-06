@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fprime-tools"
 # dynamic = ["version"]
-version = "0.0.1a1"
+version = "0.0.1a2"
 description = "F Prime Flight Software tooling, helpers and core data types"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE.txt"}
+license = {text = "Apache 2.0 License"}
 keywords = ["fprime", "embedded", "nasa", "flight", "software"]
 authors = [
   {name = "Michael Starch", email = "Michael.D.Starch@jpl.nasa.gov"},
@@ -62,9 +62,9 @@ dev = [
 ]
 
 [project.urls]
-homepage = "https://fprime.jpl.nasa.gov"
-documentation = "https://nasa.github.io/fprime/"
-repository = "https://github.com/fprime-community/fprime-tools"
+Homepage = "https://fprime.jpl.nasa.gov"
+Documentation = "https://nasa.github.io/fprime/"
+Repository = "https://github.com/fprime-community/fprime-tools"
 
 [project.scripts]
 fprime-util = "fprime.util.__main__:main"
