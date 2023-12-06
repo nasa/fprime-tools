@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fprime-tools"
+dynamic = ["version"]
+description = "F Prime Flight Software tooling, helpers and core data types"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE.txt"}
+keywords = ["fprime", "embedded", "nasa", "flight", "software"]
+authors = [
+  {name = "Michael Starch", email = "Michael.D.Starch@jpl.nasa.gov"},
+  {name = "Thomas Boyer-Chammard", email = "Thomas.Boyer.Chammard@jpl.nasa.gov"},
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "License :: OSI Approved :: Apache Software License",
+]
+
+dependencies = [
+    "lxml>=4.6.3",
+    "Markdown>=3.3.4",
+    "pexpect>=4.8.0",
+    "pytest>=6.2.4",
+    "Cheetah3>=3.2.6",
+    "cookiecutter>=2.2.3",
+    "gcovr>=6.0",
+    "urllib3<2.0.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+dev = [
+    "black",
+    "pylama",
+    "pylint",
+    "pre-commit",
+    "sphinx",
+    "sphinxcontrib.mermaid",
+    "sphinx-rtd-theme",
+    "sphinx-autoapi",
+    "sphinx-autoapi",
+    "recommonmark",
+]
+
+[project.urls]
+homepage = "https://fprime.jpl.nasa.gov"
+documentation = "https://nasa.github.io/fprime/"
+repository = "https://github.com/fprime-community/fprime-tools"
+
+[project.scripts]
+fprime-util = "fprime.util.__main__:main"
+fprime-version-check = "fprime.util.versioning:main"
+
+[tool.setuptools_scm]
+# setuptools_scm dynamically generates version number from git, as well as automatically
+# include all data files tracked by git (e.g. cookiecutter templates).
+# See https://setuptools.pypa.io/en/latest/userguide/datafiles.html
