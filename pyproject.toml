@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fprime-tools"
 # dynamic = ["version"]
-version = "0.0.1"
+version = "0.0.1a1"
 description = "F Prime Flight Software tooling, helpers and core data types"
 readme = "README.md"
 requires-python = ">=3.8"
