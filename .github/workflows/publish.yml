@@ -1,8 +1,8 @@
 name: Build and Publish Package
 
 on:
-  push:
-    branches: [ pyproject-toml ]
+  release:
+    types: [published]
 
 jobs:
   Release-PyPI-Package:
@@ -25,6 +25,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          verbose: true
-      # - name: Publish distributions to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
