@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Python
-        run: pip3 install -U pip wheel build setuptools setuptools_scm twine
+        run: pip install -U build twine
       - name: Build distributions
         run: python -m build
       - name: Check distributions
