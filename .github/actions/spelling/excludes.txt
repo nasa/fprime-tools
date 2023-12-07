@@ -42,3 +42,4 @@ ignore$
 ^test/fprime/fbuild/settings-data/settings-empty\.ini$
 ^\.github/
 pyproject.toml
+setup.py
