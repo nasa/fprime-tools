@@ -81,3 +81,16 @@ fprime-version-check = "fprime.util.versioning:main"
 # See https://setuptools.pypa.io/en/latest/userguide/datafiles.html
 ####
 [tool.setuptools_scm]
+
+
+####
+# Additional notes
+#
+# With regards to the configuration of the older versions of setup.py:
+# - package_data: included by default, and setuptools_scm will automatically include all files tracked by git
+# - package discovery (src/): setuptools will automatically discover all packages as we use the src-layout
+#
+# Reference:
+# - https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+# - https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout
+####
