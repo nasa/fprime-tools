@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "F Prime Flight Software tooling, helpers and core data types"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "Apache 2.0 License"}
+license = {file = "LICENSE.txt"}
 keywords = ["fprime", "embedded", "nasa", "flight", "software"]
 authors = [
   {name = "Michael Starch", email = "Michael.D.Starch@jpl.nasa.gov"},
@@ -65,11 +65,19 @@ Homepage = "https://fprime.jpl.nasa.gov"
 Documentation = "https://nasa.github.io/fprime/"
 Repository = "https://github.com/fprime-community/fprime-tools"
 
+####
+# Entry Points:
+#
+# Defines the list of entry-level (scripts) that are defined by this package. This allows
+# standard use of utilities that ship as part of F prime.
+####
 [project.scripts]
 fprime-util = "fprime.util.__main__:main"
 fprime-version-check = "fprime.util.versioning:main"
 
-[tool.setuptools_scm]
+####
 # setuptools_scm dynamically generates version number from git, as well as automatically
 # include all data files tracked by git (e.g. cookiecutter templates).
 # See https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+####
+[tool.setuptools_scm]
