@@ -50,21 +50,19 @@ def run_fprime_visualize(
 
     # Set up working directory using specified directory, or create a temporary one
     if parsed.working_dir:
-        viz_cache = Path(parsed.working_dir).resolve()
+        viz_cache_base = Path(parsed.working_dir).resolve()
     else:
-        viz_cache = Path(
+        viz_cache_base = Path(
             tempfile.TemporaryDirectory(prefix="fprime-visual-").name
         ).resolve()
 
     # Set sub-paths for different types of generated files
-    xml_cache = (viz_cache / "xml").resolve()
-    extract_cache = (viz_cache / "extracted").resolve()
+    xml_cache = (viz_cache_base / "xml").resolve()
     try:
         xml_cache.mkdir(parents=True, exist_ok=True)
-        extract_cache.mkdir(parents=True, exist_ok=True)
     except PermissionError:
         raise PermissionError(
-            f"Unable to write to {viz_cache.resolve()}. Use --working-dir to set a different location."
+            f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
         )
 
     # Run fpp-to-xml
@@ -76,58 +74,70 @@ def run_fprime_visualize(
             ["--directory", str(xml_cache)],
         ),
     )
-    project_xml = xml_cache / f"{Path(build.cmake_root).name}TopologyAppAi.xml"
     topology_match = list(xml_cache.glob("*TopologyAppAi.xml"))
-    if project_xml.exists():
-        topology_xml = project_xml
-    elif len(topology_match) == 1:
-        topology_xml = topology_match[0]
-    else:
-        raise Exception(
-            f"Found {len(topology_match)} '*TopologyAppAi.xml' topology files - expected 1"
-        )
 
-    print(f"Generated topology XML file: {topology_xml.resolve()}")
-
-    topology_txt = viz_cache / "Topology.txt"
-    topology_json = viz_cache / "Topology.json"
-
-    # Execute: fpl-convert-xml Topology.xml > Topology.txt
-    with open(topology_txt.resolve(), "w") as txt_file:
-        subprocess.run(
-            ["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True
-        )
-
-    # Execute: fpl-layout < Topology.txt > Topology.json
-    with open(topology_json.resolve(), "w") as json_file:
-        with open(topology_txt.resolve(), "r") as txt_file:
-            subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
-
-    print("Extracting subtopologies...")
-    # Execute: fpl-extract-xml -d extracted/ Topology.xml
-    subprocess.run(
-        ["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()],
-        check=True,
-    )
-    subtopologies = list(extract_cache.glob("*.xml"))
-    for subtopology in subtopologies:
-        # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
-        subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
-        with open(subtopology_txt.resolve(), "w") as txt_file:
-            subprocess.run(
-                ["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True
+    if not topology_match:
+        raise Exception(f"Did not generate any '*TopologyAppAi.xml'")
+    source_dirs = []
+    for topology_xml in topology_match:
+        print(f"Generated topology XML file: {topology_xml.resolve()}")
+        topology_name = topology_xml.name.replace("TopologyAppAi.xml", "")
+        viz_cache = viz_cache_base / topology_name
+        extract_cache = (viz_cache / "extracted").resolve()
+        try:
+            viz_cache.mkdir(parents=True, exist_ok=True)
+            extract_cache.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            raise PermissionError(
+                f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
             )
-        # Execute: fpl-layout < subtopology.txt > subtopology.json
-        subtopology_json = viz_cache / f"{subtopology.stem}.json"
-        with open(subtopology_json.resolve(), "w") as json_file:
-            with open(subtopology_txt.resolve(), "r") as txt_file:
-                subprocess.run(
-                    ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
-                )
+        topology_txt = viz_cache / f"{topology_name}Topology.txt"
+        topology_json = viz_cache / f"{topology_name}Topology.json"
 
+        # Execute: fpl-convert-xml Topology.xml > Topology.txt
+        with open(topology_txt.resolve(), "w") as txt_file:
+            subprocess.run(
+                ["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True
+            )
+
+        # Execute: fpl-layout < Topology.txt > Topology.json
+        with open(topology_json.resolve(), "w") as json_file:
+            with open(topology_txt.resolve(), "r") as txt_file:
+                subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+
+        print("Extracting subtopologies...")
+        try:
+            extract_cache.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            raise PermissionError(
+                f"Unable to write to {viz_cache.resolve()}. Use --working-dir to set a different location."
+            )
+
+        # Execute: fpl-extract-xml -d extracted/ Topology.xml
+        subprocess.run(
+            ["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()],
+            check=True,
+        )
+        subtopologies = list(extract_cache.glob("*.xml"))
+        for subtopology in subtopologies:
+            # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
+            subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
+            with open(subtopology_txt.resolve(), "w") as txt_file:
+                subprocess.run(
+                    ["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True
+                )
+            # Execute: fpl-layout < subtopology.txt > subtopology.json
+            subtopology_json = viz_cache / f"{subtopology.stem}.json"
+            with open(subtopology_json.resolve(), "w") as json_file:
+                with open(subtopology_txt.resolve(), "r") as txt_file:
+                    subprocess.run(
+                        ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
+                    )
+        source_dirs.append(viz_cache)
+    source_resolved = [str(source.resolve()) for source in source_dirs]
     print("[INFO] Starting fprime-visual server...")
-    print(f"[INFO] Serving files in {str(viz_cache.resolve())}")
-    config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
+    print(f"[INFO] Serving files in {source_resolved}")
+    config = {"SOURCE_DIRS": source_resolved}
     app = construct_app(config)
     try:
         webbrowser.open(f"http://localhost:{parsed.gui_port}")
