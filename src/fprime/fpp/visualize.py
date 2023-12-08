@@ -103,7 +103,9 @@ def run_fprime_visualize(
         # Execute: fpl-layout < Topology.txt > Topology.json
         with open(topology_json.resolve(), "w") as json_file:
             with open(topology_txt.resolve(), "r") as txt_file:
-                subprocess.run(["fpl-layout"], stdin=txt_file, stdout=json_file, check=True)
+                subprocess.run(
+                    ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
+                )
 
         print("Extracting subtopologies...")
         try:
@@ -124,7 +126,9 @@ def run_fprime_visualize(
             subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
             with open(subtopology_txt.resolve(), "w") as txt_file:
                 subprocess.run(
-                    ["fpl-convert-xml", subtopology.resolve()], stdout=txt_file, check=True
+                    ["fpl-convert-xml", subtopology.resolve()],
+                    stdout=txt_file,
+                    check=True,
                 )
             # Execute: fpl-layout < subtopology.txt > subtopology.json
             subtopology_json = viz_cache / f"{subtopology.stem}.json"
