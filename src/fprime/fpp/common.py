@@ -21,7 +21,7 @@ class FppMissingSupportFiles(FprimeException):
 
     def __init__(self, file):
         super().__init__(
-            "Current directory does not define any FPP files. Did you intend to run in the topology directory?"
+            f"Can not find {file}. Does current directory define any FPP files?"
         )
 
 
@@ -33,10 +33,14 @@ class FppUtility(ExecutableAction):
     in a similar order across utilities. This action executes these utilities via a subprocess using the command line
     format:
 
-    <utility> <user supplied args> <locations file> <fpp inputs>
+    <utility> <user supplied args> [<fpp imports>] <locations file> <fpp inputs>
+
+    Some fpp utilities distinguish between import files (--import flag) and source files. Those utilities should set
+    the imports_as_sources flag to False. This will cause the utility to pass the import files as --import arguments.
+    If imports_as_sources is True, the import files are passed as inputs just like source files.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, imports_as_sources=True):
         """Construct this utility with the supplied name
 
         Args:
@@ -44,6 +48,7 @@ class FppUtility(ExecutableAction):
         """
         super().__init__(TargetScope.LOCAL)
         self.utility = name
+        self.imports_as_sources = imports_as_sources
 
     def is_supported(self, _=None, __=None):
         """Returns whether this utility is supported"""
@@ -67,7 +72,7 @@ class FppUtility(ExecutableAction):
         return locations_path
 
     @staticmethod
-    def get_fpp_inputs(builder: Build, context: Path) -> List[Path]:
+    def get_fpp_inputs(builder: Build, context: Path) -> Tuple[List[Path], List[Path]]:
         """Return the necessary inputs to an FPP run to forward to fpp utilities
 
         Returns two types of FPP files input into FPP utilities: the FPP files associated with the given module and the
@@ -79,16 +84,24 @@ class FppUtility(ExecutableAction):
             context: context path of module containing the FPP files
 
         Return:
-            list of module FPP files and included FPP files
+            tuple of two lists: module source FPP files and included FPP files
         """
         cache_location = builder.get_build_cache_path(context)
-        input_file = cache_location / "fpp-input-list"
-        if not input_file.exists():
-            raise FppMissingSupportFiles(input_file)
-        with open(input_file, "r") as file_handle:
-            return [
+        import_file = cache_location / "fpp-import-list"
+        source_file = cache_location / "fpp-source-list"
+        if not import_file.exists():
+            raise FppMissingSupportFiles(import_file)
+        if not source_file.exists():
+            raise FppMissingSupportFiles(source_file)
+        with open(import_file, "r") as file_handle:
+            import_list = [
                 Path(token) for token in file_handle.read().split(";") if token != ""
             ]
+        with open(source_file, "r") as file_handle:
+            source_list = [
+                Path(token) for token in file_handle.read().split(";") if token != ""
+            ]
+        return (import_list, source_list)
 
     def execute(
         self, builder: Build, context: Path, args: Tuple[Dict[str, str], List[str]]
@@ -116,17 +129,25 @@ class FppUtility(ExecutableAction):
 
         # Read files and arguments
         locations = self.get_locations_file(builder)
-        inputs = self.get_fpp_inputs(builder, context)
+        imports, sources = self.get_fpp_inputs(builder, context)
 
-        if not inputs:
-            print("[WARNING] No FPP inputs found in this module.")
+        if not sources:
+            print("[WARNING] No FPP sources found in this module.")
+
+        # Build the input argument list
+        input_args = []
+        if self.imports_as_sources:
+            input_args.extend(
+                str(item) for item in itertools.chain([locations] + imports + sources)
+            )
+        else:
+            input_args.extend(["-i", ",".join(map(str, imports))] if imports else [])
+            input_args.extend(
+                str(item) for item in itertools.chain([locations] + sources)
+            )
 
         user_args = args[1]
-        app_args = (
-            [self.utility]
-            + user_args
-            + [str(item) for item in itertools.chain([locations] + inputs)]
-        )
+        app_args = [self.utility] + user_args + input_args
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
-        subprocess.run(app_args, capture_output=False)
+        return subprocess.run(app_args, cwd=context, capture_output=False).returncode

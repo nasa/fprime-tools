@@ -32,8 +32,8 @@ Svc::FprimeDeframing deframing;
 
 Svc::ComQueue::QueueConfigurationTable configurationTable;
 
-// The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz
-NATIVE_INT_TYPE rateGroupDivisors[Svc::RateGroupDriver::DIVIDER_SIZE] = {1, 2, 4};
+// The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
+{{"Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};"}}
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
@@ -88,7 +88,7 @@ void configureTopology() {
     cmdSeq.allocateBuffer(0, mallocator, CMD_SEQ_BUFFER_SIZE);
 
     // Rate group driver needs a divisor list
-    rateGroupDriver.configure(rateGroupDivisors, FW_NUM_ARRAY_ELEMENTS(rateGroupDivisors));
+    rateGroupDriver.configure(rateGroupDivisorsSet);
 
     // Rate groups require context arrays.
     rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
@@ -157,9 +157,6 @@ void setupTopology(const TopologyState& state) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
         comDriver.configure(state.hostname, state.port);
-{%-     if (cookiecutter.com_driver_type == "TcpServer") %}
-        comDriver.startup();
-{%-     endif %}
         comDriver.startSocketTask(name, true, COMM_PRIORITY, Default::STACK_SIZE);
     }
 {%- elif cookiecutter.com_driver_type == "UART" %}
@@ -212,9 +209,6 @@ void teardownTopology(const TopologyState& state) {
     comDriver.quitReadThread();
     (void)comDriver.join(nullptr);
 {%- else %}
-    {%- if (cookiecutter.com_driver_type == "TcpServer") %}
-    comDriver.shutdown();
-    {%- endif %}
     comDriver.stopSocketTask();
     (void)comDriver.joinSocketTask(nullptr);
 {%- endif %}

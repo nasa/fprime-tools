@@ -6,6 +6,7 @@ import argparse
 import shutil
 import subprocess
 import tempfile
+import webbrowser
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
@@ -75,8 +76,11 @@ def run_fprime_visualize(
             ["--directory", str(xml_cache)],
         ),
     )
+    project_xml = xml_cache / f"{Path(build.cmake_root).name}TopologyAppAi.xml"
     topology_match = list(xml_cache.glob("*TopologyAppAi.xml"))
-    if len(topology_match) == 1:
+    if project_xml.exists():
+        topology_xml = project_xml
+    elif len(topology_match) == 1:
         topology_xml = topology_match[0]
     else:
         raise Exception(
@@ -126,6 +130,7 @@ def run_fprime_visualize(
     config = {"SOURCE_DIRS": [str(viz_cache.resolve())]}
     app = construct_app(config)
     try:
+        webbrowser.open(f"http://localhost:{parsed.gui_port}")
         app.run(port=parsed.gui_port)
     except KeyboardInterrupt:
         print("[INFO] CTRL-C received. Exiting.")
@@ -149,7 +154,7 @@ def add_fpp_viz_parsers(
     """
     viz_parser = subparsers.add_parser(
         "visualize",
-        help="Runs visualization pipeline",
+        help="Visualize FPP model in a web GUI",
         parents=[common],
         add_help=False,
     )

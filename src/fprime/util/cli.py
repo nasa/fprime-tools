@@ -19,6 +19,7 @@ from fprime.util.build_helper import load_build
 from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new
 from fprime.util.help_text import HelpText
 from fprime.fpp.visualize import add_fpp_viz_parsers
+from fprime.fpp.impl import add_fpp_impl_parsers
 
 
 def utility_entry(args):
@@ -149,6 +150,13 @@ def add_special_parsers(
         help="Generate a new deployment",
     )
     new_exclusive.add_argument(
+        "--module",
+        default=False,
+        action="store_true",
+        dest="new_module",
+        help="Generate a new module",
+    )
+    new_exclusive.add_argument(
         "--project",
         default=False,
         action="store_true",
@@ -232,7 +240,7 @@ def validate(parsed, unknown):
         cmake_args.update(d_args)
         unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
     # Build type only for generate, jobs only for non-generate
-    elif parsed.command in Target.get_all_targets():
+    elif parsed.command in [target.mnemonic for target in Target.get_all_targets()]:
         parsed.settings = None  # Force to load from cache if possible
         make_args["--jobs"] = 1 if parsed.jobs <= 0 else parsed.jobs
     # Check if any arguments are still unknown
@@ -309,12 +317,15 @@ def parse_args(args):
     )
     fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
     viz_runners, viz_parsers = add_fpp_viz_parsers(subparsers, common_parser)
+    impl_runners, impl_parsers = add_fpp_impl_parsers(subparsers, common_parser)
     parsers.update(fbuild_parsers)
     parsers.update(fpp_parsers)
     parsers.update(viz_parsers)
+    parsers.update(impl_parsers)
     runners.update(fbuild_runners)
     runners.update(fpp_runners)
     runners.update(viz_runners)
+    runners.update(impl_runners)
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
