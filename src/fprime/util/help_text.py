@@ -153,12 +153,11 @@ Example:
   {EXECUTABLE} impl --ut
 
 """,
-    "check": f"""Run fprime unit tests with optional leak checking and test coverage.
+    "check": f"""Run fprime unit tests with optional test coverage.
 
 '{EXECUTABLE} check' handles the running of unit tests. It can be used on components to run the component's unit tests,
 deployments to run deployment unit tests, and with the '--all' flag to run all unit tests found in the build system.
-'{EXECUTABLE} check' implies the '--ut' flag and specifying it is redundant.  When '{EXECUTABLE} check' is run with the
-'--leak' flag, valgrind is used to look for resource leaks.
+'{EXECUTABLE} check' implies the '--ut' flag and specifying it is redundant.
 
 '{EXECUTABLE} check' can also be supplied the '--coverage' flag. When the '--coverage' flag is supplied, the unit test
 is run and 'gcovr' is run on the output to check coverage. The default flags to 'gcovr' are '--print-summary', '--txt',
@@ -174,17 +173,10 @@ Examples:
   cd Ref/SignalGen
   {EXECUTABLE} check
 
-  -- Run Ref/SignalGen Unit Tests With Leak Check --
-  cd Ref/SignalGen
-  {EXECUTABLE} check --leak
-
   -- Run Ref/SignalGen Unit Tests With Coverage --
   cd Ref/SignalGen
   {EXECUTABLE} check --coverage
 
-  -- Run Ref/SignalGen Unit Tests With Detailed HTML Coverage --
-  cd Ref/SignalGen
-  {EXECUTABLE} check --coverage
 """,
     "generate": f"""Generate build caches for the specified deployment
 
