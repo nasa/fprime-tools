@@ -4,9 +4,9 @@ Created on Dec 18, 2014
 """
 import struct
 
-from .type_base               import DictionaryType
+from .type_base import DictionaryType
 from .fprime_integer_metadata import FPRIME_INTEGER_METADATA
-from .type_exceptions         import (
+from .type_exceptions import (
     DeserializeException,
     EnumMismatchException,
     NotInitializedException,
@@ -49,14 +49,17 @@ class EnumType(DictionaryType):
             raise InvalidRepresentationTypeException(rep_type)
 
         for member in enum_dict.keys():
-            if enum_dict[member] < FPRIME_INTEGER_METADATA[rep_type]["min"] or \
-               enum_dict[member] > FPRIME_INTEGER_METADATA[rep_type]["max"]:
+            if (
+                enum_dict[member] < FPRIME_INTEGER_METADATA[rep_type]["min"]
+                or enum_dict[member] > FPRIME_INTEGER_METADATA[rep_type]["max"]
+            ):
                 raise RepresentationTypeRangeException(
-                    member,
-                    enum_dict[member],
-                    rep_type)
+                    member, enum_dict[member], rep_type
+                )
 
-        return DictionaryType.construct_type(cls, name, ENUM_DICT=enum_dict, REP_TYPE=rep_type)
+        return DictionaryType.construct_type(
+            cls, name, ENUM_DICT=enum_dict, REP_TYPE=rep_type
+        )
 
     @classmethod
     def validate(cls, val):
@@ -85,7 +88,8 @@ class EnumType(DictionaryType):
             raise NotInitializedException(type(self))
         return struct.pack(
             FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"],
-            self.ENUM_DICT[self._val])
+            self.ENUM_DICT[self._val],
+        )
 
     def deserialize(self, data, offset):
         """
@@ -93,9 +97,8 @@ class EnumType(DictionaryType):
         """
         try:
             int_val = struct.unpack_from(
-                FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"],
-                data,
-                offset)[0]
+                FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"], data, offset
+            )[0]
 
         except struct.error:
             msg = f"Could not deserialize enum value. Needed: {self.getSize()} bytes Found: {len(data[offset:])}"
@@ -110,7 +113,9 @@ class EnumType(DictionaryType):
 
     def getSize(self):
         """Calculates the size based on the size of an integer used to store it"""
-        return struct.calcsize(FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"])
+        return struct.calcsize(
+            FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"]
+        )
 
     @classmethod
     def getMaxSize(cls):
