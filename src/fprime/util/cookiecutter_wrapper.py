@@ -246,7 +246,7 @@ def new_project(parsed_args: "argparse.Namespace"):
             output_dir=parsed_args.path,
             extra_context={
                 "__install_venv": "no"
-                if parsed_args.prevent_tools_installation
+                if parsed_args.no_venv
                 else "yes"
             },
         )
