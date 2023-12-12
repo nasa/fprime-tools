@@ -244,11 +244,7 @@ def new_project(parsed_args: "argparse.Namespace"):
             source,
             overwrite_if_exists=parsed_args.overwrite,
             output_dir=parsed_args.path,
-            extra_context={
-                "__install_venv": "no"
-                if parsed_args.no_venv
-                else "yes"
-            },
+            extra_context={"__install_venv": "no" if parsed_args.no_venv else "yes"},
         )
     except OutputDirExistsException as out_directory_error:
         print(
