@@ -27,7 +27,7 @@ class EnumType(DictionaryType):
     """
 
     @classmethod
-    def construct_type(cls, name, enum_dict, rep_type):
+    def construct_type(cls, name, enum_dict, rep_type="I32"):
         """Construct the custom enum type
 
         Constructs the custom enumeration type, with the supplied enumeration dictionary.
