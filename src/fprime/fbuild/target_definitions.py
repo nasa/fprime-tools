@@ -40,14 +40,6 @@ check = BuildSystemTarget(
     build_type=BuildType.BUILD_TESTING,
     scope=TargetScope.BOTH,
 )
-BuildSystemTarget(
-    "check_leak",
-    mnemonic="check",
-    desc="Build and run unittests with memory leak checking",
-    flags={"leak"},
-    build_type=BuildType.BUILD_TESTING,
-    scope=TargetScope.BOTH,
-)
 GcovrTarget(
     check,
     mnemonic="check",
