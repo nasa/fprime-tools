@@ -127,10 +127,10 @@ def add_special_parsers(
         help="Generated files will overwrite existing ones",
     )
     new_parser.add_argument(
-        "--prevent-tools-installation",
+        "--no-venv",
         default=False,
         action="store_true",
-        help="Prevent the installation of the tool suite in the current virtual environment",
+        help="Prevent updating the virtual environment during project creation",
     )
     new_exclusive = new_parser.add_argument_group(
         "'new' targets"
