@@ -97,6 +97,13 @@ class CMakeHandler:
         self.validate_cmake_cache(cmake_args, build_dir)
 
         make_args = {} if make_args is None else make_args
+
+        run_args = ["--build", build_dir]
+        # CMake 3.12+ supports parallel builds with -j
+        parallel_jobs = make_args.pop("--jobs", None)
+        if parallel_jobs is not None:
+            run_args.extend(["-j", str(parallel_jobs)])
+
         fleshed_args = ["--"] + list(
             map(lambda key: f"{key}={make_args[key]}", make_args.keys())
         )
@@ -112,7 +119,6 @@ class CMakeHandler:
             else:
                 cmake_target = f"{module}_{target}".lstrip("_")
 
-        run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
             environment["VERBOSE"] = "1"
