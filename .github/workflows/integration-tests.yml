@@ -51,6 +51,8 @@ jobs:
           fprime-util hash-to-file 0x72ad3277
       - name: Test generation and building on Ref with Ninja
         working-directory: fprime/Ref
+        # There is a bug in v3.0.0 that causes ninja builds to fail
+        if: matrix.fprime-version != 'v3.0.0'
         run: |
           fprime-util generate --ninja --build-cache ./build-ninja
           fprime-util build --build-cache ./build-ninja
