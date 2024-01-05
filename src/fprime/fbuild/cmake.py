@@ -464,7 +464,7 @@ class CMakeHandler:
             if self.verbose:
                 print("[CMAKE] Checking CMake cache for rebuild")
             # Backwards compatibility: refresh_cache was named noop until v3.3.x
-            if self.is_target_supported(build_dir, "noop"):
+            if self.is_target_supported(str(build_dir), "noop"):
                 self.execute_known_target(
                     "noop",
                     build_dir,
