@@ -100,9 +100,9 @@ class CMakeHandler:
 
         run_args = ["--build", build_dir]
         # CMake 3.12+ supports parallel builds with -j
-        nbr_jobs = make_args.pop("--jobs", None)
-        if nbr_jobs is not None:
-            run_args.extend(["-j", str(nbr_jobs)])
+        jobs = make_args.pop("--jobs", None)
+        if jobs is not None:
+            run_args.extend(["-j", str(jobs)])
 
         fleshed_args = ["--"] + list(
             map(lambda key: f"{key}={make_args[key]}", make_args.keys())
