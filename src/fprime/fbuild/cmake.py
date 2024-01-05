@@ -448,7 +448,7 @@ class CMakeHandler:
         """
         if full:
             environment = {}
-            run_args = ["--build", build_dir]
+            run_args = ["--build", str(build_dir)]
             if self.verbose:
                 print("[CMAKE] Refreshing CMake build cache")
                 environment["VERBOSE"] = "1"
