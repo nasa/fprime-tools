@@ -59,6 +59,8 @@ def run_fbuild_cli(
             cmake_args["ENABLE_SANITIZER_UNDEFINED_BEHAVIOR"] = "ON"
         if toolchain is not None:
             cmake_args["CMAKE_TOOLCHAIN_FILE"] = toolchain
+        if parsed.ninja:
+            cmake_args["CMAKE_GENERATOR"] = "Ninja"
         build.generate(cmake_args)
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
@@ -208,6 +210,11 @@ def add_special_targets(
         default=False,
         help="Disable the compiler sanitizers. Sanitizers are only enabled by default when --ut is provided.",
         action="store_true",
+    )
+    generate_parser.add_argument(
+        "--ninja",
+        action="store_true",
+        help="Uses Ninja as the build system.",
     )
     # The following option is specified only to show up in --help.
     # It is not handled by argparse, but in fprime.util.cli:validate()
