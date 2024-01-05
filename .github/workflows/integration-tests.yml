@@ -48,6 +48,12 @@ jobs:
           fprime-util generate
           fprime-util build
           fprime-util hash-to-file 0x72ad3277
+      - name: Test generation and building on Ref with Ninja
+        working-directory: fprime/Ref
+        run: |
+          fprime-util generate --ninja --build-cache ./build-ninja
+          fprime-util build --build-cache ./build-ninja
+          fprime-util hash-to-file 0x72ad3277 --build-cache ./build-ninja
       - name: Test special generation on Ref
         working-directory: fprime/Ref
         run: |
