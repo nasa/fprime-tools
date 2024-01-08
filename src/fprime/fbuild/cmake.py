@@ -40,8 +40,9 @@ class CMakeHandler:
         self.settings = {}
         self._cmake_cache = None
         self.verbose = False
-        self.cached_help_targets = None
+        self.cached_help_targets = []
         try:
+            # TODO: is this necessary? slows down things. shutil.which better?
             self._run_cmake(["--help"], print_output=False)
         except Exception as exc:
             raise CMakeExecutionException(
@@ -336,11 +337,20 @@ class CMakeHandler:
             stdout, _ = self._run_cmake(
                 run_args, write_override=True, print_output=False
             )
-            self.cached_help_targets = [
-                line.replace("...", "").strip()
-                for line in stdout
-                if line.startswith("...")
-            ]
+            if "Makefile" not in stdout[0]:
+                # Ninja output
+                self.cached_help_targets.extend([
+                    line.replace(": phony", "").strip()
+                    for line in stdout
+                    if line.endswith(": phony\n")
+                ])
+            else:
+                # Makefile output
+                self.cached_help_targets.extend([
+                    line.replace("...", "").strip()
+                    for line in stdout
+                    if line.startswith("...")
+                ])
 
         prefix = self.get_cmake_module(path, build_dir)
         return [
