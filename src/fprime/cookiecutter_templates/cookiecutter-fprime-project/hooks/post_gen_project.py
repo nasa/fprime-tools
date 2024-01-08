@@ -5,7 +5,7 @@ It does the following:
 - Initializes a git repository
 - Adds F' as a submodule
 - Checks out the latest release of F'
-- Installs the virtual environment if requested
+- Upgrades pip and installs the virtual environment if requested
 
 @author thomas-bc
 """
@@ -59,6 +59,13 @@ if res.returncode != 0:
 # Install venv if requested
 if "{{cookiecutter.__install_venv}}" == "yes":
     if sys.prefix != sys.base_prefix:
+        # Upgrade pip
+        print("[INFO] Upgrading pip...")
+        subprocess.run(
+            [Path(sys.prefix) / "bin" / "pip", "install", "--upgrade", "pip"]
+        )
+        # Install requirements.txt
+        print("[INFO] Installing F´ dependencies...")
         subprocess.run(
             [
                 Path(sys.prefix) / "bin" / "pip",
@@ -80,12 +87,12 @@ print(
     """
 ################################################################
 
-Congratulations! You have successfully created a new F' project.
+Congratulations! You have successfully created a new F´ project.
 
-A git repository has been initialized and F' has been added as a
+A git repository has been initialized and F´ has been added as a
 submodule, you can now create your first commit.
 
-Get started with your F' project:
+Get started with your F´ project:
 
 -- Generate a new component --
 fprime-util new --component
