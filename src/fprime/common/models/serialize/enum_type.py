@@ -120,4 +120,6 @@ class EnumType(DictionaryType):
     @classmethod
     def getMaxSize(cls):
         """Maximum size of type"""
-        return struct.calcsize(FPRIME_INTEGER_METADATA["U64"]["struct_formatter"])
+        return struct.calcsize(
+            FPRIME_INTEGER_METADATA[cls.REP_TYPE]["struct_formatter"]
+        )
