@@ -214,7 +214,7 @@ def add_special_targets(
     generate_parser.add_argument(
         "--ninja",
         action="store_true",
-        help="Uses Ninja as the build system.",
+        help="Use the Ninja build system instead of Unix Makefiles",
     )
     # The following option is specified only to show up in --help.
     # It is not handled by argparse, but in fprime.util.cli:validate()
