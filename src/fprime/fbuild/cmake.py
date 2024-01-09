@@ -42,7 +42,6 @@ class CMakeHandler:
         self.verbose = False
         self.cached_help_targets = []
         try:
-            # TODO: is this necessary? slows down things. shutil.which better?
             self._run_cmake(["--help"], print_output=False)
         except Exception as exc:
             raise CMakeExecutionException(
@@ -136,6 +135,11 @@ class CMakeHandler:
                 print_output=print_output,
             )
         except CMakeExecutionException as exc:
+            # The below code allows to try and refresh the build cache if the target is not found in the cache.
+            # This can catch the case where the cache has not been refreshed since the requested target was added.
+            # Note that this auto-refresh behavior is native to CMake/Ninja when using Ninja as the generator.
+            # Therefore refreshing the cache here should only be tried for Makefile generators:
+            #   --> "No rule to make target" is the make output. If any other output, we raise the exception.
             no_target = functools.reduce(
                 lambda cur, line: cur or "No rule to make target" in line,
                 exc.get_errors(),
