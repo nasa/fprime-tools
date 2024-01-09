@@ -343,18 +343,22 @@ class CMakeHandler:
             )
             if "Makefile" not in stdout[0]:
                 # Ninja output
-                self.cached_help_targets.extend([
-                    line.replace(": phony", "").strip()
-                    for line in stdout
-                    if line.endswith(": phony\n")
-                ])
+                self.cached_help_targets.extend(
+                    [
+                        line.replace(": phony", "").strip()
+                        for line in stdout
+                        if line.endswith(": phony\n")
+                    ]
+                )
             else:
                 # Makefile output
-                self.cached_help_targets.extend([
-                    line.replace("...", "").strip()
-                    for line in stdout
-                    if line.startswith("...")
-                ])
+                self.cached_help_targets.extend(
+                    [
+                        line.replace("...", "").strip()
+                        for line in stdout
+                        if line.startswith("...")
+                    ]
+                )
 
         prefix = self.get_cmake_module(path, build_dir)
         return [
