@@ -341,6 +341,7 @@ class CMakeHandler:
             stdout, _ = self._run_cmake(
                 run_args, write_override=True, print_output=False
             )
+            # help target lists all targets but has a different output format for ninja and make
             if "Makefile" not in stdout[0]:
                 # Ninja output
                 self.cached_help_targets.extend(
