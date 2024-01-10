@@ -46,7 +46,7 @@ def run_fbuild_cli(
         build: build object, pre-loaded, iff not "generate" or "purged"
         parsed: parsed arguments object.
         cmake_args: cmake commands from parsed output
-        make_args: arguments to the make system
+        make_args: arguments to supply to the build tool (make or ninja)
     """
     if parsed.command == "generate":
         toolchain = build.find_toolchain()
