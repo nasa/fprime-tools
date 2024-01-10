@@ -6,6 +6,7 @@ Current commands include:
     - hash-to-file: Processes hash-to-file to locate file
     - new: Creates a new component, deployment, or project
     - format: Formats code using clang-format
+    - sysinfo: Print out versions to help debugging
 
 @author thomas-bc
 """
@@ -17,6 +18,7 @@ from typing import Dict, List
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.util.code_formatter import ClangFormatter
+from .versioning import VersionException
 from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
@@ -182,3 +184,51 @@ def run_code_format(
     for filename in parsed.files:
         clang_formatter.stage_file(Path(filename))
     return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+
+
+def run_sysinfo():
+    """Print out versions to help debugging"""
+
+    print(f"Python version: {sys.version_info.major}{sys.version_info.minor}.{sys.version_info.micro}")
+
+    try:
+        import subprocess
+        cmake_version = subprocess.check_output(['cmake', '--version']).decode('utf-8').splitlines()[0].split()[2]
+        print(f"CMake version: {cmake_version}")
+    except ImportError: # Python >=3.6
+        print("[WARNING] Cannot import 'subprocess'. ")
+
+    try:
+        import pip
+        print(f"Pip version: {pip.__version__}")
+    except ModuleNotFoundError: # Python >=3.6
+        print("[WARNING] Cannot import 'Pip'.")
+
+    try:
+        import pkg_resources
+    except ModuleNotFoundError: # Python >=3.6
+        print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
+        return
+
+    tools = [
+        "fprime-tools",
+        "fprime-gds",
+        "fprime-fpp-to-xml",
+        "fprime-fpp-to-json",
+        "fprime-fpp-to-cpp",
+        "fprime-fpp-syntax",
+        "fprime-fpp-locate-uses",
+        "fprime-fpp-locate-defs",
+        "fprime-fpp-from-xml",
+        "fprime-fpp-format",
+        "fprime-fpp-filenames",
+        "fprime-fpp-depend",
+        "fprime-fpp-check",
+    ]
+    for tool in tools:
+            try:
+                version = pkg_resources.get_distribution(tool).version
+                print(f"{tool} version: {version}")
+                break
+            except (OSError, VersionException) as exc:
+                print(f"[WARNING] {exc}")
