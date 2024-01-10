@@ -19,7 +19,7 @@ from fprime.fbuild.builder import Build, BuildType
 from fprime.fbuild.cli import get_target
 from fprime.fbuild.target import NoSuchTargetException
 
-from .versioning import VersionException, get_version, get_toolchain
+from .versioning import VersionException, get_version, FPRIME_PIP_PACKAGES
 
 # Attempt to get pkg_resources from "setuptools"
 try:
@@ -68,8 +68,7 @@ def validate_tools_from_requirements(build: Build):
         return
 
     # Now check each required tool for fprime
-    tools = get_toolchain()
-    for tool in tools:
+    for tool in FPRIME_PIP_PACKAGES:
         for possible in possibilities:
             try:
                 package_version_check(tool, possible)

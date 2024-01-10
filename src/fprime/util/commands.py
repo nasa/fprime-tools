@@ -18,7 +18,7 @@ from typing import Dict, List
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.util.code_formatter import ClangFormatter
-from .versioning import VersionException, get_toolchain
+from .versioning import VersionException, FPRIME_PIP_PACKAGES
 from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
@@ -221,9 +221,8 @@ def run_version_check(
         print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
         return
 
-    tools = get_toolchain()
     print("Pip packages:")
-    for tool in tools:
+    for tool in FPRIME_PIP_PACKAGES:
         try:
             version = pkg_resources.get_distribution(tool).version
             print(f"    {tool}=={version}")
