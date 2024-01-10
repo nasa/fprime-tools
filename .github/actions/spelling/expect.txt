@@ -138,7 +138,7 @@ locs
 lstrip
 lxml
 makedirs
-makefiles
+Makefiles
 malloc
 mallocator
 maxdepth
