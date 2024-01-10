@@ -379,6 +379,25 @@ class CMakeHandler:
         self.get_available_targets(build_dir, None)
         return target in self.cached_help_targets
 
+    def _is_noop_supported(self, build_dir: str):
+        """Checks if the noop target is supported by the current build directory.
+
+        Note: This function is implemented by checking the CMake files in order to bypass the call
+        to `cmake --target help` in get_available_target() which is very slow when using Makefiles
+
+        Args:
+            build_dir: build directory to use for detecting noop target
+        """
+        noop_file = os.path.join(
+            self._read_cache(build_dir)["FPRIME_FRAMEWORK_PATH"],
+            "cmake",
+            "target",
+            "noop.cmake",
+        )
+        if os.path.isfile(noop_file):
+            return True
+        return False
+
     @staticmethod
     def purge(build_dir):
         """
@@ -483,7 +502,7 @@ class CMakeHandler:
             if self.verbose:
                 print("[CMAKE] Checking CMake cache for rebuild")
             # Backwards compatibility: refresh_cache was named noop until v3.3.x
-            if self.is_target_supported(str(build_dir), "noop"):
+            if self._is_noop_supported(str(build_dir)):
                 self.execute_known_target(
                     "noop",
                     build_dir,
