@@ -231,6 +231,5 @@ def run_sysinfo(
             try:
                 version = pkg_resources.get_distribution(tool).version
                 print(f"{tool} version: {version}")
-                break
             except (OSError, VersionException) as exc:
                 print(f"[WARNING] {exc}")
