@@ -16,7 +16,13 @@ from fprime.fbuild.cli import add_fbuild_parsers
 from fprime.fbuild.target import Target
 from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.build_helper import load_build
-from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new, run_sysinfo
+from fprime.util.commands import (
+    run_code_format,
+    run_hash_to_file,
+    run_info,
+    run_new,
+    run_version_check,
+)
 from fprime.util.help_text import HelpText
 from fprime.fpp.visualize import add_fpp_viz_parsers
 from fprime.fpp.impl import add_fpp_impl_parsers
@@ -55,6 +61,8 @@ def skip_build_loading(parsed):
     should manually be added here by the developer.
     """
     if parsed.command == "new" and parsed.new_project:
+        return True
+    if parsed.command == "version-check":
         return True
     return False
 
@@ -112,9 +120,9 @@ def add_special_parsers(
     )
 
     subparsers.add_parser(
-        "sysinfo",
-        description=help_text.long("sysinfo"),
-        help=help_text.short("sysinfo"),
+        "version-check",
+        description=help_text.long("version-check"),
+        help=help_text.short("version-check"),
         parents=[common],
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -220,7 +228,7 @@ def add_special_parsers(
     return {
         "hash-to-file": run_hash_to_file,
         "info": run_info,
-        "sysinfo": run_sysinfo,
+        "version-check": run_version_check,
         "new": run_new,
         "format": run_code_format,
     }

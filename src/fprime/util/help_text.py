@@ -250,13 +250,13 @@ outputs, etc.
 '{EXECUTABLE} info' will print information for both normal and unit testing builds when possible. If '--build-cache' is
 specified then only the information for that build cache will be printed.
 """,
-    "sysinfo": f"""Print out toolchain versions to help debugging
+    "version-check": f"""Print out toolchain versions to help debugging
 
-'{EXECUTABLE} sysinfo' is used to display information about toolchain versions. It will output details such as
+'{EXECUTABLE} version-check' is used to display information about toolchain versions. It will output details such as
 the installed Python version, the installed Pip version, and version information for all the necessary tools for fprime
-before exiting. Users can utilize the sysinfo command as a tool for debugging and comprehending the dependencies for {EXECUTABLE}.
+before exiting. Users can utilize the version-check command as a tool for debugging and comprehending the dependencies for {EXECUTABLE}.
 
-'{EXECUTABLE} sysinfo' will print information about toolchain versions for debugging purposes.
+'{EXECUTABLE} version-check' will print information about toolchain versions for debugging purposes.
 """,
     "hash-to-file": f"""Convert FW_ASSERT file id hash to file path
 

@@ -281,3 +281,5 @@ workdir
 www
 wxgui
 xml
+version-check
+0x48piraj
