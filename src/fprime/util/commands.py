@@ -191,9 +191,15 @@ def run_version_check(
 ):
     """Print out versions to help debugging"""
 
-    print(
-        f"Python version: {sys.version_info.major}{sys.version_info.minor}.{sys.version_info.micro}"
-    )
+    try:
+        import platform
+
+        print(f"Python version: {platform.python_version()}")
+        print(f"Operating System: {platform.system()}")
+        print(f"CPU Architecture: {platform.machine()}")
+        print(f"Platform: {platform.platform()}")
+    except ImportError:  # Python >=3.6
+        print("[WARNING] Cannot import 'platform'.")
 
     try:
         import subprocess
@@ -206,7 +212,7 @@ def run_version_check(
         )
         print(f"CMake version: {cmake_version}")
     except ImportError:  # Python >=3.6
-        print("[WARNING] Cannot import 'subprocess'. ")
+        print("[WARNING] Cannot import 'subprocess'.")
 
     try:
         import pip
