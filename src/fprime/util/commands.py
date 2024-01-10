@@ -186,7 +186,9 @@ def run_code_format(
     return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
 
 
-def run_sysinfo():
+def run_sysinfo(
+    base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
+):
     """Print out versions to help debugging"""
 
     print(f"Python version: {sys.version_info.major}{sys.version_info.minor}.{sys.version_info.micro}")

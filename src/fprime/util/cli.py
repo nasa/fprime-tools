@@ -16,7 +16,7 @@ from fprime.fbuild.cli import add_fbuild_parsers
 from fprime.fbuild.target import Target
 from fprime.fpp.cli import add_fpp_parsers
 from fprime.util.build_helper import load_build
-from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new
+from fprime.util.commands import run_code_format, run_hash_to_file, run_info, run_new, run_sysinfo
 from fprime.util.help_text import HelpText
 from fprime.fpp.visualize import add_fpp_viz_parsers
 from fprime.fpp.impl import add_fpp_impl_parsers
@@ -106,6 +106,15 @@ def add_special_parsers(
         "info",
         description=help_text.long("info"),
         help=help_text.short("info"),
+        parents=[common],
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    subparsers.add_parser(
+        "sysinfo",
+        description=help_text.long("sysinfo"),
+        help=help_text.short("sysinfo"),
         parents=[common],
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -211,6 +220,7 @@ def add_special_parsers(
     return {
         "hash-to-file": run_hash_to_file,
         "info": run_info,
+        "sysinfo": run_sysinfo,
         "new": run_new,
         "format": run_code_format,
     }
