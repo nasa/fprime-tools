@@ -143,9 +143,8 @@ def add_target_parser(
         parser.add_argument(
             "-j",
             "--jobs",
-            default=1,
             type=int,
-            help="Parallel build job count. Default: %(default)s.",
+            help="Parallel build job count. Default: build tool default (make: 1, ninja: # of cores)",
         )
     parser, flags = existing[target.mnemonic]
     new_flags = [flag for flag in target.flags if flag not in flags]
