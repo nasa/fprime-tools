@@ -242,7 +242,8 @@ def validate(parsed, unknown):
     # Build type only for generate, jobs only for non-generate
     elif parsed.command in [target.mnemonic for target in Target.get_all_targets()]:
         parsed.settings = None  # Force to load from cache if possible
-        make_args["--jobs"] = 1 if parsed.jobs <= 0 else parsed.jobs
+        if parsed.jobs is not None and parsed.jobs >= 1:
+            make_args["--jobs"] = parsed.jobs
     # Check if any arguments are still unknown
     if unknown:
         runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"

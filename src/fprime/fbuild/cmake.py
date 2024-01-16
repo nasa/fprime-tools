@@ -40,7 +40,7 @@ class CMakeHandler:
         self.settings = {}
         self._cmake_cache = None
         self.verbose = False
-        self.cached_help_targets = None
+        self.cached_help_targets = []
         try:
             self._run_cmake(["--help"], print_output=False)
         except Exception as exc:
@@ -97,6 +97,13 @@ class CMakeHandler:
         self.validate_cmake_cache(cmake_args, build_dir)
 
         make_args = {} if make_args is None else make_args
+
+        run_args = ["--build", build_dir]
+        # CMake 3.12+ supports parallel builds with -j
+        jobs = make_args.pop("--jobs", None)
+        if jobs is not None:
+            run_args.extend(["-j", str(jobs)])
+
         fleshed_args = ["--"] + list(
             map(lambda key: f"{key}={make_args[key]}", make_args.keys())
         )
@@ -112,7 +119,6 @@ class CMakeHandler:
             else:
                 cmake_target = f"{module}_{target}".lstrip("_")
 
-        run_args = ["--build", build_dir]
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
             environment["VERBOSE"] = "1"
@@ -129,6 +135,11 @@ class CMakeHandler:
                 print_output=print_output,
             )
         except CMakeExecutionException as exc:
+            # The below code allows to try and refresh the build cache if the target is not found in the cache.
+            # This can catch the case where the cache has not been refreshed since the requested target was added.
+            # Note that this auto-refresh behavior is native to CMake/Ninja when using Ninja as the generator.
+            # Therefore refreshing the cache here should only be tried for Makefile generators:
+            #   --> "No rule to make target" is the make output. If any other output, we raise the exception.
             no_target = functools.reduce(
                 lambda cur, line: cur or "No rule to make target" in line,
                 exc.get_errors(),
@@ -330,11 +341,25 @@ class CMakeHandler:
             stdout, _ = self._run_cmake(
                 run_args, write_override=True, print_output=False
             )
-            self.cached_help_targets = [
-                line.replace("...", "").strip()
-                for line in stdout
-                if line.startswith("...")
-            ]
+            # help target lists all targets but has a different output format for ninja and make
+            if "Makefile" not in stdout[0]:
+                # Ninja output
+                self.cached_help_targets.extend(
+                    [
+                        line.replace(": phony", "").strip()
+                        for line in stdout
+                        if line.endswith(": phony\n")
+                    ]
+                )
+            else:
+                # Makefile output
+                self.cached_help_targets.extend(
+                    [
+                        line.replace("...", "").strip()
+                        for line in stdout
+                        if line.startswith("...")
+                    ]
+                )
 
         prefix = self.get_cmake_module(path, build_dir)
         return [
@@ -353,6 +378,25 @@ class CMakeHandler:
         # Load in self.cached_help_targets
         self.get_available_targets(build_dir, None)
         return target in self.cached_help_targets
+
+    def _is_noop_supported(self, build_dir: str):
+        """Checks if the noop target is supported by the current build directory.
+
+        Note: This function is implemented by checking the CMake files in order to bypass the call
+        to `cmake --target help` in get_available_target() which is very slow when using Makefiles
+
+        Args:
+            build_dir: build directory to use for detecting noop target
+        """
+        noop_file = os.path.join(
+            self._read_cache(build_dir)["FPRIME_FRAMEWORK_PATH"],
+            "cmake",
+            "target",
+            "noop.cmake",
+        )
+        if os.path.isfile(noop_file):
+            return True
+        return False
 
     @staticmethod
     def purge(build_dir):
@@ -442,7 +486,7 @@ class CMakeHandler:
         """
         if full:
             environment = {}
-            run_args = ["--build", build_dir]
+            run_args = ["--build", str(build_dir)]
             if self.verbose:
                 print("[CMAKE] Refreshing CMake build cache")
                 environment["VERBOSE"] = "1"
@@ -458,7 +502,7 @@ class CMakeHandler:
             if self.verbose:
                 print("[CMAKE] Checking CMake cache for rebuild")
             # Backwards compatibility: refresh_cache was named noop until v3.3.x
-            if self.is_target_supported(build_dir, "noop"):
+            if self._is_noop_supported(str(build_dir)):
                 self.execute_known_target(
                     "noop",
                     build_dir,

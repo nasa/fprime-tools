@@ -356,7 +356,7 @@ class Build:
             build_target: build system target to run as string
             context: context path for local targets
             top: True if it is a top-level (global) target, False if it is a local target
-            make_args: make system arguments directly supplied
+            make_args: args to supply to the build tool (make or ninja)
         """
         self.cmake.execute_known_target(
             build_target,

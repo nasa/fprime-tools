@@ -46,7 +46,7 @@ def run_fbuild_cli(
         build: build object, pre-loaded, iff not "generate" or "purged"
         parsed: parsed arguments object.
         cmake_args: cmake commands from parsed output
-        make_args: arguments to the make system
+        make_args: arguments to supply to the build tool (make or ninja)
     """
     if parsed.command == "generate":
         toolchain = build.find_toolchain()
@@ -59,6 +59,8 @@ def run_fbuild_cli(
             cmake_args["ENABLE_SANITIZER_UNDEFINED_BEHAVIOR"] = "ON"
         if toolchain is not None:
             cmake_args["CMAKE_TOOLCHAIN_FILE"] = toolchain
+        if parsed.ninja:
+            cmake_args["CMAKE_GENERATOR"] = "Ninja"
         build.generate(cmake_args)
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
@@ -141,9 +143,8 @@ def add_target_parser(
         parser.add_argument(
             "-j",
             "--jobs",
-            default=1,
             type=int,
-            help="Parallel build job count. Default: %(default)s.",
+            help="Parallel build job count. Default: build tool default (make: 1, ninja: # of cores)",
         )
     parser, flags = existing[target.mnemonic]
     new_flags = [flag for flag in target.flags if flag not in flags]
@@ -208,6 +209,11 @@ def add_special_targets(
         default=False,
         help="Disable the compiler sanitizers. Sanitizers are only enabled by default when --ut is provided.",
         action="store_true",
+    )
+    generate_parser.add_argument(
+        "--ninja",
+        action="store_true",
+        help="Use the Ninja build system instead of Unix Makefiles",
     )
     # The following option is specified only to show up in --help.
     # It is not handled by argparse, but in fprime.util.cli:validate()
