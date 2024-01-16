@@ -8,6 +8,23 @@ class VersionException(Exception):
     pass
 
 
+FPRIME_PIP_PACKAGES = [
+    "fprime-tools",
+    "fprime-gds",
+    "fprime-fpp-to-xml",
+    "fprime-fpp-to-json",
+    "fprime-fpp-to-cpp",
+    "fprime-fpp-syntax",
+    "fprime-fpp-locate-uses",
+    "fprime-fpp-locate-defs",
+    "fprime-fpp-from-xml",
+    "fprime-fpp-format",
+    "fprime-fpp-filenames",
+    "fprime-fpp-depend",
+    "fprime-fpp-check",
+]
+
+
 def get_version(package: str, requirements: Path):
     """Get the version as specified in the requirements file
 

@@ -19,7 +19,7 @@ from fprime.fbuild.builder import Build, BuildType
 from fprime.fbuild.cli import get_target
 from fprime.fbuild.target import NoSuchTargetException
 
-from .versioning import VersionException, get_version
+from .versioning import VersionException, get_version, FPRIME_PIP_PACKAGES
 
 # Attempt to get pkg_resources from "setuptools"
 try:
@@ -68,22 +68,7 @@ def validate_tools_from_requirements(build: Build):
         return
 
     # Now check each required tool for fprime
-    tools = [
-        "fprime-tools",
-        "fprime-gds",
-        "fprime-fpp-to-xml",
-        "fprime-fpp-to-json",
-        "fprime-fpp-to-cpp",
-        "fprime-fpp-syntax",
-        "fprime-fpp-locate-uses",
-        "fprime-fpp-locate-defs",
-        "fprime-fpp-from-xml",
-        "fprime-fpp-format",
-        "fprime-fpp-filenames",
-        "fprime-fpp-depend",
-        "fprime-fpp-check",
-    ]
-    for tool in tools:
+    for tool in FPRIME_PIP_PACKAGES:
         for possible in possibilities:
             try:
                 package_version_check(tool, possible)

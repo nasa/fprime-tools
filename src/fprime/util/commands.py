@@ -6,6 +6,7 @@ Current commands include:
     - hash-to-file: Processes hash-to-file to locate file
     - new: Creates a new component, deployment, or project
     - format: Formats code using clang-format
+    - version-check: Print out versions to help debugging
 
 @author thomas-bc
 """
@@ -17,6 +18,7 @@ from typing import Dict, List
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.util.code_formatter import ClangFormatter
+from .versioning import VersionException, FPRIME_PIP_PACKAGES
 from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
@@ -182,3 +184,53 @@ def run_code_format(
     for filename in parsed.files:
         clang_formatter.stage_file(Path(filename))
     return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+
+
+def run_version_check(
+    base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
+):
+    """Print out versions to help debugging"""
+
+    try:
+        import platform
+
+        print(f"Python version: {platform.python_version()}")
+        print(f"Operating System: {platform.system()}")
+        print(f"CPU Architecture: {platform.machine()}")
+        print(f"Platform: {platform.platform()}")
+    except ImportError:  # Python >=3.6
+        print("[WARNING] Cannot import 'platform'.")
+
+    try:
+        import subprocess
+
+        cmake_version = (
+            subprocess.check_output(["cmake", "--version"])
+            .decode("utf-8")
+            .splitlines()[0]
+            .split()[2]
+        )
+        print(f"CMake version: {cmake_version}")
+    except ImportError:  # Python >=3.6
+        print("[WARNING] Cannot import 'subprocess'.")
+
+    try:
+        import pip
+
+        print(f"Pip version: {pip.__version__}")
+    except ModuleNotFoundError:  # Python >=3.6
+        print("[WARNING] Cannot import 'Pip'.")
+
+    try:
+        import pkg_resources
+    except ModuleNotFoundError:  # Python >=3.6
+        print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
+        return
+
+    print("Pip packages:")
+    for tool in FPRIME_PIP_PACKAGES:
+        try:
+            version = pkg_resources.get_distribution(tool).version
+            print(f"    {tool}=={version}")
+        except (OSError, VersionException) as exc:
+            print(f"[WARNING] {exc}")

@@ -241,7 +241,7 @@ supplied. In this case, the build cache will be removed with reckless abandon.
     """,
     "info": f"""Print contextual target and build cache information before exiting
 
-'{EXECUTABLE} info' is used to print contextual information to the user before exiting. It will print the available]
+'{EXECUTABLE} info' is used to print contextual information to the user before exiting. It will print the available
 commands within the current context (working directory, '-p/--path', '-r/--root', etc.) and then exit. Users may
 use the info command as a way to test and understand how {EXECUTABLE} is mapping to the context and targets used. info
 may also be used to locate the artifact output folders within the build cache in order to see generated files, compiler
@@ -249,6 +249,14 @@ outputs, etc.
 
 '{EXECUTABLE} info' will print information for both normal and unit testing builds when possible. If '--build-cache' is
 specified then only the information for that build cache will be printed.
+""",
+    "version-check": f"""Print out toolchain versions to help debugging
+
+'{EXECUTABLE} version-check' is used to display information about toolchain versions. It will output details such as
+the installed Python version, the installed Pip version, and version information for all the necessary tools for fprime
+before exiting. Users can utilize the version-check command as a tool for debugging and comprehending the dependencies for {EXECUTABLE}.
+
+'{EXECUTABLE} version-check' will print information about toolchain versions for debugging purposes.
 """,
     "hash-to-file": f"""Convert FW_ASSERT file id hash to file path
 
