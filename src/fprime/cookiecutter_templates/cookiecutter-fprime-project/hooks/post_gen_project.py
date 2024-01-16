@@ -48,9 +48,10 @@ if res.returncode != 0:
     print(f"[ERROR] Unable to checkout tag: {latest_tag_name}. Exit...")
     sys.exit(1)  # sys.exit(1) indicates failure to cookiecutter
 
-# Checkout submodules (e.g. googletest)
+# Checkout F´ submodules (e.g. googletest)
 res = subprocess.run(
     ["git", "submodule", "update", "--init", "--recursive"],
+    cwd="./fprime",
     capture_output=True,
 )
 if res.returncode != 0:
