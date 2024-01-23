@@ -65,11 +65,6 @@ class IniSettings:
             partial(join, "framework_path", "config"),
         ),
         (
-            "ac_constants",
-            SettingType.PATH,
-            partial(join, "config_directory", "AcConstants.ini"),
-        ),
-        (
             "install_destination",
             SettingType.PATH,
             partial(join, "_cmake_project_root", "build-artifacts"),
