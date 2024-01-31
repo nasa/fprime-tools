@@ -301,7 +301,6 @@ class Build:
             ("FPRIME_PROJECT_ROOT", "project_root"),
             ("FPRIME_SETTINGS_FILE", "settings_file"),
             ("FPRIME_ENVIRONMENT_FILE", "environment_file"),
-            ("FPRIME_AC_CONSTANTS_FILE", "ac_constants"),
             ("FPRIME_CONFIG_DIR", "config_directory"),
             ("FPRIME_INSTALL_DEST", "install_destination"),
         ]
