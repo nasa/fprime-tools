@@ -194,10 +194,10 @@ def run_version_check(
     try:
         import platform
 
-        print(f"Python version: {platform.python_version()}")
         print(f"Operating System: {platform.system()}")
         print(f"CPU Architecture: {platform.machine()}")
         print(f"Platform: {platform.platform()}")
+        print(f"Python version: {platform.python_version()}")
     except ImportError:  # Python >=3.6
         print("[WARNING] Cannot import 'platform'.")
 
@@ -228,9 +228,20 @@ def run_version_check(
         return
 
     print("Pip packages:")
+    # Used to print fprime-fpp-* versions together if they are all the same to declutter the output
+    fpp_packages = {}
     for tool in FPRIME_PIP_PACKAGES:
         try:
             version = pkg_resources.get_distribution(tool).version
-            print(f"    {tool}=={version}")
-        except (OSError, VersionException) as exc:
+            if tool.startswith("fprime-fpp-"):
+                fpp_packages[tool] = version
+            else:
+                print(f"    {tool}=={version}")
+        except (OSError, VersionException, pkg_resources.DistributionNotFound) as exc:
             print(f"[WARNING] {exc}")
+    if fpp_packages:
+        if len(set(fpp_packages.values())) == 1:
+            print(f"    fprime-fpp-*=={list(fpp_packages.values())[0]}")
+        else:
+            for tool, version in fpp_packages.items():
+                print(f"    {tool}=={version}")
