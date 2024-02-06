@@ -1,5 +1,6 @@
 """ Cookie cutter wrapper used to template out components
 """
+
 import glob
 import os
 import shutil
@@ -226,6 +227,13 @@ def new_module(build: Build, parsed_args: "argparse.Namespace"):
 
 def new_project(parsed_args: "argparse.Namespace"):
     """Creates a new F' project"""
+
+    print(
+        "[DEPRECATED] This command is deprecated and will be removed in a future release."
+        " Please use `fprime-bootstrap project` instead."
+        " Install fprime-bootstrap with `pip install fprime-bootstrap`," 
+        " or refer to https://nasa.github.io/fprime/INSTALL.html"
+    )
 
     # Check if Git is installed and available - needed for cloning F' as submodule
     if not shutil.which("git"):
