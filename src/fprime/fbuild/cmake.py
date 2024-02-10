@@ -405,7 +405,7 @@ class CMakeHandler:
 
         :param build_dir: build dir specified to purge
         """
-        shutil.rmtree(build_dir, ignore_errors=True)
+        shutil.rmtree(build_dir)
 
     def _read_values_from_cache(self, keys, build_dir):
         """
