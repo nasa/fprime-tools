@@ -231,7 +231,7 @@ def new_project(parsed_args: "argparse.Namespace"):
     print(
         "[DEPRECATED] This command is deprecated and will be removed in a future release."
         " Please use `fprime-bootstrap project` instead."
-        " Install fprime-bootstrap with `pip install fprime-bootstrap`," 
+        " Install fprime-bootstrap with `pip install fprime-bootstrap`,"
         " or refer to https://nasa.github.io/fprime/INSTALL.html"
     )
 

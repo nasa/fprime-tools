@@ -59,9 +59,11 @@ def run_info(
             f"'{target}'": "" for target in build_info.get("global_targets", [])
         }
         build_artifacts = (
-            build_info.get("auto_location")
-            if build_info.get("auto_location") is not None
-            else "N/A",
+            (
+                build_info.get("auto_location")
+                if build_info.get("auto_location") is not None
+                else "N/A"
+            ),
             build_info.get("build_dir", "Unknown"),
         )
         local_generic_targets.update(local_targets)
@@ -228,7 +230,7 @@ def run_version_check(
         return
 
     print("Pip packages:")
-    # Used to print fprime-fpp-* versions together if they are all the same to declutter the output
+    # Used to print fprime-fpp-* versions together if they are all the same to de-clutter the output
     fpp_packages = {}
     for tool in FPRIME_PIP_PACKAGES:
         try:
