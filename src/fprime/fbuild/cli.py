@@ -71,21 +71,27 @@ def run_fbuild_cli(
             print(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
             )
-            if parsed.force or confirm("Purge this directory?"):
-                purge_build.purge()
-            install_dir = purge_build.install_dest_exists()
-            if (
-                purge_build.build_type != BuildType.BUILD_CUSTOM
-                and install_dir
-                and install_dir.exists()
-            ):
-                print(
-                    f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
-                )
-                if parsed.force or confirm(
-                    f"Purge installation directory at {install_dir} ?"
+            try:
+                if parsed.force or confirm("Purge this directory?"):
+                    purge_build.purge()
+                install_dir = purge_build.install_dest_exists()
+                if (
+                    purge_build.build_type != BuildType.BUILD_CUSTOM
+                    and install_dir
+                    and install_dir.exists()
                 ):
-                    purge_build.purge_install()
+                    print(
+                        f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
+                    )
+                    if parsed.force or confirm(
+                        f"Purge installation directory at {install_dir} ?"
+                    ):
+                        purge_build.purge_install()
+            except PermissionError as e:
+                print(
+                    f"Error: Permission denied while purging {purge_build.build_dir}: {e}"
+                )
+
     else:
         target = get_target(parsed)
         option_args = {
