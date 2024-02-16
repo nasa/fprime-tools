@@ -7,8 +7,6 @@ Created on Dec 18, 2014
 
 # Exception classes for all types
 from fprime.common.error import FprimeException
-from .fprime_integer_metadata import FPRIME_INTEGER_METADATA
-
 
 class TypeException(FprimeException):
     """An exception in our python types"""
@@ -132,22 +130,21 @@ class CompoundTypeLengthMismatchException(TypeException):
 class InvalidRepresentationTypeException(TypeException):
     """Representation type of the given enumeration is not an F prime integer type"""
 
-    def __init__(self, given_rep_type):
+    def __init__(self, given_rep_type, types):
         super().__init__(
             "Representation type {} not found in F prime types ({})"
-        ).format(given_rep_type, str(FPRIME_INTEGER_METADATA.keys()))
+        ).format(given_rep_type, str(types))
 
 
 class RepresentationTypeRangeException(TypeException):
     """Enumeration member is out of range of the representation type"""
 
-    def __init__(self, key, value, given_rep_type):
+    def __init__(self, key, value, given_rep_type, range):
         super().__init__(
             "Enumeration member {} with value {} is out of range of representation type {} ({}-{})".format(
                 key,
                 value,
                 given_rep_type,
-                FPRIME_INTEGER_METADATA[given_rep_type]["min"],
-                FPRIME_INTEGER_METADATA[given_rep_type]["max"],
+                *range
             )
         )

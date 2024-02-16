@@ -22,6 +22,11 @@ class NumericalType(ValueType, abc.ABC):
     """Numerical types that can be serialized using struct and are of some power of 2 byte width"""
 
     @classmethod
+    def get_canonical_name(cls):
+        """ Returns the fprime C++ name for the type """
+        return cls.__name__.replace("Type", "")
+
+    @classmethod
     @abc.abstractmethod
     def get_bits(cls):
         """Gets the integer bits of a given type"""

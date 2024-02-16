@@ -5,7 +5,6 @@ Created on Dec 18, 2014
 import struct
 
 from .type_base import DictionaryType
-from .fprime_integer_metadata import FPRIME_INTEGER_METADATA
 from .type_exceptions import (
     DeserializeException,
     EnumMismatchException,
@@ -15,6 +14,8 @@ from .type_exceptions import (
     InvalidRepresentationTypeException,
     RepresentationTypeRangeException,
 )
+from .numerical_types import IntegerType
+REPRESENTATION_TYPE_MAP = {cls.get_canonical_name(): cls for cls in IntegerType.__subclasses__()}
 
 
 class EnumType(DictionaryType):
@@ -45,16 +46,17 @@ class EnumType(DictionaryType):
             if not isinstance(enum_dict[member], int):
                 raise TypeMismatchException(int, enum_dict[member])
 
-        if rep_type not in FPRIME_INTEGER_METADATA.keys():
-            raise InvalidRepresentationTypeException(rep_type)
+        if rep_type not in REPRESENTATION_TYPE_MAP.keys():
+            raise InvalidRepresentationTypeException(rep_type, REPRESENTATION_TYPE_MAP.keys())
 
         for member in enum_dict.keys():
+            type_range = REPRESENTATION_TYPE_MAP[rep_type].range()
             if (
-                enum_dict[member] < FPRIME_INTEGER_METADATA[rep_type]["min"]
-                or enum_dict[member] > FPRIME_INTEGER_METADATA[rep_type]["max"]
+                enum_dict[member] < type_range[0]
+                or enum_dict[member] > type_range[1]
             ):
                 raise RepresentationTypeRangeException(
-                    member, enum_dict[member], rep_type
+                    member, enum_dict[member], rep_type, type_range
                 )
 
         return DictionaryType.construct_type(
@@ -87,7 +89,7 @@ class EnumType(DictionaryType):
         ):
             raise NotInitializedException(type(self))
         return struct.pack(
-            FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"],
+            REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format(),
             self.ENUM_DICT[self._val],
         )
 
@@ -97,7 +99,7 @@ class EnumType(DictionaryType):
         """
         try:
             int_val = struct.unpack_from(
-                FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"], data, offset
+                REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format(), data, offset
             )[0]
 
         except struct.error:
@@ -114,12 +116,12 @@ class EnumType(DictionaryType):
     def getSize(self):
         """Calculates the size based on the size of an integer used to store it"""
         return struct.calcsize(
-            FPRIME_INTEGER_METADATA[self.REP_TYPE]["struct_formatter"]
+            REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format()
         )
 
     @classmethod
     def getMaxSize(cls):
         """Maximum size of type"""
         return struct.calcsize(
-            FPRIME_INTEGER_METADATA[cls.REP_TYPE]["struct_formatter"]
+            REPRESENTATION_TYPE_MAP[cls.REP_TYPE].get_serialize_format()
         )
