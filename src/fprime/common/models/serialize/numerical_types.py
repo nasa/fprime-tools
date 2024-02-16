@@ -23,7 +23,7 @@ class NumericalType(ValueType, abc.ABC):
 
     @classmethod
     def get_canonical_name(cls):
-        """ Returns the fprime C++ name for the type """
+        """Returns the fprime C++ name for the type"""
         return cls.__name__.replace("Type", "")
 
     @classmethod

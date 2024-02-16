@@ -8,6 +8,7 @@ Created on Dec 18, 2014
 # Exception classes for all types
 from fprime.common.error import FprimeException
 
+
 class TypeException(FprimeException):
     """An exception in our python types"""
 
@@ -142,9 +143,6 @@ class RepresentationTypeRangeException(TypeException):
     def __init__(self, key, value, given_rep_type, range):
         super().__init__(
             "Enumeration member {} with value {} is out of range of representation type {} ({}-{})".format(
-                key,
-                value,
-                given_rep_type,
-                *range
+                key, value, given_rep_type, *range
             )
         )
