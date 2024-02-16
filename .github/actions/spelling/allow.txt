@@ -25,6 +25,10 @@ calcsize
 changelog
 chdir
 classmethod
+Endian
+endian
+Endianness
+endianness
 lestarch
 LGTM
 lgtm

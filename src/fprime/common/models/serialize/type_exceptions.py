@@ -126,3 +126,23 @@ class CompoundTypeLengthMismatchException(TypeException):
             "%d fields provided, but compound type expects %d fields!"
             % (field_length_given, field_length_actual)
         )
+
+
+class InvalidRepresentationTypeException(TypeException):
+    """Representation type of the given enumeration is not an F prime integer type"""
+
+    def __init__(self, given_rep_type, types):
+        super().__init__(
+            "Representation type {} not found in F prime types ({})"
+        ).format(given_rep_type, str(types))
+
+
+class RepresentationTypeRangeException(TypeException):
+    """Enumeration member is out of range of the representation type"""
+
+    def __init__(self, key, value, given_rep_type, range):
+        super().__init__(
+            "Enumeration member {} with value {} is out of range of representation type {} ({}-{})".format(
+                key, value, given_rep_type, *range
+            )
+        )

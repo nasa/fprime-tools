@@ -11,7 +11,14 @@ from .type_exceptions import (
     NotInitializedException,
     TypeMismatchException,
     TypeRangeException,
+    InvalidRepresentationTypeException,
+    RepresentationTypeRangeException,
 )
+from .numerical_types import IntegerType
+
+REPRESENTATION_TYPE_MAP = {
+    cls.get_canonical_name(): cls for cls in IntegerType.__subclasses__()
+}
 
 
 class EnumType(DictionaryType):
@@ -24,7 +31,7 @@ class EnumType(DictionaryType):
     """
 
     @classmethod
-    def construct_type(cls, name, enum_dict):
+    def construct_type(cls, name, enum_dict, rep_type="I32"):
         """Construct the custom enum type
 
         Constructs the custom enumeration type, with the supplied enumeration dictionary.
@@ -32,6 +39,7 @@ class EnumType(DictionaryType):
         Args:
             name: name of the enumeration type
             enum_dict: enumeration: value dictionary defining the enumeration
+            rep_type: representation type (standard Fprime integer types)
         """
         if not isinstance(enum_dict, dict):
             raise TypeMismatchException(dict, type(enum_dict))
@@ -40,7 +48,22 @@ class EnumType(DictionaryType):
                 raise TypeMismatchException(str, type(member))
             if not isinstance(enum_dict[member], int):
                 raise TypeMismatchException(int, enum_dict[member])
-        return DictionaryType.construct_type(cls, name, ENUM_DICT=enum_dict)
+
+        if rep_type not in REPRESENTATION_TYPE_MAP.keys():
+            raise InvalidRepresentationTypeException(
+                rep_type, REPRESENTATION_TYPE_MAP.keys()
+            )
+
+        for member in enum_dict.keys():
+            type_range = REPRESENTATION_TYPE_MAP[rep_type].range()
+            if enum_dict[member] < type_range[0] or enum_dict[member] > type_range[1]:
+                raise RepresentationTypeRangeException(
+                    member, enum_dict[member], rep_type, type_range
+                )
+
+        return DictionaryType.construct_type(
+            cls, name, ENUM_DICT=enum_dict, REP_TYPE=rep_type
+        )
 
     @classmethod
     def validate(cls, val):
@@ -67,14 +90,22 @@ class EnumType(DictionaryType):
             self._val == "UNDEFINED" and "UNDEFINED" not in self.ENUM_DICT
         ):
             raise NotInitializedException(type(self))
-        return struct.pack(">i", self.ENUM_DICT[self._val])
+        return struct.pack(
+            REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format(),
+            self.ENUM_DICT[self._val],
+        )
 
     def deserialize(self, data, offset):
         """
         Deserialize the enumeration using an int type
         """
         try:
-            int_val = struct.unpack_from(">i", data, offset)[0]
+            int_val = struct.unpack_from(
+                REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format(),
+                data,
+                offset,
+            )[0]
+
         except struct.error:
             msg = f"Could not deserialize enum value. Needed: {self.getSize()} bytes Found: {len(data[offset:])}"
             raise DeserializeException(msg)
@@ -86,12 +117,15 @@ class EnumType(DictionaryType):
         else:
             raise TypeRangeException(int_val)
 
-    @classmethod
-    def getSize(cls):
+    def getSize(self):
         """Calculates the size based on the size of an integer used to store it"""
-        return struct.calcsize(">i")
+        return struct.calcsize(
+            REPRESENTATION_TYPE_MAP[self.REP_TYPE].get_serialize_format()
+        )
 
     @classmethod
     def getMaxSize(cls):
         """Maximum size of type"""
-        return cls.getSize()  # Always the same as getSize
+        return struct.calcsize(
+            REPRESENTATION_TYPE_MAP[cls.REP_TYPE].get_serialize_format()
+        )
