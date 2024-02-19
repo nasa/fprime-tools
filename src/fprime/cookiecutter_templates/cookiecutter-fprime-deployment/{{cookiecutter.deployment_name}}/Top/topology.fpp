@@ -82,7 +82,7 @@ module {{cookiecutter.deployment_name}} {
 
       comStub.comStatus -> framer.comStatusIn
       framer.comStatusOut -> comQueue.comStatusIn
-      comStub.drvDataOut -> comDriver.send
+      comStub.drvDataOut -> comDriver.$send
 
     }
 
