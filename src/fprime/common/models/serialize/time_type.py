@@ -289,7 +289,10 @@ class TimeType(type_base.BaseType):
 
         # If we could convert to a valid datetime, use that, otherwise, format
         if dt:
-            return dt.strftime("%Y-%m-%d %H:%M:%S%z")
+            # datetime.isoformat() returns time string with microsecond 
+            # precision.
+            # This line can be changed for other precisions or needs.
+            return dt.isoformat()
         return "%s: %d.%06ds, context=%d" % (
             TimeBase(self.__timeBase.val).name,
             self.__secs.val,
