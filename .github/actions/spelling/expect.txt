@@ -115,6 +115,7 @@ isdir
 isfile
 isinstance
 isnumeric
+isoformat
 Isr
 issubclass
 iterdir
@@ -246,6 +247,7 @@ testbuild
 testimpl
 textwrap
 timebase
+timespec
 toctree
 todo
 toolchain
