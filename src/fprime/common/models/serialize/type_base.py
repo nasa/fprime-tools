@@ -4,6 +4,7 @@ Created on Dec 18, 2014
 @author: reder
 Replaced type base class with decorators
 """
+
 import abc
 
 from .type_exceptions import AbstractMethodException
