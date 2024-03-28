@@ -8,6 +8,7 @@ to load the settings from the settings.default file that is part of the F prime 
 """
 import configparser
 import os
+import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
@@ -172,7 +173,7 @@ class IniSettings:
             confparse = configparser.ConfigParser()
             confparse.read(settings_file)
         else:
-            print(f"[WARNING] {settings_file} does not exist")
+            print(f"[WARNING] {settings_file} does not exist", file=sys.stderr)
 
         settings = {
             "settings_file": settings_file,
