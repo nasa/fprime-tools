@@ -160,7 +160,8 @@ def run_code_format(
         ____: unused pass-through arguments
     """
     options = {
-        "verbose": not parsed.quiet,
+        "quiet": parsed.quiet,
+        "verbose": parsed.verbose,
         "backup": not parsed.no_backup,
         "validate_extensions": not parsed.force,
     }
