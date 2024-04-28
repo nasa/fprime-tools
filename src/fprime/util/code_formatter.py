@@ -154,8 +154,8 @@ class ClangFormatter(ExecutableAction):
             print(f"[INFO]    {self.executable}")
             print("[INFO] Clang format arguments:")
             print(f"[INFO]    {clang_args}")
-            print("[INFO] Context:")
-            print(f"[INFO]    {context}")
-        status = subprocess.run(clang_args, cwd=context)
+            print("[INFO] Style file path:")
+            print(f"[INFO]    {self.style_file}")
+        status = subprocess.run(clang_args, cwd=self.style_file.parent)
         self._postprocess_files()
         return status.returncode
