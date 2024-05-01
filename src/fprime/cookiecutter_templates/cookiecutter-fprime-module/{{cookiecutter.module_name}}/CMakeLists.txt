@@ -16,9 +16,14 @@ set(SOURCE_FILES
 
 # Uncomment and add any modules that this module depends on, else
 # they might not be available when cmake tries to build this module.
-
-set(MOD_DEPS
-  MyOtherModule
-)
+#
+# Module names are derived from the path from the nearest project/library/framework
+# root when not specifically overridden by the developer. i.e. The module defined by
+# `Ref/SignalGen/CMakeLists.txt` will be named `Ref_SignalGen`.  `Ref/SignalGen`
+# is an acceptable alternative and will be internally converted to `Ref_SignalGen`.
+#
+#set(MOD_DEPS
+#  MyPackage_MyOtherModule
+#)
 
 register_fprime_module()
