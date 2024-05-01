@@ -5,8 +5,8 @@
 # MOD_DEPS: (optional) module dependencies
 # UT_SOURCE_FILES: list of source files for unit tests
 #
-# More information in the F´ CMake API:
-# https://nasa.github.io/fprime/UsersGuide/api/cmake/API.html#function-register_fprime_module
+# More information in the F´ CMake API documentation:
+# https://nasa.github.io/fprime/UsersGuide/api/cmake/API.html
 #
 ####
 
