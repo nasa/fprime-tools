@@ -19,7 +19,7 @@ set(SOURCE_FILES
 # they might not be available when cmake tries to build this component.
 
 # set(MOD_DEPS
-#     Add your dependencies here
+#   MyOtherModule
 # )
 
 register_fprime_module()

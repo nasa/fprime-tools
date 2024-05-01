@@ -17,8 +17,8 @@ set(SOURCE_FILES
 # Uncomment and add any modules that this module depends on, else
 # they might not be available when cmake tries to build this module.
 
-# set(MOD_DEPS
-#   MyOtherModule
-# )
+set(MOD_DEPS
+  MyOtherModule
+)
 
 register_fprime_module()
