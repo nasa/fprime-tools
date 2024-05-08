@@ -77,11 +77,13 @@ def run_fbuild_cli(
                     if Path(purge_build.build_dir).is_dir():
                         perform_purge = True
                     else:
-                        print(f"[WARNING] Skipping purge. The following directory does not exist: {purge_build.build_dir}")
+                        print(
+                            f"[WARNING] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
+                        )
                 else:
                     perform_purge = confirm("Purge this directory?")
 
-                if (perform_purge):
+                if perform_purge:
                     purge_build.purge()
 
                 install_dir = purge_build.install_dest_exists()
