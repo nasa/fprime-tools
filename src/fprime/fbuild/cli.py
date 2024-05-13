@@ -78,7 +78,7 @@ def run_fbuild_cli(
                         perform_purge = True
                     else:
                         print(
-                            f"[WARNING] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
+                            f"[INFO] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
                         )
                 else:
                     perform_purge = confirm("Purge this directory?")
