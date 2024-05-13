@@ -72,8 +72,20 @@ def run_fbuild_cli(
                 f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
             )
             try:
-                if parsed.force or confirm("Purge this directory?"):
+                perform_purge = False
+                if parsed.force:
+                    if Path(purge_build.build_dir).is_dir():
+                        perform_purge = True
+                    else:
+                        print(
+                            f"[INFO] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
+                        )
+                else:
+                    perform_purge = confirm("Purge this directory?")
+
+                if perform_purge:
                     purge_build.purge()
+
                 install_dir = purge_build.install_dest_exists()
                 if (
                     purge_build.build_type != BuildType.BUILD_CUSTOM
