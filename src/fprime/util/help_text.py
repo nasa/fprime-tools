@@ -292,6 +292,8 @@ Usage:
   Generate a new F' component within a F' project. This command prompts for what type of component and what it should
   include. At the end of the generation, the user can chose to automatically add the component to the build system and
   run the implementation generator.
+  -- New Subtopology --
+  Generate a new F' subtopology. This command prompts for the name of the subtopology, and outputs a folder containing the structure for one. The user can then add the subtopology to their own project depending on where the subtopology is generated.
 """,
     "format": f"""Format C/C++ files using clang-format
 

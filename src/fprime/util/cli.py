@@ -180,6 +180,13 @@ def add_special_parsers(
         dest="new_project",
         help="Generate a new project",
     )
+    new_exclusive.add_argument(
+        "--subtopology",
+        default=False,
+        action="store_true",
+        dest="new_subtopology",
+        help="Generate a new subtopology",
+    )
 
     # Code formatting with clang-format
     format_parser = subparsers.add_parser(

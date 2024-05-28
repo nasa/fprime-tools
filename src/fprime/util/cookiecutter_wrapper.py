@@ -188,6 +188,47 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     print(f"[INFO] New deployment successfully created: {gen_path}")
     return 0
 
+def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
+    """Creates a new subtopolgy using cookiecutter"""
+    # Checks if subtopology_cookiecutter is set in settings.ini file, else uses local install template as default
+    if (
+        build.get_settings("subtopology_cookiecutter", None) is not None
+        and build.get_settings("subtopology_cookiecutter", None) != "default"
+    ):
+        source = build.get_settings("subtopology_cookiecutter", None)
+        print(f"[INFO] Cookiecutter source: {source}")
+    else:
+        source = (
+            os.path.dirname(__file__)
+            + "/../cookiecutter_templates/cookiecutter-fprime-subtopology"
+        )
+        print("[INFO] Cookiecutter: using builtin template for new subtopology")
+    try:
+        gen_path = Path(
+            cookiecutter(source, overwrite_if_exists=parsed_args.overwrite)
+        ).resolve()
+        # Attempt to register to CMakeLists.txt or project.cmake
+        register_with_cmake(
+            gen_path,
+            Path(build.get_settings("project_root", None)).resolve(),
+            build.cmake_root,
+        )
+
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"[INFO] New subtopology successfully created: {gen_path}")
+    return 0
+
 
 def new_module(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new F' project"""
