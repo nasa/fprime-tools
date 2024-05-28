@@ -17,5 +17,3 @@ namespace {{cookiecutter.subtopology_name}}
         // TODO: Add teardown code here
     }
 }
-
-// GNJ7BBP73WE9
