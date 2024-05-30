@@ -145,7 +145,7 @@ void setupTopology(const TopologyState& state) {
     connectComponents();
     // Autocoded command registration. Function provided by autocoder.
     regCommands();
-    // Project-specific component configuration. Function provided above. May be inlined, if desired.
+    // Deployment-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
     // Autocoded parameter loading. Function provided by autocoder.
     // loadParameters();
