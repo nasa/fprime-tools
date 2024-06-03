@@ -24,7 +24,7 @@ from fprime.util.cookiecutter_wrapper import (
     new_deployment,
     new_module,
     new_project,
-    new_subtopology
+    new_subtopology,
 )
 
 

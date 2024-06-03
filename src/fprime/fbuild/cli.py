@@ -5,6 +5,7 @@ target operations.
 
 @author mstarch
 """
+
 import argparse
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple

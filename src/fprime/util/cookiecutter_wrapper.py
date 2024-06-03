@@ -188,6 +188,7 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     print(f"[INFO] New deployment successfully created: {gen_path}")
     return 0
 
+
 def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new subtopolgy using cookiecutter"""
     # Checks if subtopology_cookiecutter is set in settings.ini file, else uses local install template as default

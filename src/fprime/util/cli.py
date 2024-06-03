@@ -4,6 +4,7 @@ Defines main entrypoint for fprime-util and sets up parsers for general CLI targ
 
 @author mstarch
 """
+
 import argparse
 import os
 import re

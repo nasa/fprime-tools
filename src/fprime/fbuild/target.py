@@ -5,6 +5,7 @@ contain build system targets (e.g. CMake target invokers), and miscellaneous tar
 
 @author lestarch
 """
+
 import functools
 import itertools
 from abc import ABC, abstractmethod
