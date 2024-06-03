@@ -190,7 +190,7 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
 
 
 def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
-    """Creates a new subtopolgy using cookiecutter"""
+    """Creates a new subtopology using cookiecutter"""
     # Checks if subtopology_cookiecutter is set in settings.ini file, else uses local install template as default
     if (
         build.get_settings("subtopology_cookiecutter", None) is not None
