@@ -1,6 +1,6 @@
 module {{cookiecutter.subtopology_name}}Config {
     # Base ID for your subtopology. All instantiated components will be offsets of this
-    {{cookiecutter.subtopology_name}}_BASE_ID = << FILL THIS IN >>
+    constant {{cookiecutter.subtopology_name}}_BASE_ID = << FILL THIS IN >>
     
     # include default Queue and Stack sizes here
     module Defaults {
