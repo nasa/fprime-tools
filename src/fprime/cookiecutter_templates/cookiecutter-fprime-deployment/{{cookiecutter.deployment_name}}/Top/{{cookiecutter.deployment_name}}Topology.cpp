@@ -147,8 +147,10 @@ void setupTopology(const TopologyState& state) {
     regCommands();
     // Project-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
+    // Component-specific configurations using fpp phases. Function provided by autocoder.
+    configComponents(state);
     // Autocoded parameter loading. Function provided by autocoder.
-    // loadParameters();
+    loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
 {%- if (cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]) %}
