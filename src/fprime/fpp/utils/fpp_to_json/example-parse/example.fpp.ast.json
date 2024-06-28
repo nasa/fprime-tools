@@ -1,0 +1,426 @@
+[
+  {
+    "members" : [
+      [
+        [
+        ],
+        {
+          "DefModule" : {
+            "node" : {
+              "AstNode" : {
+                "data" : {
+                  "name" : "A",
+                  "members" : [
+                    [
+                      [
+                      ],
+                      {
+                        "DefConstant" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "B",
+                                "value" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "ExprLiteralInt" : {
+                                        "value" : "1"
+                                      }
+                                    },
+                                    "id" : 258
+                                  }
+                                }
+                              },
+                              "id" : 259
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ],
+                    [
+                      [
+                      ],
+                      {
+                        "DefConstant" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "C",
+                                "value" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "ExprLiteralInt" : {
+                                        "value" : "0x44"
+                                      }
+                                    },
+                                    "id" : 260
+                                  }
+                                }
+                              },
+                              "id" : 261
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ],
+                    [
+                      [
+                      ],
+                      {
+                        "DefConstant" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "D",
+                                "value" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "ExprLiteralString" : {
+                                        "value" : "hello"
+                                      }
+                                    },
+                                    "id" : 262
+                                  }
+                                }
+                              },
+                              "id" : 263
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ],
+                    [
+                      [
+                      ],
+                      {
+                        "DefComponentInstance" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "E",
+                                "component" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "Qualified" : {
+                                        "qualifier" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "Unqualified" : {
+                                                "name" : "Component"
+                                              }
+                                            },
+                                            "id" : 264
+                                          }
+                                        },
+                                        "name" : {
+                                          "AstNode" : {
+                                            "data" : "A",
+                                            "id" : 265
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "id" : 266
+                                  }
+                                },
+                                "baseId" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "ExprLiteralInt" : {
+                                        "value" : "0x4444"
+                                      }
+                                    },
+                                    "id" : 267
+                                  }
+                                },
+                                "implType" : "None",
+                                "file" : "None",
+                                "queueSize" : "None",
+                                "stackSize" : "None",
+                                "priority" : "None",
+                                "cpu" : "None",
+                                "initSpecs" : [
+                                ]
+                              },
+                              "id" : 268
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ],
+                    [
+                      [
+                      ],
+                      {
+                        "DefComponentInstance" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "F",
+                                "component" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "Qualified" : {
+                                        "qualifier" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "Unqualified" : {
+                                                "name" : "Component"
+                                              }
+                                            },
+                                            "id" : 269
+                                          }
+                                        },
+                                        "name" : {
+                                          "AstNode" : {
+                                            "data" : "B",
+                                            "id" : 270
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "id" : 271
+                                  }
+                                },
+                                "baseId" : {
+                                  "AstNode" : {
+                                    "data" : {
+                                      "ExprLiteralInt" : {
+                                        "value" : "0x5555"
+                                      }
+                                    },
+                                    "id" : 272
+                                  }
+                                },
+                                "implType" : "None",
+                                "file" : "None",
+                                "queueSize" : {
+                                  "Some" : {
+                                    "AstNode" : {
+                                      "data" : {
+                                        "ExprLiteralInt" : {
+                                          "value" : "10"
+                                        }
+                                      },
+                                      "id" : 273
+                                    }
+                                  }
+                                },
+                                "stackSize" : "None",
+                                "priority" : "None",
+                                "cpu" : "None",
+                                "initSpecs" : [
+                                ]
+                              },
+                              "id" : 274
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ],
+                    [
+                      [
+                      ],
+                      {
+                        "DefTopology" : {
+                          "node" : {
+                            "AstNode" : {
+                              "data" : {
+                                "name" : "G",
+                                "members" : [
+                                  [
+                                    [
+                                    ],
+                                    {
+                                      "SpecTopImport" : {
+                                        "node" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "top" : {
+                                                "AstNode" : {
+                                                  "data" : {
+                                                    "Unqualified" : {
+                                                      "name" : "I"
+                                                    }
+                                                  },
+                                                  "id" : 350
+                                                }
+                                              }
+                                            },
+                                            "id" : 351
+                                          }
+                                        }
+                                      }
+                                    },
+                                    [
+                                    ]
+                                  ],
+                                  [
+                                    [
+                                    ],
+                                    {
+                                      "SpecCompInstance" : {
+                                        "node" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "visibility" : {
+                                                "Public" : {
+                                                  
+                                                }
+                                              },
+                                              "instance" : {
+                                                "AstNode" : {
+                                                  "data" : {
+                                                    "Unqualified" : {
+                                                      "name" : "E"
+                                                    }
+                                                  },
+                                                  "id" : 353
+                                                }
+                                              }
+                                            },
+                                            "id" : 354
+                                          }
+                                        }
+                                      }
+                                    },
+                                    [
+                                    ]
+                                  ],
+                                  [
+                                    [
+                                    ],
+                                    {
+                                      "SpecCompInstance" : {
+                                        "node" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "visibility" : {
+                                                "Public" : {
+                                                  
+                                                }
+                                              },
+                                              "instance" : {
+                                                "AstNode" : {
+                                                  "data" : {
+                                                    "Unqualified" : {
+                                                      "name" : "F"
+                                                    }
+                                                  },
+                                                  "id" : 356
+                                                }
+                                              }
+                                            },
+                                            "id" : 357
+                                          }
+                                        }
+                                      }
+                                    },
+                                    [
+                                    ]
+                                  ],
+                                  [
+                                    [
+                                    ],
+                                    {
+                                      "SpecConnectionGraph" : {
+                                        "node" : {
+                                          "AstNode" : {
+                                            "data" : {
+                                              "Direct" : {
+                                                "name" : "H",
+                                                "connections" : [
+                                                  {
+                                                    "fromPort" : {
+                                                      "AstNode" : {
+                                                        "data" : {
+                                                          "componentInstance" : {
+                                                            "AstNode" : {
+                                                              "data" : {
+                                                                "Unqualified" : {
+                                                                  "name" : "E"
+                                                                }
+                                                              },
+                                                              "id" : 378
+                                                            }
+                                                          },
+                                                          "portName" : {
+                                                            "AstNode" : {
+                                                              "data" : "pout",
+                                                              "id" : 377
+                                                            }
+                                                          }
+                                                        },
+                                                        "id" : 379
+                                                      }
+                                                    },
+                                                    "fromIndex" : "None",
+                                                    "toPort" : {
+                                                      "AstNode" : {
+                                                        "data" : {
+                                                          "componentInstance" : {
+                                                            "AstNode" : {
+                                                              "data" : {
+                                                                "Unqualified" : {
+                                                                  "name" : "F"
+                                                                }
+                                                              },
+                                                              "id" : 382
+                                                            }
+                                                          },
+                                                          "portName" : {
+                                                            "AstNode" : {
+                                                              "data" : "pin",
+                                                              "id" : 381
+                                                            }
+                                                          }
+                                                        },
+                                                        "id" : 383
+                                                      }
+                                                    },
+                                                    "toIndex" : "None"
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "id" : 384
+                                          }
+                                        }
+                                      }
+                                    },
+                                    [
+                                    ]
+                                  ]
+                                ]
+                              },
+                              "id" : 385
+                            }
+                          }
+                        }
+                      },
+                      [
+                      ]
+                    ]
+                  ]
+                },
+                "id" : 386
+              }
+            }
+          }
+        },
+        [
+        ]
+      ]
+    ]
+  }
+]
