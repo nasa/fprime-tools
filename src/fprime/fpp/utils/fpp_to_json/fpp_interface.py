@@ -1,7 +1,6 @@
 import subprocess
 import os
 
-
 def fpp_depend(cache_folder, input_file, locs_files) -> str:
     """
     This function calculates the dependencies for an fpp file using fprime-util to get
