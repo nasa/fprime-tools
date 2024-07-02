@@ -89,7 +89,7 @@ class CompInstanceWriter:
             self.comp_instance.stack_size is not None
             and self.comp_instance.stack_size != "None"
         ):
-            part_1 = part_1 + f" \\ \n    stack size {self.comp_instance.stack_sizez}"
+            part_1 = part_1 + f" \\ \n    stack size {self.comp_instance.stack_size}"
 
         if (
             self.comp_instance.priority is not None
