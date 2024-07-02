@@ -46,6 +46,8 @@ def fpp_depend(cache_folder, input_file, locs_files) -> str:
     except subprocess.CalledProcessError as e:
         print(f"[ERR] fpp-depend failed with error: {e}")
         return 1
+    
+    raise Exception("fpp-depend failed")
 
 
 def compute_simple_dependencies(locs_file, input):
@@ -81,7 +83,7 @@ def fpp_to_json(input_file):
     cmdS = ["fpp-to-json", input_file, "-s"]
 
     try:
-        fppToJSON = subprocess.run(cmdS, check=True, stdout=subprocess.PIPE)
+        subprocess.run(cmdS, check=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         raise Exception(f"[ERR] fpp-to-json pt2 failed with error: {e}")
 
@@ -110,7 +112,7 @@ def fpp_format(input_file):
         return 1
 
 
-def fpp_locate_defs(input_file, locs_file):
+def fpp_locate_defs(input_file):
     """
     This function runs fpp-locate-defs on an fpp file to locate definitions.
 
@@ -122,7 +124,6 @@ def fpp_locate_defs(input_file, locs_file):
 
     print(f"[fpp] Running fpp-locate-defs for {os.path.basename(input_file)}...")
 
-    locs_file = os.path.abspath(locs_file)
     base_dir = os.path.dirname(input_file)
 
     try:

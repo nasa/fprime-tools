@@ -257,11 +257,10 @@ class InstanceParser(ValueElements):
 
                 try:
                     self.instance_elements["phases"][specType] = specCode
-                except:
+                except KeyError:
                     print(
                         "[WARN] Phase type not found in instance JSON [InstanceParser.parse_phases]"
                     )
-                    pass
 
     def parse(self):
         self.instance_name = self.instance_JSON["DefComponentInstance"]["node"][
@@ -542,12 +541,12 @@ class ConnectionGraphParser(ValueElements):
 
         for connection in self.cg_connections:
             if (
-                connection["source"]["num"] == None
+                connection["source"]["num"] is None
                 or connection["source"]["num"] == "None"
             ):
                 connection["source"]["num"] = ""
 
-            if connection["dest"]["num"] == None or connection["dest"]["num"] == "None":
+            if connection["dest"]["num"] is None or connection["dest"]["num"] == "None":
                 connection["dest"]["num"] = ""
 
             part = (
@@ -736,6 +735,8 @@ def Binops(binop):
         return "*"
     elif binop == "Div":
         return "/"
+    else:
+        raise Exception("Invalid binop")
 
 
 def parse_binop(constant_JSON):
@@ -793,6 +794,8 @@ def parse_constant(constant_JSON):
         return qualifier_calculator(constant_Value_JSON["ExprDot"])
     elif "ExprBinop" in constant_Value_JSON:
         return parse_binop(constant_Value_JSON)
+    else:
+        raise Exception("Invalid constant type")
 
 
 def parse_array(constant_JSON):
@@ -883,6 +886,8 @@ def module_walker(AST, qf, type, type_parser):
                             return _type
             elif module.module_name == qf[0] and len(qf) == 1:
                 return m
+    
+    raise Exception("Element not found")
             
 def openFppFile(path):
     if not os.path.isabs(path):

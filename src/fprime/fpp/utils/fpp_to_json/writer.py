@@ -129,10 +129,10 @@ class FppConnectionGraph:
         return f"connections {self.connection_graph_name} {{"
 
     def connect(self, connection):
-        if connection["source"]["num"] == None or connection["source"]["num"] == "None":
+        if connection["source"]["num"] is None or connection["source"]["num"] == "None":
             connection["source"]["num"] = ""
 
-        if connection["dest"]["num"] == None or connection["dest"]["num"] == "None":
+        if connection["dest"]["num"] is None or connection["dest"]["num"] == "None":
             connection["dest"]["num"] = ""
 
         return f"    {connection['source']['name']}{connection['source']['num']} -> {connection['dest']['name']}{connection['dest']['num']}"
@@ -215,7 +215,7 @@ class FppInstance:
     def __init__(self, instance_name, instance_details):
         self.instance_name = ""
         self.instance_details = {
-            "instaceOf": "",
+            "instanceOf": "",
             "base_id": "",
             "queueSize": "",
             "stackSize": "",
