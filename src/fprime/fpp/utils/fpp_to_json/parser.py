@@ -735,8 +735,8 @@ def Binops(binop):
         return "*"
     elif binop == "Div":
         return "/"
-    else:
-        raise Exception("Invalid binop")
+        
+    raise Exception("Invalid binop")
 
 
 def parse_binop(constant_JSON):
