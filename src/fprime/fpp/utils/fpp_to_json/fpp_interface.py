@@ -46,7 +46,7 @@ def fpp_depend(cache_folder, input_file, locs_files) -> str:
     except subprocess.CalledProcessError as e:
         print(f"[ERR] fpp-depend failed with error: {e}")
         return 1
-    
+
     raise Exception("fpp-depend failed")
 
 

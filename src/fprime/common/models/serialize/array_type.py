@@ -3,6 +3,7 @@
 Created on May 29, 2020
 @author: jishii
 """
+
 from fprime.util.string_util import format_string_template
 
 from . import serializable_type
@@ -95,9 +96,11 @@ class ArrayType(DictionaryType):
             "type": self.__class__.__name__,
             "size": self.LENGTH,
             "format": self.FORMAT,
-            "values": None
-            if self._val is None
-            else [member.to_jsonable() for member in self._val],
+            "values": (
+                None
+                if self._val is None
+                else [member.to_jsonable() for member in self._val]
+            ),
         }
 
     def serialize(self):

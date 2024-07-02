@@ -72,9 +72,10 @@ class ModuleParser(QualifyingElements):
     - module_preannot: The pre-annotation for the module
     - module_postannot: The post-annotation for the module
     - qf: The qualified form of the module name
-    
+
     AST Name: DefModule
     """
+
     def __init__(self, module_JSON_list):
         self.module_JSON = {}
         self.module_name = None
@@ -111,9 +112,10 @@ class ConstantParser(ValueElements):
     - constant_preannot: The pre-annotation for the constant
     - constant_postannot: The post-annotation for the constant
     - qf: The qualified form of the constant name
-    
+
     AST Name: DefConstant
     """
+
     def __init__(self, constant_JSON_list):
         self.constant_JSON = {}
         self.constant_Id = None
@@ -151,9 +153,10 @@ class InstanceSpecParser(ValueElements):
     - instance_spec_preannot: The pre-annotation for the instance specification
     - instance_spec_postannot: The post-annotation for the instance specification
     - qf: The qualified form of the instance specification name
-    
+
     AST Name: SpecCompInstance
     """
+
     def __init__(self, instance_JSON_list):
         self.instance_JSON = {}
         self.instance_name = None
@@ -202,7 +205,7 @@ class InstanceParser(ValueElements):
     - instance_preannot: The pre-annotation for the instance
     - instance_postannot: The post-annotation for the instance
     - qf: The qualified form of the instance name
-    
+
     The instance_elements dictionary contains the following elements:
     - component_name: The name of the component
     - base_id: The base ID of the instance
@@ -211,9 +214,10 @@ class InstanceParser(ValueElements):
     - priority: The priority of the instance
     - cpu: The CPU of the instance
     - phases: A dictionary containing the phases (FppToCpp) of the instance
-    
+
     AST Name: DefComponentInstance
     """
+
     def __init__(self, instance_JSON_list):
         self.instance_JSON = {}
         self.instance_name = None
@@ -435,9 +439,10 @@ class PortParser(ValueElements):
     - port_postannot: The post-annotation for the port
     - port_params: A list of dictionaries containing the port's parameters
     - qf: The qualified form of the port name
-    
+
     AST Name: DefPort
     """
+
     def __init__(self, port_JSON_list):
         self.port_JSON = {}
         self.port_name = None
@@ -484,9 +489,10 @@ class TopologyImport(ValueElements):
     - import_preannot: The pre-annotation for the import
     - import_postannot: The post-annotation for the import
     - qf: The qualified form of the
-    
+
     AST Name: SpecTopImport
     """
+
     def __init__(self, import_JSON_list):
         self.import_JSON = {}
         self.import_name = None
@@ -520,9 +526,10 @@ class ConnectionGraphParser(ValueElements):
     - qf: The qualified form of the connection graph name
     - cg_connections: A list of dictionaries containing the connection graph's connections
     - cg_type: The type of the connection graph (pattern or direct)
-    
+
     AST Name: SpecConnectionGraph
     """
+
     def __init__(self, cg_JSON_list):
         self.cg_JSON = {}
         self.cg_name = None
@@ -640,9 +647,10 @@ class TopologyParser(QualifyingElements):
     - topology_preannot: The pre-annotation for the topology
     - topology_postannot: The post-annotation for the topology
     - qf: The qualified form of the topology name
-    
+
     AST Name: DefTopology
     """
+
     def __init__(self, topology_JSON_list):
         self.topology_JSON = {}
         self.topology_name = None
@@ -678,7 +686,7 @@ class TopologyParser(QualifyingElements):
 def qualifier_calculator(qualifier_JSON):
     """
     Calculate the qualified name for a variable, instance, etc
-    
+
     Args:
         qualifier_JSON: The JSON AST for the qualifier
     """
@@ -697,7 +705,7 @@ def qualifier_calculator(qualifier_JSON):
 def value_parser(value_JSON):
     """
     Parse a value from the JSON AST. This could be parsing integers, strings, arrays, etc.
-    
+
     Args:
         value_JSON: The JSON AST for the value
     """
@@ -723,7 +731,7 @@ def value_parser(value_JSON):
 def Binops(binop):
     """
     Convert binop string name to actual operator
-    
+
     Args:
         binop: The binop string name
     """
@@ -735,14 +743,14 @@ def Binops(binop):
         return "*"
     elif binop == "Div":
         return "/"
-        
+
     raise Exception("Invalid binop")
 
 
 def parse_binop(constant_JSON):
     """
     Parse a binary operation from the JSON AST
-    
+
     Args:
         constant_JSON: The JSON AST for the binary operation
     """
@@ -770,7 +778,7 @@ def parse_binop(constant_JSON):
 def parse_constant(constant_JSON):
     """
     Parse a constant from the JSON AST
-    
+
     Args:
         constant_JSON: The JSON AST for the constant
     """
@@ -801,7 +809,7 @@ def parse_constant(constant_JSON):
 def parse_array(constant_JSON):
     """
     Parse an array from the JSON AST
-    
+
     Args:
         constant_JSON: The JSON AST for the array
     """
@@ -826,7 +834,7 @@ def parse_array(constant_JSON):
 def parse_struct(constant_JSON):
     """
     Parse a struct from the JSON AST
-    
+
     Args:
         constant_JSON: The JSON AST for the struct
     """
@@ -843,6 +851,7 @@ def parse_struct(constant_JSON):
         )
 
     return structOpen + "}"
+
 
 def module_walker(AST, qf, type, type_parser):
     """
@@ -886,9 +895,10 @@ def module_walker(AST, qf, type, type_parser):
                             return _type
             elif module.module_name == qf[0] and len(qf) == 1:
                 return m
-    
+
     raise Exception("Element not found")
-            
+
+
 def openFppFile(path):
     if not os.path.isabs(path):
         path = str(Path(path).resolve())

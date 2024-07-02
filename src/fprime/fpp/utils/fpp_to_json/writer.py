@@ -1,5 +1,6 @@
 import fprime.fpp.utils.fpp_to_json.fpp_interface as fpp
 
+
 def writeFppFile(file, content):
     """
     This function writes content to a file and formats the file using fpp-format.
@@ -24,13 +25,15 @@ def writeFppFile(file, content):
 
     return file
 
+
 class FppModule:
     """
     Class to represent and write an fpp module.
-    
+
     Args:
         module_name (str): The name of the module.
     """
+
     def __init__(self, module_name):
         self.module_name = ""
         self.module_name = module_name
@@ -46,11 +49,12 @@ class FppConstant:
     """
     Class to represent and write an fpp constant. Constants can be of any supported FPP
     type.
-    
+
     Args:
         constant_name (str): The name of the constant.
         constant_value (str): The value of the constant
     """
+
     def __init__(self, constant_name, constant_value):
         self.constant_name = ""
         self.constant_value = ""
@@ -61,13 +65,15 @@ class FppConstant:
     def write(self):
         return f"constant {self.constant_name} = {self.constant_value}"
 
+
 class FppTopology:
     """
     Class to represent and write an fpp topology.
-    
+
     Args:
         topology_name (str): The name of the topology.
     """
+
     def __init__(self, topology_name):
         self.topology_name = ""
 
@@ -83,10 +89,11 @@ class FppTopology:
 class FppInstanceSpec:
     """
     Class to represent and write an fpp instance spec.
-    
+
     Args:
         instance_spec_name (str): The name of the instance spec.
     """
+
     def __init__(self, instance_name):
         self.instance_name = instance_name
 
@@ -97,10 +104,10 @@ class FppInstanceSpec:
 class FppConnectionGraph:
     """
     Class to represent and write an fpp connection graph.
-    
+
     Args:
         connection_graph_name (str): The name of the connection graph.
-        
+
     Methods:
         make_connection_dict: Creates a connection dictionary in the proper structure
         open: Opens the connection graph.
@@ -109,20 +116,15 @@ class FppConnectionGraph:
         save_connection: Saves a connection to the connection graph.
         close: Closes the connection graph.
     """
+
     def __init__(self, connection_graph_name):
         self.connections = []
         self.connection_graph_name = connection_graph_name
-        
+
     def make_connection_dict(self, source, sourcePort, dest, destPort):
         return {
-            "source": {
-                "name": source,
-                "num": sourcePort
-            },
-            "dest": {
-                "name": dest,
-                "num": destPort
-            }
+            "source": {"name": source, "num": sourcePort},
+            "dest": {"name": dest, "num": destPort},
         }
 
     def open(self):
@@ -160,24 +162,26 @@ class FppConnectionGraph:
 class FppImport:
     """
     Class to represent and write an fpp import. Like: `import Topology`
-    
+
     Args:
         import_name (str): The name of the import.
     """
+
     def __init__(self, import_name):
         self.import_name = import_name
 
     def write(self):
         return f"import {self.import_name}"
-    
+
+
 class FppInclude:
     def __init__(self, include_name, path):
         self.include_path = None
         self.include_name = include_name
-        
+
         if path[0] != ".":
             raise ValueError("Path must be relative")
-        
+
         self.include_path = path
 
     def write(self):
@@ -187,11 +191,11 @@ class FppInclude:
 class FppInstance:
     """
     Class to represent and write an fpp component instance.
-    
+
     Args:
         instance_name (str): The name of the instance.
         instance_details (dict): The details of the instance.
-        
+
     instance_details structure:
     {
         "instanceOf": "",
@@ -212,6 +216,7 @@ class FppInstance:
         },
     }
     """
+
     def __init__(self, instance_name, instance_details):
         self.instance_name = ""
         self.instance_details = {
