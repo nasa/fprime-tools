@@ -1,6 +1,7 @@
 abspath
 abstractmethod
 agg
+annotatable
 api
 appendable
 argparse
@@ -40,9 +41,9 @@ lgtm
 Linux
 localhost
 preannot
-preannotation
+preannotations
 postannot
-postannotation
+postannotations
 Prm
 prm
 Serializables
