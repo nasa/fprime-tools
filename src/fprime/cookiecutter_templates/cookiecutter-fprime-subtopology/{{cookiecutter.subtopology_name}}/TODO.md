@@ -22,6 +22,6 @@ set(SOURCE_FILES
 register_fprime_module()
 ```
 
-Lastly, add `add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/SubtopologyConfigs/")` to your `project.cmake` folder.
+3. Lastly, add `add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/SubtopologyConfigs/")` to your `project.cmake` folder.
 
 In the future, you only need to add the config file to your source list. The directory setup should be a one-time event.
