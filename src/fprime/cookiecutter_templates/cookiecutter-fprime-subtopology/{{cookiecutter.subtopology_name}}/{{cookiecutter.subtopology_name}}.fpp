@@ -16,6 +16,7 @@ module {{cookiecutter.subtopology_name}} {
     #       """
     #   }
 
+    @ {{cookiecutter.subtopology_desc}}
     topology {{cookiecutter.subtopology_name}} {
 
         # include any instance declarations here

@@ -1,7 +1,9 @@
 {
     "subtopology_name": "MySubtopology",
+    "subtopology_desc": "My Subtopology Description",
     "__subtopology_name_upper": "{{cookiecutter.subtopology_name.upper()}}",
     "__prompts__": {
-        "st_name": "Subtopology name"
+        "subtopology_name": "Subtopology name",
+        "subtopology_desc": "Subtopology description"
     }
 }
