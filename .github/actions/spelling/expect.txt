@@ -287,3 +287,6 @@ wxgui
 xml
 version-check
 0x48piraj
+
+mosa
+aei
