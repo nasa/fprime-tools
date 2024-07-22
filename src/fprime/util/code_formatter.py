@@ -51,6 +51,7 @@ class ClangFormatter(ExecutableAction):
         self.style_file = style_file
         self.backup = options.get("backup", True)
         self.verbose = options.get("verbose", False)
+        self.quiet = options.get("quiet", False)
         self.validate_extensions = options.get("validate_extensions", True)
         self.allowed_extensions = ALLOWED_EXTENSIONS.copy()
         self._files_to_format: List[Path] = []
@@ -143,11 +144,18 @@ class ClangFormatter(ExecutableAction):
         clang_args = [
             self.executable,
             "-i",
-            f"--style=file:{self.style_file}",
-            *(["--verbose"] if self.verbose else []),
+            f"--style=file",
+            *(["--verbose"] if not self.quiet else []),
             *pass_through,
             *self._files_to_format,
         ]
+        if self.verbose:
+            print("[INFO] Clang format executable:")
+            print(f"[INFO]    {self.executable}")
+            print("[INFO] Clang format arguments:")
+            print(f"[INFO]    {clang_args[1:]}")
+            print("[INFO] Clang format style file:")
+            print(f"[INFO]    {self.style_file}")
         status = subprocess.run(clang_args)
         self._postprocess_files()
         return status.returncode
