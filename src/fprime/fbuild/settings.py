@@ -222,6 +222,7 @@ class IniSettings:
                         Path(settings["project_root"] / "_fprime_packages" / folder)
                     )
         except FileNotFoundError:
+            # we shouldn't error out if the _fprime_packages folder doesn't exist
             pass
 
         return settings
