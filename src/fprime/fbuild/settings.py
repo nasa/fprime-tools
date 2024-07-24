@@ -6,6 +6,7 @@ to load the settings from the settings.default file that is part of the F prime 
 
 @author mstarch
 """
+
 import configparser
 import os
 import sys
@@ -211,16 +212,18 @@ class IniSettings:
             settings["environment_file"]
         )
         del settings["_cmake_project_root"]
-        
+
         # add _fprime_packages to library locations
         try:
             if os.path.exists(settings["project_root"] / "_fprime_packages"):
                 # glob all folders
                 for folder in os.listdir(settings["project_root"] / "_fprime_packages"):
-                    settings["library_locations"].append(Path(settings["project_root"] / "_fprime_packages" / folder))
+                    settings["library_locations"].append(
+                        Path(settings["project_root"] / "_fprime_packages" / folder)
+                    )
         except FileNotFoundError:
             pass
-        
+
         return settings
 
     @staticmethod

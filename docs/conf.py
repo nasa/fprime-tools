@@ -3,6 +3,7 @@
 Documentation:
 https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
+
 # pylint: disable=invalid-name
 
 import re

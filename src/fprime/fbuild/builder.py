@@ -2,6 +2,7 @@
 Supplies high-level build functions to the greater fprime helper CLI. This maps from user command space to the specific
 build system handler underneath.
 """
+
 import os
 import re
 from pathlib import Path

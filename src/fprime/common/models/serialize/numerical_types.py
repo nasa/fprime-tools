@@ -6,6 +6,7 @@ that map to stdint.h integer sizes, that is, 8-bit, 16-bit, 32-bit, and 64-bit s
 
 @author mstarch
 """
+
 import abc
 import struct
 

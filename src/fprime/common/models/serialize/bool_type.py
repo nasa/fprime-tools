@@ -2,6 +2,7 @@
 Created on Dec 18, 2014
 @author: tcanham, reder
 """
+
 import struct
 
 from .type_base import ValueType

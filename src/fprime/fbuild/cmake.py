@@ -7,6 +7,7 @@ receiver of these delegated functions.
 
 @author mstarch
 """
+
 # Get a cache directory for building CMakeList file, if need and remove at exit
 import collections
 import copy

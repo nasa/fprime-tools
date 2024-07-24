@@ -4,6 +4,7 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
+
 import struct
 
 from fprime.constants import DATA_ENCODING

@@ -4,6 +4,7 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
+
 from fprime.util.string_util import format_string_template
 
 from . import array_type
