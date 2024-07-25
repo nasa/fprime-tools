@@ -3,9 +3,10 @@ from fprime.fpp.utils.fpp_to_json.helpers import openFppFile
 import fprime.fpp.utils.fpp_to_json.visitors.json_conversion as JSONConverter
 import fprime.fpp.utils.fpp_to_json.node_structs as NodeStructs
 
+
 def walkModule(data, oldQf):
     module = NodeStructs.Module(data)
-    module:NodeStructs.Module = JSONConverter.ModuleConverter(module).convert()
+    module: NodeStructs.Module = JSONConverter.ModuleConverter(module).convert()
 
     if oldQf == "":
         qf = module.name
@@ -17,12 +18,16 @@ def walkModule(data, oldQf):
     for member in module.members:
         if "DefComponentInstance" in member[1]:
             instance = NodeStructs.ComponentInst(member)
-            instance:NodeStructs.ComponentInst = JSONConverter.CompInstanceConverter(instance).convert()
+            instance: NodeStructs.ComponentInst = JSONConverter.CompInstanceConverter(
+                instance
+            ).convert()
             instance.qf = qf + "." + instance.name
 
         if "DefConstant" in member[1]:
             constant = NodeStructs.Constant(member)
-            constant:NodeStructs.Constant = JSONConverter.ConstantConverter(constant).convert()
+            constant: NodeStructs.Constant = JSONConverter.ConstantConverter(
+                constant
+            ).convert()
             constant.qf = qf + "." + constant.id
 
         # can be continued for other member types
@@ -38,7 +43,7 @@ def walkModule(data, oldQf):
 
 def walkTopology(data, module):
     topology = NodeStructs.Topology(data)
-    topology:NodeStructs.Topology = JSONConverter.TopologyConverter(topology).convert()
+    topology: NodeStructs.Topology = JSONConverter.TopologyConverter(topology).convert()
 
     if module == "":
         qf = topology.name

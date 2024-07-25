@@ -6,6 +6,7 @@ import fprime.fpp.utils.fpp_to_json.fpp_interface as fpp
 from fprime.fpp.utils.fpp_to_json.visitors.json_conversion import ModuleConverter
 import fprime.fpp.utils.fpp_to_json.node_structs as NodeStructs
 
+
 def qualifier_calculator(qualifier_JSON):
     """
     Calculate the qualified name for a variable, instance, etc

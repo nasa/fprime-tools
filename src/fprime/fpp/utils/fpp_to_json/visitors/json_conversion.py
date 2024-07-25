@@ -1,44 +1,48 @@
 import fprime.fpp.utils.fpp_to_json.node_structs as NodeStructs
 import fprime.fpp.utils.fpp_to_json.helpers as Utils
 
+
 class ModuleConverter:
     """
     AST Name: DefModule
     """
 
     def __init__(self, module: NodeStructs.Module):
-        self.module_struct:NodeStructs.Module = module
+        self.module_struct: NodeStructs.Module = module
 
         self.module_struct.preannot = module.ast[0]
         self.module_JSON = module.ast[1]
         self.module_struct.postannot = module.ast[2]
 
     def convert(self):
-        self.module_struct.name = self.module_JSON["DefModule"]["node"]["AstNode"]["data"][
-            "name"
-        ]
+        self.module_struct.name = self.module_JSON["DefModule"]["node"]["AstNode"][
+            "data"
+        ]["name"]
         self.module_struct.qf = self.module_struct.name
 
-        self.module_struct.members = self.module_JSON["DefModule"]["node"]["AstNode"]["data"]["members"]
-        
+        self.module_struct.members = self.module_JSON["DefModule"]["node"]["AstNode"][
+            "data"
+        ]["members"]
+
         return self.module_struct
-    
+
+
 class ConstantConverter:
     """
     AST Name: DefConstant
     """
 
     def __init__(self, constant: NodeStructs.Constant):
-        self.constant_struct:NodeStructs.Constant = constant
+        self.constant_struct: NodeStructs.Constant = constant
 
         self.constant_struct.preannot = constant.ast[0]
         self.constant_JSON = constant.ast[1]
         self.constant_struct.postannot = constant.ast[2]
 
     def convert(self):
-        self.constant_struct.id = self.constant_JSON["DefConstant"]["node"]["AstNode"]["data"][
-            "name"
-        ]
+        self.constant_struct.id = self.constant_JSON["DefConstant"]["node"]["AstNode"][
+            "data"
+        ]["name"]
         self.constant_struct.qf = self.constant_struct.id
 
         constant_Value_JSON = self.constant_JSON["DefConstant"]["node"]["AstNode"][
@@ -46,17 +50,18 @@ class ConstantConverter:
         ]["value"]
 
         self.constant_struct.value = Utils.parse_constant(constant_Value_JSON)
-        
+
         return self.constant_struct
-        
+
+
 class InstanceSpecConverter:
     """
     AST Name: SpecCompInstance
     """
 
     def __init__(self, instance: NodeStructs.InstanceSpec):
-        self.instance_struct:NodeStructs.InstanceSpec = instance
-        
+        self.instance_struct: NodeStructs.InstanceSpec = instance
+
         self.instance_struct.preannot = instance.ast[0]
         self.instance_JSON = instance.ast[1]
         self.instance_struct.postannot = instance.ast[2]
@@ -83,25 +88,26 @@ class InstanceSpecConverter:
             ]
         ):
             self.instance_struct.visibility = "private"
-            
+
         return self.instance_struct
-            
+
+
 class CompInstanceConverter:
     """
     AST Name: DefComponentInstance
     """
 
-    def __init__(self, instance: NodeStructs.ComponentInst):        
-        self.instance_struct:NodeStructs.ComponentInst = instance
+    def __init__(self, instance: NodeStructs.ComponentInst):
+        self.instance_struct: NodeStructs.ComponentInst = instance
 
         self.instance_struct.preannot = instance.ast[0]
         self.instance_JSON = instance.ast[1]
         self.instance_struct.postannot = instance.ast[2]
-            
+
     def convert(self):
         self._parse()
         self._parse_phases()
-        
+
         return self.instance_struct
 
     def _parse_phases(self):
@@ -158,9 +164,9 @@ class CompInstanceConverter:
             "priority"
             in self.instance_JSON["DefComponentInstance"]["node"]["AstNode"]["data"]
         ):
-            self.instance_struct.priority = self.instance_JSON[
-                "DefComponentInstance"
-            ]["node"]["AstNode"]["data"]["priority"]
+            self.instance_struct.priority = self.instance_JSON["DefComponentInstance"][
+                "node"
+            ]["AstNode"]["data"]["priority"]
 
         if (
             self.instance_struct.queue_size is not None
@@ -200,14 +206,10 @@ class CompInstanceConverter:
             self.instance_struct.priority is not None
             and self.instance_struct.priority != "None"
         ):
-            priority_JSON = self.instance_struct.priority["Some"]["AstNode"][
-                "data"
-            ]
+            priority_JSON = self.instance_struct.priority["Some"]["AstNode"]["data"]
 
             if "ExprLiteralInt" in priority_JSON:
-                self.instance_struct.priority = priority_JSON["ExprLiteralInt"][
-                    "value"
-                ]
+                self.instance_struct.priority = priority_JSON["ExprLiteralInt"]["value"]
             elif "ExprIdent" in priority_JSON:
                 self.instance_struct.priority = priority_JSON["ExprIdent"]["value"]
             elif "ExprDot" in priority_JSON:
@@ -237,21 +239,24 @@ class CompInstanceConverter:
                     self.instance_struct.cpu = Utils.qualifier_calculator(
                         cpu_JSON["ExprDot"]
                     )
-                    
+
+
 class PortConverter:
     """
     AST Name: DefPort
     """
 
-    def __init__(self, port: NodeStructs.Port):        
-        self.port_struct:NodeStructs.Port = port
+    def __init__(self, port: NodeStructs.Port):
+        self.port_struct: NodeStructs.Port = port
 
         self.port_struct.preannot = port.ast[0]
         self.port_JSON = port.ast[1]
         self.port_struct.postannot = port.ast[2]
 
     def convert(self):
-        self.port_struct.name = self.port_JSON["DefPort"]["node"]["AstNode"]["data"]["name"]
+        self.port_struct.name = self.port_JSON["DefPort"]["node"]["AstNode"]["data"][
+            "name"
+        ]
         self.port_struct.qf = self.port_name
 
         for i in self.port_JSON["DefPort"]["node"]["AstNode"]["data"]["params"]:
@@ -264,17 +269,18 @@ class PortConverter:
             paramToAppend["name"] = param["AstNode"]["data"]["name"]
             paramToAppend["type"] = param["AstNode"]["data"]["typeName"]
             paramToAppend["type"] = Utils.value_parser(paramToAppend["type"])
-            
+
             self.port_struct.parameters.append(paramToAppend)
-            
+
         return self.port_struct
-            
+
+
 class TopologyImportConverter:
     """
     AST Name: SpecTopImport
     """
 
-    def __init__(self, import_struct: NodeStructs.TopologyImport):        
+    def __init__(self, import_struct: NodeStructs.TopologyImport):
         self.import_struct = import_struct
 
         self.import_struct.preannot = import_struct.ast[0]
@@ -288,15 +294,16 @@ class TopologyImportConverter:
 
         self.import_struct.name = Utils.value_parser(import_bit_1)
         self.import_struct.qf = self.import_struct.name
-        
+
         return self.import_struct
-        
+
+
 class ConnectionGraphConverter:
     """
     AST Name: SpecConnectionGraph
     """
 
-    def __init__(self, cg: NodeStructs.ConnectionGraph):        
+    def __init__(self, cg: NodeStructs.ConnectionGraph):
         self.cg_struct = cg
 
         self.cg_struct.preannot = cg.ast[0]
@@ -332,7 +339,9 @@ class ConnectionGraphConverter:
             compInst = fromPort["componentInstance"]
 
             connectionToAppend["source"]["name"] = (
-                Utils.value_parser(compInst) + "." + fromPort["portName"]["AstNode"]["data"]
+                Utils.value_parser(compInst)
+                + "."
+                + fromPort["portName"]["AstNode"]["data"]
             )
 
             if connectionToAppend["source"]["name"][-4:] == "None":
@@ -356,7 +365,9 @@ class ConnectionGraphConverter:
             compInst = toPort["componentInstance"]
 
             connectionToAppend["dest"]["name"] = (
-                Utils.value_parser(compInst) + "." + toPort["portName"]["AstNode"]["data"]
+                Utils.value_parser(compInst)
+                + "."
+                + toPort["portName"]["AstNode"]["data"]
             )
 
             if connectionToAppend["dest"]["name"][-4:] == "None":
@@ -377,27 +388,30 @@ class ConnectionGraphConverter:
                     )
 
             self.cg_struct.connections.append(connectionToAppend)
-        
+
         return self.cg_struct
-            
+
+
 class TopologyConverter:
     """
     AST Name: DefTopology
     """
 
     def __init__(self, topology: NodeStructs.Topology):
-        self.topology_struct:NodeStructs.Topology = topology
+        self.topology_struct: NodeStructs.Topology = topology
 
         self.topology_struct.preannot = topology.ast[0]
         self.topology_JSON = topology.ast[1]
         self.topology_struct.postannot = topology.ast[2]
 
     def convert(self):
-        self.topology_struct.name = self.topology_JSON["DefTopology"]["node"]["AstNode"][
-            "data"
-        ]["name"]
+        self.topology_struct.name = self.topology_JSON["DefTopology"]["node"][
+            "AstNode"
+        ]["data"]["name"]
         self.topology_struct.qf = self.topology_struct.name
 
-        self.topology_struct.members = self.topology_JSON["DefTopology"]["node"]["AstNode"]["data"]["members"]
-        
+        self.topology_struct.members = self.topology_JSON["DefTopology"]["node"][
+            "AstNode"
+        ]["data"]["members"]
+
         return self.topology_struct

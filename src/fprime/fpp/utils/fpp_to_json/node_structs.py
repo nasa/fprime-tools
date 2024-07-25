@@ -8,6 +8,7 @@ structure for any new element. Then, a converter is required to turn an input AS
 these structures.
 """
 
+
 class Module:
     """
     Attributes:
@@ -18,15 +19,17 @@ class Module:
         postannot: The postannotations of the module
         qf: The qualified name of the module
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
         self.members = []
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class Constant:
     """
     Attributes:
@@ -37,15 +40,17 @@ class Constant:
         postannot: The postannotations of the constant
         qf: The qualified name of the constant
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.id = None
         self.value = None
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class InstanceSpec:
     """
     Attributes:
@@ -56,15 +61,17 @@ class InstanceSpec:
         postannot: The postannotations of the instance spec
         qf: The qualified name of the instance spec
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
         self.visibility = None
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class ComponentInst:
     """
     Attributes:
@@ -81,6 +88,7 @@ class ComponentInst:
         postannot: The postannotations of the component instance
         qf: The qualified name of the component instance
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
@@ -100,11 +108,12 @@ class ComponentInst:
             "stopTasks": None,
             "freeThreads": None,
         }
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class Port:
     """
     Attributes:
@@ -115,15 +124,17 @@ class Port:
         postannot: The postannotations of the port
         qf: The qualified name of the port
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
         self.parameters = []
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class TopologyImport:
     """
     Attributes:
@@ -133,14 +144,16 @@ class TopologyImport:
         postannot: The postannotations of the topology import
         qf: The qualified name of the topology import
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class ConnectionGraph:
     """
     Attributes:
@@ -152,16 +165,18 @@ class ConnectionGraph:
         postannot: The postannotations of the connection graph
         qf: The qualified name of the connection graph
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
         self.connections = []
         self.type = None
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
-        
+
+
 class Topology:
     """
     Attributes:
@@ -172,11 +187,12 @@ class Topology:
         postannot: The postannotations of the topology
         qf: The qualified name of the topology
     """
+
     def __init__(self, ast):
         self.ast = ast
         self.name = None
         self.members = []
-        
+
         self.preannot = None
         self.postannot = None
         self.qf = None
