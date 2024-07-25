@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 import json
 import fprime.fpp.utils.fpp_to_json.fpp_interface as fpp
-import fprime.fpp.utils.fpp_to_json.visitors.json_conversion as JSONConverter
+from fprime.fpp.utils.fpp_to_json.visitors.json_conversion import ModuleConverter
 import fprime.fpp.utils.fpp_to_json.node_structs as NodeStructs
 
 def qualifier_calculator(qualifier_JSON):
@@ -195,13 +195,13 @@ def module_walker(AST, qf, type, type_parser):
     for m in AST:
         if "DefModule" in m[1]:
             module = NodeStructs.Module(m)
-            module: NodeStructs.Module = JSONConverter.ModuleConverter(module).convert()
+            module: NodeStructs.Module = ModuleConverter(module).convert()
 
             if module.name == qf[0] and len(qf) > 1:
-                for _m in module.members():
+                for _m in module.members:
                     if "DefModule" in _m[1]:
                         moduleDeeper = NodeStructs.Module(_m)
-                        moduleDeeper: NodeStructs.Module = JSONConverter.ModuleConverter(
+                        moduleDeeper: NodeStructs.Module = ModuleConverter(
                             moduleDeeper
                         ).convert()
 
