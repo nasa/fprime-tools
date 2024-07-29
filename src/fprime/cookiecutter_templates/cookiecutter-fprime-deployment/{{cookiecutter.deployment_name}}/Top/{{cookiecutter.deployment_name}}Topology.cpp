@@ -143,6 +143,8 @@ void setupTopology(const TopologyState& state) {
     setBaseIds();
     // Autocoded connection wiring. Function provided by autocoder.
     connectComponents();
+    // Autocoded configuration. Function provided by autocoder.
+    configComponents(state);
     // Deployment-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
     // Autocoded command registration. Function provided by autocoder.
