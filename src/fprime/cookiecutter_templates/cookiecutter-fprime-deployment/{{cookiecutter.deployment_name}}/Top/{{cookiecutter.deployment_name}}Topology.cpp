@@ -143,12 +143,12 @@ void setupTopology(const TopologyState& state) {
     setBaseIds();
     // Autocoded connection wiring. Function provided by autocoder.
     connectComponents();
+    // Autocoded configuration. Function provided by autocoder.
+    configComponents(state);
     // Deployment-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
     // Autocoded command registration. Function provided by autocoder.
     regCommands();
-    // Component-specific configurations using fpp phases. Function provided by autocoder.
-    configComponents(state);
     // Autocoded parameter loading. Function provided by autocoder.
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
@@ -159,7 +159,7 @@ void setupTopology(const TopologyState& state) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
         comDriver.configure(state.hostname, state.port);
-        comDriver.startSocketTask(name, true, COMM_PRIORITY, Default::STACK_SIZE);
+        comDriver.start(name, true, COMM_PRIORITY, Default::STACK_SIZE);
     }
 {%- elif cookiecutter.com_driver_type == "UART" %}
     if (state.uartDevice != nullptr) {
@@ -167,7 +167,7 @@ void setupTopology(const TopologyState& state) {
         // Uplink is configured for receive so a socket task is started
         if (comDriver.open(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate), 
                            Drv::LinuxUartDriver::NO_FLOW, Drv::LinuxUartDriver::PARITY_NONE, Svc::DeframerCfg::RING_BUFFER_SIZE)) {
-            comDriver.startReadThread(COMM_PRIORITY, Default::STACK_SIZE);
+            comDriver.start(COMM_PRIORITY, Default::STACK_SIZE);
         } else {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
@@ -179,7 +179,7 @@ void setupTopology(const TopologyState& state) {
 Os::Mutex cycleLock;
 volatile bool cycleFlag = true;
 
-void startSimulatedCycle(U32 milliseconds) {
+void startSimulatedCycle(Fw::Time interval) {
     cycleLock.lock();
     bool cycling = cycleFlag;
     cycleLock.unLock();
@@ -187,7 +187,7 @@ void startSimulatedCycle(U32 milliseconds) {
     // Main loop
     while (cycling) {
         {{cookiecutter.deployment_name}}::blockDrv.callIsr();
-        Os::Task::delay(milliseconds);
+        Os::Task::delay(interval);
 
         cycleLock.lock();
         cycling = cycleFlag;
@@ -209,10 +209,10 @@ void teardownTopology(const TopologyState& state) {
     // Other task clean-up.
 {%- if cookiecutter.com_driver_type == "UART" %}
     comDriver.quitReadThread();
-    (void)comDriver.join(nullptr);
+    (void)comDriver.join();
 {%- else %}
-    comDriver.stopSocketTask();
-    (void)comDriver.joinSocketTask(nullptr);
+    comDriver.stop();
+    (void)comDriver.join();
 {%- endif %}
 
     // Resource deallocation
