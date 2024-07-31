@@ -3,9 +3,6 @@ from pathlib import Path
 import shutil
 import json
 import fprime.fpp.utils.fpp_to_json.fpp_interface as fpp
-from fprime.fpp.utils.fpp_to_json.visitors.json_conversion import ModuleConverter
-import fprime.fpp.utils.fpp_to_json.node_structs as NodeStructs
-
 
 def qualifier_calculator(qualifier_JSON):
     """
@@ -175,54 +172,6 @@ def parse_struct(constant_JSON):
         )
 
     return structOpen + "}"
-
-
-def module_walker(AST, qf, type, type_parser):
-    """
-    This function walks through the JSON AST of a module and returns the AST for a
-    specific element type with the qualified name qf.
-
-    Args:
-        AST: The JSON AST of the module
-        qf: The qualified name of the element to find (i.e. module.member.member)
-        type: The type of element to find (i.e. DefTopology, DefComponentInstance)
-        type_parser: The parser for the element type (i.e. Parser.TopologyParser)
-
-    Returns:
-        The AST for the element with the qualified name qf
-    """
-
-    qf = qf.split(".")
-    for m in AST:
-        if "DefModule" in m[1]:
-            module = NodeStructs.Module(m)
-            module: NodeStructs.Module = ModuleConverter(module).convert()
-
-            if module.name == qf[0] and len(qf) > 1:
-                for _m in module.members:
-                    if "DefModule" in _m[1]:
-                        moduleDeeper = NodeStructs.Module(_m)
-                        moduleDeeper: NodeStructs.Module = ModuleConverter(
-                            moduleDeeper
-                        ).convert()
-
-                        if moduleDeeper.name == qf[1] and len(qf) > 2:
-                            return module_walker(
-                                moduleDeeper.members,
-                                ".".join(qf[1:]),
-                                type,
-                                type_parser,
-                            )
-                    if type in _m[1]:
-                        _type = type_parser(_m)
-                        _type.parse()
-
-                        if _type.qf == qf[1]:
-                            return _type
-            elif module.name == qf[0] and len(qf) == 1:
-                return m
-
-    raise Exception("Element not found")
 
 
 def openFppFile(path):
