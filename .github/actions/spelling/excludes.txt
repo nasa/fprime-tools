@@ -43,3 +43,4 @@ ignore$
 ^\.github/
 pyproject.toml
 setup.py
+\.json$
