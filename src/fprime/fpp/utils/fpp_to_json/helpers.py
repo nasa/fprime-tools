@@ -4,6 +4,7 @@ import shutil
 import json
 import fprime.fpp.utils.fpp_to_json.fpp_interface as fpp
 
+
 def qualifier_calculator(qualifier_JSON):
     """
     Calculate the qualified name for a variable, instance, etc
