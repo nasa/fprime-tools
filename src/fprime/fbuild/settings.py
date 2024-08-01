@@ -212,6 +212,19 @@ class IniSettings:
             settings["environment_file"]
         )
         del settings["_cmake_project_root"]
+
+        # add _fprime_packages to library locations
+        try:
+            if os.path.exists(settings["project_root"] / "_fprime_packages"):
+                # glob all folders
+                for folder in os.listdir(settings["project_root"] / "_fprime_packages"):
+                    settings["library_locations"].append(
+                        Path(settings["project_root"] / "_fprime_packages" / folder)
+                    )
+        except FileNotFoundError:
+            # we shouldn't error out if the _fprime_packages folder doesn't exist
+            pass
+
         return settings
 
     @staticmethod
