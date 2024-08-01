@@ -4,6 +4,7 @@ Defines main entrypoint for fprime-util and sets up parsers for general CLI targ
 
 @author mstarch
 """
+
 import argparse
 import os
 import re
@@ -179,6 +180,13 @@ def add_special_parsers(
         action="store_true",
         dest="new_project",
         help="Generate a new project",
+    )
+    new_exclusive.add_argument(
+        "--subtopology",
+        default=False,
+        action="store_true",
+        dest="new_subtopology",
+        help="Generate a new subtopology",
     )
 
     # Code formatting with clang-format

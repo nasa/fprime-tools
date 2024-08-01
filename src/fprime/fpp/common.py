@@ -4,6 +4,7 @@ Common implementations for FPP tool wrapping.
 
 @author mstarch
 """
+
 import itertools
 import subprocess
 from pathlib import Path

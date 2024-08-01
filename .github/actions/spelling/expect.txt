@@ -1,3 +1,4 @@
+aei
 argc
 atoi
 bak
@@ -148,6 +149,7 @@ memset
 metadata
 mkdir
 mkdtemp
+mosa
 mstarch
 mul
 MULTILINE
@@ -252,6 +254,7 @@ toctree
 todo
 toolchain
 toolchains
+TOPOLOGYCONFIG
 TOPOLOGYDEFS
 truediv
 typehints

@@ -5,7 +5,6 @@ Processing and CLI entry points for `fprime-util impl` command line tool.
 @author thomas-bc
 """
 
-
 import argparse
 import os
 import tempfile
