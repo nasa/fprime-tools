@@ -619,7 +619,11 @@ class CMakeHandler:
             for key, _ in events:
                 appendable, stream = key.data
                 try:
-                    line = key.fileobj.readline().decode(errors="replace").replace("\r\n", "\n")
+                    line = (
+                        key.fileobj.readline()
+                        .decode(errors="replace")
+                        .replace("\r\n", "\n")
+                    )
                 # Some systems (like running inside Docker) raise an io error instead of returning "" when the device
                 # is ended. Not sure why this is, but the effect is the same, on IOError assume end-of-input
                 except OSError:
