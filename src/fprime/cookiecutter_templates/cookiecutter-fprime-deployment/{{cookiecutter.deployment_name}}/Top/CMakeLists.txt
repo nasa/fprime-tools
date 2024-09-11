@@ -7,7 +7,7 @@
 
 set(SOURCE_FILES
   "${CMAKE_CURRENT_LIST_DIR}/instances.fpp"
-  # Uncomment this line if you are using TlmPacketizer
+  # Note: Uncomment when using Svc:TlmPacketizer
   #"${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.deployment_name}}Packets.xml"
   "${CMAKE_CURRENT_LIST_DIR}/topology.fpp"
   "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.deployment_name}}Topology.cpp"
