@@ -195,6 +195,7 @@ def test_find_nearest_parent_project():
             with pytest.raises(fprime.fbuild.builder.UnableToDetectProjectException):
                 fprime.fbuild.builder.Build.find_nearest_parent_project(path)
 
+
 def test_build_invent_twice():
     """
     Test that the Build.invent can be called twice
