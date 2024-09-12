@@ -72,8 +72,8 @@ class Build:
     def invent(self, platform: str = None, build_dir: Path = None):
         """Invents a build path from a given platform
 
-        Sets this build up as a new build that would be used as as part of a generate step. This directory must not
-        already exist. If platform is None, a default will be chosen from the settings.ini file. If the settings.ini
+        Sets this build up as a new build that would be used as as part of a generate step.
+        If platform is None, a default will be chosen from the settings.ini file. If the settings.ini
         file does not exist, or does not specify a default_toolchain, then "native" will be used. Settings are loaded in
         this step for further uses of this build.
 
@@ -84,14 +84,8 @@ class Build:
             platform:   name of platform to build against. None will use default from settings.ini or without this
                         setting, "native". Defaults to None.
             build_dir:  explicitly sets the build path to allow for user override of default
-
-        Raises:
-            InvalidBuildCacheException: a build cache already exists as it should not
         """
         self.__setup_default(platform, build_dir)
-        if self.build_dir.exists():
-            msg = f"{self.build_dir} already exists."
-            raise InvalidBuildCacheException(msg)
 
     def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
@@ -519,10 +513,6 @@ class Build:
                         setting, "native". Defaults to None.
             build_dir:  explicitly sets the build path to allow for user override of default
         """
-        assert self.settings is None, "Already setup it is invalid to re-setup"
-        assert self.platform is None, "Already setup it is invalid to re-setup"
-        assert self.build_dir is None, "Already setup it is invalid to re-setup"
-
         self.settings = IniSettings.load(
             self.cmake_root / "settings.ini",
             platform,

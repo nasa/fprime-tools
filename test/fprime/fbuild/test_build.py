@@ -194,3 +194,17 @@ def test_find_nearest_parent_project():
         else:
             with pytest.raises(fprime.fbuild.builder.UnableToDetectProjectException):
                 fprime.fbuild.builder.Build.find_nearest_parent_project(path)
+
+def test_build_invent_twice():
+    """
+    Test that the Build.invent can be called twice
+    """
+    local = pathlib.Path(os.path.dirname(__file__))
+    dep_dir = local / "cmake-data" / "testbuild"
+    builder = fprime.fbuild.builder.Build(
+        fprime.fbuild.builder.BuildType.BUILD_NORMAL, dep_dir
+    )
+
+    # No exception should be raised here.
+    builder.invent()
+    builder.invent()
