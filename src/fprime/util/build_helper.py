@@ -108,7 +108,7 @@ def load_build(parsed, skip_validation=False):
     # However, the base directory must be setup here. Errors in this load are ignored to allow the command to find
     # build caches related to that set.
     if parsed.command == "generate":
-        build.invent(parsed.platform, build_dir=parsed.build_cache)
+        build.invent(parsed.platform, build_dir=parsed.build_cache, force=parsed.force)
     else:
         build.load(
             parsed.platform,
