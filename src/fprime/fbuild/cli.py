@@ -50,7 +50,7 @@ def run_fbuild_cli(
         make_args: arguments to supply to the build tool (make or ninja)
     """
     if parsed.command == "generate":
-        if(parsed.force): 
+        if parsed.force:
             purge(build, parsed)
 
         toolchain = build.find_toolchain()
@@ -69,7 +69,6 @@ def run_fbuild_cli(
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
         purge(build, parsed)
-        
 
     else:
         target = get_target(parsed)
@@ -83,10 +82,8 @@ def run_fbuild_cli(
             args=(make_args, pass_through, option_args),
         )
 
-def purge(
-    build: Build,
-    parsed: argparse.Namespace
-):
+
+def purge(build: Build, parsed: argparse.Namespace):
     for purge_build in Build.get_build_list(
         build, parsed.build_cache, ignore_invalid=parsed.force
     ):
@@ -125,6 +122,7 @@ def purge(
             print(
                 f"Error: Permission denied while purging {purge_build.build_dir}: {e}"
             )
+
 
 def add_target_parser(
     target: Target,
