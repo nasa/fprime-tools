@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
 
     // Setup, cycle, and teardown topology
     {{cookiecutter.deployment_name}}::setupTopology(inputs);
-    {{cookiecutter.deployment_name}}::startSimulatedCycle(Fw::Time(1,0));  // Program loop cycling rate groups at 1Hz
+    {{cookiecutter.deployment_name}}::startSimulatedCycle(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
     {{cookiecutter.deployment_name}}::teardownTopology(inputs);
     (void)printf("Exiting...\n");
     return 0;

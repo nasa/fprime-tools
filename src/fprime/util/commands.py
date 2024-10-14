@@ -23,7 +23,6 @@ from fprime.util.cookiecutter_wrapper import (
     new_component,
     new_deployment,
     new_module,
-    new_project,
     new_subtopology,
 )
 
@@ -137,8 +136,6 @@ def run_new(
         return new_deployment(build, parsed)
     if parsed.new_module:
         return new_module(build, parsed)
-    if parsed.new_project:
-        return new_project(parsed)
     if parsed.new_subtopology:
         return new_subtopology(build, parsed)
     raise NotImplementedError(
