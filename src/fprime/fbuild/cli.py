@@ -51,7 +51,8 @@ def run_fbuild_cli(
     """
     if parsed.command == "generate":
         if parsed.force:
-            purge(build, parsed)
+            print(f"[INFO] Purging build directory at: {build.build_dir}")
+            build.purge()
 
         toolchain = build.find_toolchain()
         print(f"[INFO] Generating build directory at: {build.build_dir}")
