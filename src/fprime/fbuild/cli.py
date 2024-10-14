@@ -50,7 +50,7 @@ def run_fbuild_cli(
         make_args: arguments to supply to the build tool (make or ninja)
     """
     if parsed.command == "generate":
-        if parsed.force:
+        if parsed.force and build.build_dir.exists():
             print(f"[INFO] Purging build directory at: {build.build_dir}")
             build.purge()
 
