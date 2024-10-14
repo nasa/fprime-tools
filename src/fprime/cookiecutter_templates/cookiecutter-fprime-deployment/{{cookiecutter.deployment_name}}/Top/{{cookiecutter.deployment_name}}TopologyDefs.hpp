@@ -52,40 +52,40 @@ struct TopologyState {
  * ```
  */
 namespace PingEntries {
-namespace blockDrv {
+namespace {{cookiecutter.deployment_name}}_blockDrv {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace tlmSend {
+namespace {{cookiecutter.deployment_name}}_tlmSend {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace cmdDisp {
+namespace {{cookiecutter.deployment_name}}_cmdDisp {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace cmdSeq {
+namespace {{cookiecutter.deployment_name}}_cmdSeq {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace eventLogger {
+namespace {{cookiecutter.deployment_name}}_eventLogger {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace fileDownlink {
+namespace {{cookiecutter.deployment_name}}_fileDownlink {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace fileManager {
+namespace {{cookiecutter.deployment_name}}_fileManager {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace fileUplink {
+namespace {{cookiecutter.deployment_name}}_fileUplink {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace prmDb {
+namespace {{cookiecutter.deployment_name}}_prmDb {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup1 {
+namespace {{cookiecutter.deployment_name}}_rateGroup1 {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup2 {
+namespace {{cookiecutter.deployment_name}}_rateGroup2 {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace rateGroup3 {
+namespace {{cookiecutter.deployment_name}}_rateGroup3 {
 enum { WARN = 3, FATAL = 5 };
 }
 }  // namespace PingEntries
