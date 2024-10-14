@@ -1,7 +1,0 @@
-{
-    "project_name": "MyProject",
-    "__install_venv": "yes",
-    "__prompts__": {
-        "project_name": "Project name"
-    }
-}

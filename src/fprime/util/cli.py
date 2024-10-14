@@ -61,8 +61,6 @@ def skip_build_loading(parsed):
     """Determines if the build load step should be skipped. Commands that do not require a build object
     should manually be added here by the developer.
     """
-    if parsed.command == "new" and parsed.new_project:
-        return True
     if parsed.command == "version-check":
         return True
     return False
@@ -173,13 +171,6 @@ def add_special_parsers(
         action="store_true",
         dest="new_module",
         help="Generate a new module",
-    )
-    new_exclusive.add_argument(
-        "--project",
-        default=False,
-        action="store_true",
-        dest="new_project",
-        help="Generate a new project",
     )
     new_exclusive.add_argument(
         "--subtopology",

@@ -5,6 +5,8 @@
 // ======================================================================
 // Used to access topology functions
 #include <{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}Topology.hpp>
+// OSAL initialization
+#include <Os/Os.hpp>
 // Used for signal handling shutdown
 #include <signal.h>
 // Used for command line argument processing
@@ -58,6 +60,7 @@ int main(int argc, char* argv[]) {
     CHAR* hostname = nullptr;
     U16 port_number = 0;
 {%- endif %}
+    Os::init();
 
     // Loop while reading the getopt supplied options
 {%- if cookiecutter.com_driver_type == "UART" %}
@@ -112,7 +115,7 @@ int main(int argc, char* argv[]) {
 
     // Setup, cycle, and teardown topology
     {{cookiecutter.deployment_name}}::setupTopology(inputs);
-    {{cookiecutter.deployment_name}}::startSimulatedCycle(Fw::Time(1,0));  // Program loop cycling rate groups at 1Hz
+    {{cookiecutter.deployment_name}}::startSimulatedCycle(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
     {{cookiecutter.deployment_name}}::teardownTopology(inputs);
     (void)printf("Exiting...\n");
     return 0;

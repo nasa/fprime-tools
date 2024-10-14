@@ -267,50 +267,6 @@ def new_module(build: Build, parsed_args: "argparse.Namespace"):
     return 0
 
 
-def new_project(parsed_args: "argparse.Namespace"):
-    """Creates a new F' project"""
-
-    print(
-        "[DEPRECATED] This command is deprecated and will be removed in a future release."
-        " Please use `fprime-bootstrap project` instead."
-        " Install fprime-bootstrap with `pip install fprime-bootstrap`,"
-        " or refer to https://nasa.github.io/fprime/INSTALL.html"
-    )
-
-    # Check if Git is installed and available - needed for cloning F' as submodule
-    if not shutil.which("git"):
-        print(
-            "[ERROR] Git is not installed or in PATH. Please install Git and try again.",
-            file=sys.stderr,
-        )
-        return 1
-
-    source = (
-        os.path.dirname(__file__)
-        + "/../cookiecutter_templates/cookiecutter-fprime-project"
-    )
-    try:
-        cookiecutter(
-            source,
-            overwrite_if_exists=parsed_args.overwrite,
-            output_dir=parsed_args.path,
-            extra_context={"__install_venv": "no" if parsed_args.no_venv else "yes"},
-        )
-    except OutputDirExistsException as out_directory_error:
-        print(
-            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
-            file=sys.stderr,
-        )
-        return 1
-    except FileNotFoundError as e:
-        print(
-            f"{e}. Permission denied to write to the directory.",
-            file=sys.stderr,
-        )
-        return 1
-    return 0
-
-
 def register_with_cmake(gen_path: Path, proj_root: Path, cmake_root: Path):
     cmake_file = find_nearest_cmake_file(gen_path, cmake_root, proj_root)
     if cmake_file is None or not add_to_cmake(

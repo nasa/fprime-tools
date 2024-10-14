@@ -282,9 +282,6 @@ Examples:
 '{EXECUTABLE} new' runs a wizard to create new objects in fprime (component, deployment, project).
 
 Usage:
-  -- New Project --
-  Generating a new project is now available through the fprime-bootstrap package. Please see the F´ Install Guide
-  at https://nasa.github.io/fprime/INSTALL.html for instructions on how to install and use fprime-bootstrap.
   -- New Deployment --
   Generate a new F' deployment within a F' project. The new deployment command is expected to be ran at the root of
   the project and will create a new deployment in the current directory. Using --overwrite will overwrite only the

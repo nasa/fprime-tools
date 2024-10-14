@@ -10,7 +10,6 @@
 
 // Necessary project-specified types
 #include <Fw/Types/MallocAllocator.hpp>
-#include <Os/Log.hpp>
 #include <Svc/FramingProtocol/FprimeProtocol.hpp>
 
 // Used for 1Hz synthetic cycling
@@ -18,9 +17,6 @@
 
 // Allows easy reference to objects in FPP/autocoder required namespaces
 using namespace {{cookiecutter.deployment_name}};
-
-// Instantiate a system logger that will handle Fw::Logger::logMsg calls
-Os::Log logger;
 
 // The reference topology uses a malloc-based allocator for components that need to allocate memory during the
 // initialization phase.
@@ -63,18 +59,18 @@ enum TopologyConstants {
 
 // Ping entries are autocoded, however; this code is not properly exported. Thus, it is copied here.
 Svc::Health::PingEntry pingEntries[] = {
-    {PingEntries::blockDrv::WARN, PingEntries::blockDrv::FATAL, "blockDrv"},
-    {PingEntries::tlmSend::WARN, PingEntries::tlmSend::FATAL, "chanTlm"},
-    {PingEntries::cmdDisp::WARN, PingEntries::cmdDisp::FATAL, "cmdDisp"},
-    {PingEntries::cmdSeq::WARN, PingEntries::cmdSeq::FATAL, "cmdSeq"},
-    {PingEntries::eventLogger::WARN, PingEntries::eventLogger::FATAL, "eventLogger"},
-    {PingEntries::fileDownlink::WARN, PingEntries::fileDownlink::FATAL, "fileDownlink"},
-    {PingEntries::fileManager::WARN, PingEntries::fileManager::FATAL, "fileManager"},
-    {PingEntries::fileUplink::WARN, PingEntries::fileUplink::FATAL, "fileUplink"},
-    {PingEntries::prmDb::WARN, PingEntries::prmDb::FATAL, "prmDb"},
-    {PingEntries::rateGroup1::WARN, PingEntries::rateGroup1::FATAL, "rateGroup1"},
-    {PingEntries::rateGroup2::WARN, PingEntries::rateGroup2::FATAL, "rateGroup2"},
-    {PingEntries::rateGroup3::WARN, PingEntries::rateGroup3::FATAL, "rateGroup3"},
+    {PingEntries::{{cookiecutter.deployment_name}}_blockDrv::WARN, PingEntries::{{cookiecutter.deployment_name}}_blockDrv::FATAL, "blockDrv"},
+    {PingEntries::{{cookiecutter.deployment_name}}_tlmSend::WARN, PingEntries::{{cookiecutter.deployment_name}}_tlmSend::FATAL, "chanTlm"},
+    {PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::FATAL, "cmdDisp"},
+    {PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::FATAL, "cmdSeq"},
+    {PingEntries::{{cookiecutter.deployment_name}}_eventLogger::WARN, PingEntries::{{cookiecutter.deployment_name}}_eventLogger::FATAL, "eventLogger"},
+    {PingEntries::{{cookiecutter.deployment_name}}_fileDownlink::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileDownlink::FATAL, "fileDownlink"},
+    {PingEntries::{{cookiecutter.deployment_name}}_fileManager::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileManager::FATAL, "fileManager"},
+    {PingEntries::{{cookiecutter.deployment_name}}_fileUplink::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileUplink::FATAL, "fileUplink"},
+    {PingEntries::{{cookiecutter.deployment_name}}_prmDb::WARN, PingEntries::{{cookiecutter.deployment_name}}_prmDb::FATAL, "prmDb"},
+    {PingEntries::{{cookiecutter.deployment_name}}_rateGroup1::WARN, PingEntries::{{cookiecutter.deployment_name}}_rateGroup1::FATAL, "rateGroup1"},
+    {PingEntries::{{cookiecutter.deployment_name}}_rateGroup2::WARN, PingEntries::{{cookiecutter.deployment_name}}_rateGroup2::FATAL, "rateGroup2"},
+    {PingEntries::{{cookiecutter.deployment_name}}_rateGroup3::WARN, PingEntries::{{cookiecutter.deployment_name}}_rateGroup3::FATAL, "rateGroup3"},
 };
 
 /**
@@ -180,7 +176,7 @@ void setupTopology(const TopologyState& state) {
 Os::Mutex cycleLock;
 volatile bool cycleFlag = true;
 
-void startSimulatedCycle(Fw::Time interval) {
+void startSimulatedCycle(Fw::TimeInterval interval) {
     cycleLock.lock();
     bool cycling = cycleFlag;
     cycleLock.unLock();
