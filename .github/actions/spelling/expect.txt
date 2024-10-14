@@ -164,6 +164,7 @@ openpty
 optarg
 optionxform
 oran
+OSAL
 Packetizer
 Paetz
 params
