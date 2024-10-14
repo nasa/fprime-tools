@@ -69,7 +69,7 @@ class Build:
         self.cmake = CMakeHandler()
         self.cmake.set_verbose(verbose)
 
-    def invent(self, platform: str = None, build_dir: Path = None):
+    def invent(self, platform: str = None, build_dir: Path = None, force=False):
         """Invents a build path from a given platform
 
         Sets this build up as a new build that would be used as as part of a generate step. This directory must not
@@ -91,7 +91,8 @@ class Build:
         self.__setup_default(platform, build_dir)
         if self.build_dir.exists():
             msg = f"{self.build_dir} already exists."
-            raise InvalidBuildCacheException(msg)
+            if not force:
+                raise InvalidBuildCacheException(msg)
 
     def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache

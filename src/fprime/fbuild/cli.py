@@ -50,6 +50,10 @@ def run_fbuild_cli(
         make_args: arguments to supply to the build tool (make or ninja)
     """
     if parsed.command == "generate":
+        if parsed.force and build.build_dir.exists():
+            print(f"[INFO] Purging build directory at: {build.build_dir}")
+            build.purge()
+
         toolchain = build.find_toolchain()
         print(f"[INFO] Generating build directory at: {build.build_dir}")
         print(f"[INFO] Using toolchain file {toolchain} for platform {parsed.platform}")
@@ -65,45 +69,7 @@ def run_fbuild_cli(
         build.generate(cmake_args)
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
-        build.platform = parsed.platform
-        for purge_build in Build.get_build_list(
-            build, parsed.build_cache, ignore_invalid=parsed.force
-        ):
-            print(
-                f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
-            )
-            try:
-                perform_purge = False
-                if parsed.force:
-                    if Path(purge_build.build_dir).is_dir():
-                        perform_purge = True
-                    else:
-                        print(
-                            f"[INFO] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
-                        )
-                else:
-                    perform_purge = confirm("Purge this directory?")
-
-                if perform_purge:
-                    purge_build.purge()
-
-                install_dir = purge_build.install_dest_exists()
-                if (
-                    purge_build.build_type != BuildType.BUILD_CUSTOM
-                    and install_dir
-                    and install_dir.exists()
-                ):
-                    print(
-                        f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
-                    )
-                    if parsed.force or confirm(
-                        f"Purge installation directory at {install_dir} ?"
-                    ):
-                        purge_build.purge_install()
-            except PermissionError as e:
-                print(
-                    f"Error: Permission denied while purging {purge_build.build_dir}: {e}"
-                )
+        purge(build, parsed)
 
     else:
         target = get_target(parsed)
@@ -116,6 +82,47 @@ def run_fbuild_cli(
             context=Path(parsed.path),
             args=(make_args, pass_through, option_args),
         )
+
+
+def purge(build: Build, parsed: argparse.Namespace):
+    for purge_build in Build.get_build_list(
+        build, parsed.build_cache, ignore_invalid=parsed.force
+    ):
+        print(
+            f"[INFO] {parsed.command.title()} build directory at: {purge_build.build_dir}"
+        )
+        try:
+            perform_purge = False
+            if parsed.force:
+                if Path(purge_build.build_dir).is_dir():
+                    perform_purge = True
+                else:
+                    print(
+                        f"[INFO] Skipping purge. The following directory does not exist: {purge_build.build_dir}"
+                    )
+            else:
+                perform_purge = confirm("Purge this directory?")
+
+            if perform_purge:
+                purge_build.purge()
+
+            install_dir = purge_build.install_dest_exists()
+            if (
+                purge_build.build_type != BuildType.BUILD_CUSTOM
+                and install_dir
+                and install_dir.exists()
+            ):
+                print(
+                    f"[INFO] {parsed.command.title()} install directory at: {install_dir}"
+                )
+                if parsed.force or confirm(
+                    f"Purge installation directory at {install_dir} ?"
+                ):
+                    purge_build.purge_install()
+        except PermissionError as e:
+            print(
+                f"Error: Permission denied while purging {purge_build.build_dir}: {e}"
+            )
 
 
 def add_target_parser(
@@ -240,6 +247,13 @@ def add_special_targets(
         "-D<VAR>[:<TYPE>]=<VALUE>",
         action="store_true",
         help="Pass -D flags through to CMake. Can be used multiple times.",
+    )
+    generate_parser.add_argument(
+        "-f",
+        "--force",
+        default=False,
+        action="store_true",
+        help="Before generating, purges the build directory by force if it already exists. No confirmation will be requested.",
     )
     purge_parser = subparsers.add_parser(
         "purge",
