@@ -235,7 +235,7 @@ class IniSettings:
         :param env_file: load environment from this file
         :return: environment dictionary
         """
-        parser = configparser.ConfigParser()
+        parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         parser.optionxform = str
         parser.read(env_file)
         env_dict = {}
