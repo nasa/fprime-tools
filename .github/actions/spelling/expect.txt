@@ -8,6 +8,7 @@ cargs
 CDH
 cexc
 cfg
+chrono
 ci
 cls
 cmake
