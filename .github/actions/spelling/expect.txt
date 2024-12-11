@@ -76,6 +76,7 @@ fileobj
 filepath
 firest
 floordiv
+foreach
 FPGA
 fpl
 fpp
