@@ -118,13 +118,19 @@ def add_special_parsers(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    subparsers.add_parser(
+    version_parser = subparsers.add_parser(
         "version-check",
         description=help_text.long("version-check"),
         help=help_text.short("version-check"),
         parents=[common],
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    version_parser.add_argument(
+        "--all-submodules",
+        default=False,
+        action="store_true",
+        help="Print all submodules for version information. Defaults to only public F´ repositories, for privacy.",
     )
 
     # New functionality

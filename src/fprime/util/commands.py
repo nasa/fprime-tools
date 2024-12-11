@@ -15,6 +15,11 @@ import argparse
 import sys
 from pathlib import Path
 from typing import Dict, List
+import subprocess
+import platform
+import pkg_resources
+import pip
+
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
 from fprime.util.code_formatter import ClangFormatter
@@ -192,43 +197,25 @@ def run_code_format(
 def run_version_check(
     base: Build, parsed: argparse.Namespace, _: Dict[str, str], __: Dict[str, str], ___
 ):
-    """Print out versions to help debugging"""
+    """Print out versions to help debugging
 
-    try:
-        import platform
+    This prints out versions of tools such as Python, CMake, and F Prime packages.
+    This will also print submodules information. Only submodules in github.com are printed,
+    unless all submodules are requested with --all-submodules."""
 
-        print(f"Operating System: {platform.system()}")
-        print(f"CPU Architecture: {platform.machine()}")
-        print(f"Platform: {platform.platform()}")
-        print(f"Python version: {platform.python_version()}")
-    except ImportError:  # Python >=3.6
-        print("[WARNING] Cannot import 'platform'.")
+    print(f"Operating System: {platform.system()}")
+    print(f"CPU Architecture: {platform.machine()}")
+    print(f"Platform: {platform.platform()}")
+    print(f"Python version: {platform.python_version()}")
 
-    try:
-        import subprocess
-
-        cmake_version = (
-            subprocess.check_output(["cmake", "--version"])
-            .decode("utf-8")
-            .splitlines()[0]
-            .split()[2]
-        )
-        print(f"CMake version: {cmake_version}")
-    except ImportError:  # Python >=3.6
-        print("[WARNING] Cannot import 'subprocess'.")
-
-    try:
-        import pip
-
-        print(f"Pip version: {pip.__version__}")
-    except ModuleNotFoundError:  # Python >=3.6
-        print("[WARNING] Cannot import 'Pip'.")
-
-    try:
-        import pkg_resources
-    except ModuleNotFoundError:  # Python >=3.6
-        print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
-        return
+    cmake_version = (
+        subprocess.check_output(["cmake", "--version"])
+        .decode("utf-8")
+        .splitlines()[0]
+        .split()[2]
+    )
+    print(f"CMake version: {cmake_version}")
+    print(f"Pip version: {pip.__version__}")
 
     print("Pip packages:")
     # Used to print fprime-fpp-* versions together if they are all the same to de-clutter the output
@@ -248,3 +235,32 @@ def run_version_check(
         else:
             for tool, version in fpp_packages.items():
                 print(f"    {tool}=={version}")
+
+    try:
+        out = (
+            subprocess.check_output(
+                [
+                    "git",
+                    "submodule",
+                    "--quiet",
+                    "foreach",
+                    "--recursive",
+                    "git remote get-url origin && git describe --tags --always",
+                ]
+            )
+            .decode("utf-8")
+            .splitlines()
+        )
+        fprime_version_pairs = [(out[i], out[i + 1]) for i in range(0, len(out), 2)]
+        if fprime_version_pairs:
+            print(f"Project submodules:")
+            for remote, version in fprime_version_pairs:
+                # Filter out by remotes unless all submodules are requested (for privacy reasons)
+                if (
+                    "github.com/nasa" in remote
+                    or "github.com/fprime-community" in remote
+                    or parsed.all_submodules
+                ):
+                    print(f"    {remote} @ {version}")
+    except:
+        print("[WARNING] Failed to retrieve submodule version information.")
