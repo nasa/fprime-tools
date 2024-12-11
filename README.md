@@ -7,7 +7,8 @@ pip install fprime-tools
 ```
 
 Issues for these tools should be reported here: [File an issue](https://github.com/nasa/fprime/issues/new/choose)
-See also: https://nasa.github.io/fprime to see the F´ framework.
+
+See also: https://fprime.jpl.nasa.gov to see the F´ framework.
 
 ## Developer Installation
 

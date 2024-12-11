@@ -6,7 +6,7 @@
 # UT_SOURCE_FILES: list of source files for unit tests
 #
 # More information in the F´ CMake API documentation:
-# https://nasa.github.io/fprime/UsersGuide/api/cmake/API.html
+# https://fprime.jpl.nasa.gov/latest/documentation/reference
 #
 ####
 
@@ -28,3 +28,16 @@ set(SOURCE_FILES
 # )
 
 register_fprime_module()
+
+
+### Unit Tests ###
+# set(UT_SOURCE_FILES
+#   "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.component_name}}.fpp"
+#   "${CMAKE_CURRENT_LIST_DIR}/test/ut/{{cookiecutter.component_name}}TestMain.cpp"
+#   "${CMAKE_CURRENT_LIST_DIR}/test/ut/{{cookiecutter.component_name}}Tester.cpp"
+# )
+# set(UT_MOD_DEPS
+#   STest
+# )
+# set(UT_AUTO_HELPERS ON)
+# register_fprime_ut()
