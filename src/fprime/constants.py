@@ -12,3 +12,14 @@ Traditional C/C++ strings typically use "ascii" encoding. Hence being used here.
 F prime be updated to use some other encoding, this value may be changed.
 """
 DATA_ENCODING = "utf-8"
+
+"""
+A suffix to be added to generated templates for unit tests (UT).
+"""
+UT_TEMPLATE_FILE_SUFFIX = ".template"
+
+"""
+A folder where the UT templates are stored.
+Specified as a list: ["test", "ut"] is for "test/ut"
+"""
+UT_FILES_TARGET_PATH = ["test", "ut"]

@@ -17,6 +17,49 @@ if TYPE_CHECKING:
 
 from fprime.fpp.common import FppUtility
 from fprime.util.code_formatter import ClangFormatter
+from fprime.constants import UT_FILES_TARGET_PATH, UT_TEMPLATE_FILE_SUFFIX
+
+
+def _apply_clang_formatting(framework_path, files_dir, generated_file_names):
+    """
+    Format files if clang-format is available.
+
+    Args:
+        framework_path: F Prime framework path
+        files_dir: Folder with generated files
+        generated_file_names: List of generated file names
+    """
+
+    format_file = framework_path / ".clang-format"
+    if format_file.is_file():
+        clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
+        if clang_formatter.is_supported():
+            for file_name in generated_file_names:
+                clang_formatter.stage_file(files_dir / file_name)
+            clang_formatter.execute(None, None, ({}, []))
+    else:
+        print(f"[INFO] .clang-format file not found at {format_file.resolve()}. Skipping formatting.")
+
+
+def _move_ut_templates(files_dir, generated_file_names):
+    """
+    Move generated UT templates into "files_dir/<UT_FILES_TARGET_PATH>".
+    The UT_TEMPLATE_FILE_SUFFIX is added into a file name unless it is already present.
+
+    Args:
+        files_dir: Folder with generated files
+        generated_file_names: List of generated file names
+    """
+    # Create the UT folder
+    ut_path = files_dir / Path(*UT_FILES_TARGET_PATH)
+    ut_path.mkdir(parents=True, exist_ok=True)
+
+    # Move the generated files
+    for file_name in generated_file_names:
+        src_path = files_dir / file_name
+        dst_file_name = file_name.with_suffix(UT_TEMPLATE_FILE_SUFFIX + file_name.suffix) if UT_TEMPLATE_FILE_SUFFIX not in file_name.suffixes else file_name
+        dst_path = ut_path / dst_file_name
+        src_path.rename(dst_path)
 
 
 def fpp_generate_implementation(
@@ -35,7 +78,8 @@ def fpp_generate_implementation(
         output_dir: The directory where the generated files will be written
         context: The path to the F´ module to generate files for
         apply_formatting: Whether to format the generated files using clang-format
-        ut: Generates UT files if set to True
+        generate_ut: Generates UT files if set to True
+        auto_test_helpers: Generate of test helper code if set to True
     """
 
     prefixes = [
@@ -71,21 +115,15 @@ def fpp_generate_implementation(
         ),
     )
 
-    # Format files if clang-format is available
-    format_file = build.settings.get("framework_path", Path(".")) / ".clang-format"
-    if not format_file.is_file():
-        print(
-            f"[INFO] .clang-format file not found at {format_file.resolve()}. Skipping formatting."
-        )
-        return 0
+    framework_path = build.settings.get("framework_path", Path("."))
+    # FPP --names outputs a list of file names.
+    generated_file_names = [Path(line.decode("utf-8").strip()) for line in gen_files.readlines()]
 
-    clang_formatter = ClangFormatter("clang-format", format_file, {"backup": False})
-    if apply_formatting and clang_formatter.is_supported():
-        for line in gen_files.readlines():
-            # FPP --names outputs a list of file names. output_dir is added to get relative path
-            filename = Path(line.decode("utf-8").strip())
-            clang_formatter.stage_file(output_dir / filename)
-        clang_formatter.execute(None, None, ({}, []))
+    if apply_formatting:
+        _apply_clang_formatting(framework_path, output_dir, generated_file_names)
+
+    if generate_ut:
+        _move_ut_templates(output_dir, generated_file_names)
 
     return 0
 
