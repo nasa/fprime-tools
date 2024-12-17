@@ -58,14 +58,14 @@ def _move_ut_templates(files_dir, generated_file_names):
 
     # Move the generated files
     for file_name in generated_file_names:
-        src_path = files_dir / file_name
-        dst_file_name = (
+        source_path = files_dir / file_name
+        destination_file_name = (
             file_name.with_suffix(UT_TEMPLATE_FILE_SUFFIX + file_name.suffix)
             if UT_TEMPLATE_FILE_SUFFIX not in file_name.suffixes
             else file_name
         )
-        dst_path = ut_path / dst_file_name
-        src_path.rename(dst_path)
+        destination_path = ut_path / destination_file_name
+        source_path.rename(destination_path)
 
 
 def fpp_generate_implementation(
