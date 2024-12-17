@@ -38,7 +38,9 @@ def _apply_clang_formatting(framework_path, files_dir, generated_file_names):
                 clang_formatter.stage_file(files_dir / file_name)
             clang_formatter.execute(None, None, ({}, []))
     else:
-        print(f"[INFO] .clang-format file not found at {format_file.resolve()}. Skipping formatting.")
+        print(
+            f"[INFO] .clang-format file not found at {format_file.resolve()}. Skipping formatting."
+        )
 
 
 def _move_ut_templates(files_dir, generated_file_names):
@@ -57,7 +59,11 @@ def _move_ut_templates(files_dir, generated_file_names):
     # Move the generated files
     for file_name in generated_file_names:
         src_path = files_dir / file_name
-        dst_file_name = file_name.with_suffix(UT_TEMPLATE_FILE_SUFFIX + file_name.suffix) if UT_TEMPLATE_FILE_SUFFIX not in file_name.suffixes else file_name
+        dst_file_name = (
+            file_name.with_suffix(UT_TEMPLATE_FILE_SUFFIX + file_name.suffix)
+            if UT_TEMPLATE_FILE_SUFFIX not in file_name.suffixes
+            else file_name
+        )
         dst_path = ut_path / dst_file_name
         src_path.rename(dst_path)
 
@@ -117,7 +123,9 @@ def fpp_generate_implementation(
 
     framework_path = build.settings.get("framework_path", Path("."))
     # FPP --names outputs a list of file names.
-    generated_file_names = [Path(line.decode("utf-8").strip()) for line in gen_files.readlines()]
+    generated_file_names = [
+        Path(line.decode("utf-8").strip()) for line in gen_files.readlines()
+    ]
 
     if apply_formatting:
         _apply_clang_formatting(framework_path, output_dir, generated_file_names)
@@ -160,8 +168,8 @@ def add_fpp_impl_parsers(
 ) -> Tuple[Dict[str, Callable], Dict[str, argparse.ArgumentParser]]:
     """Sets up the fprime-viz command line parsers
 
-    Creates command line parsers for fprime-viz commands and associates these commands to processing functions for those fpp
-    commands.
+    Creates command line parsers for fprime-viz commands and associates these commands to processing
+    functions for those fpp commands.
 
     Args:
         subparsers: subparsers to add to
