@@ -40,6 +40,7 @@ ignore$
 ^Autocoders/Python/test/.*\.xml$
 ^test/fprime/fbuild/cmake-data/testbuild/CMakeLists\.txt$
 ^test/fprime/fbuild/settings-data/settings-empty\.ini$
+commands_unit_test.py
 ^\.github/
 pyproject.toml
 setup.py

@@ -1,4 +1,3 @@
-0x48piraj
 aei
 bak
 baudrate
@@ -96,7 +95,6 @@ unittests
 usec
 useconds
 usr
-version-check
 viewcode
 workdir
 wxgui
