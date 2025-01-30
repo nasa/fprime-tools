@@ -74,33 +74,39 @@ def run_fprime_visualize(
             ["--directory", str(txt_cache)],
         ),
     )
-    layout_txt_file_match = list(txt_cache.glob("*Layout/*.txt"))
-
-    if not layout_txt_file_match:
-        raise Exception(f"Did not generate any '*.txt' layout files")
+    topology_dirs = list(txt_cache.glob("*Layout"))
     source_dirs = []
-    for layout_txt in layout_txt_file_match:
-        print(f"Generated layout TXT file: {layout_txt.resolve()}")
-        topology_name = layout_txt.parent.name.replace("Layout", "")
+    for dir in topology_dirs:
+        layout_txt_file_match = list(dir.glob("*.txt"))
+        if not layout_txt_file_match:
+            raise Exception(f"Did not generate any '*.txt' layout files")
+        topology_name = dir.name.replace("Layout", "")
         viz_cache = viz_cache_base / topology_name
-        extract_cache = (viz_cache / "extracted").resolve()
+        topology_json = viz_cache / f"{topology_name}Topology.json"
+        # keep track of all connections in the topology (used in topology layout JSON file)
+        topology_connections = ""
         try:
             viz_cache.mkdir(parents=True, exist_ok=True)
-            extract_cache.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             raise PermissionError(
                 f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
             )
-        
-        connection_graph_json = viz_cache / f"{layout_txt.stem}.json"
-
-        # Execute: fpl-layout < ConnectionGraph.txt > ConnectionGraph.json
-        with open(connection_graph_json.resolve(), "w") as json_file:
-            with open(layout_txt.resolve(), "r") as txt_file:
-                subprocess.run(
-                    ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
-                )
-
+        for layout_txt in layout_txt_file_match:
+            print(f"Generated layout TXT file: {layout_txt.resolve()}")  
+            connection_graph_json = viz_cache / f"{layout_txt.stem}.json"
+            # Execute: fpl-layout < ConnectionGraph.txt > ConnectionGraph.json
+            with open(connection_graph_json.resolve(), "w") as json_file:
+                with open(layout_txt.resolve(), "r") as txt_file:
+                    txt_contents = txt_file.read()
+                    topology_connections += txt_contents
+                    subprocess.run(
+                        ["fpl-layout"], stdout=json_file, input=txt_contents.encode(), check=True
+                    )
+        # Generate layout JSON for entire topology (all connections graphs in one layout)
+        with open(topology_json.resolve(), "w") as json_file:
+            subprocess.run(
+                ["fpl-layout"], stdout=json_file, input=topology_connections.encode(), check=True
+            )
         source_dirs.append(viz_cache)
     source_resolved = [str(source.resolve()) for source in source_dirs]
     print("[INFO] Starting fprime-visual server...")
