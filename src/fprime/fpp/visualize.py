@@ -92,7 +92,7 @@ def run_fprime_visualize(
                 f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
             )
         for layout_txt in layout_txt_file_match:
-            print(f"Generated layout TXT file: {layout_txt.resolve()}")  
+            print(f"Generated layout TXT file: {layout_txt.resolve()}")
             connection_graph_json = viz_cache / f"{layout_txt.stem}.json"
             # Execute: fpl-layout < ConnectionGraph.txt > ConnectionGraph.json
             with open(connection_graph_json.resolve(), "w") as json_file:
@@ -100,12 +100,18 @@ def run_fprime_visualize(
                     txt_contents = txt_file.read()
                     topology_connections += txt_contents
                     subprocess.run(
-                        ["fpl-layout"], stdout=json_file, input=txt_contents.encode(), check=True
+                        ["fpl-layout"],
+                        stdout=json_file,
+                        input=txt_contents.encode(),
+                        check=True,
                     )
         # Generate layout JSON for entire topology (all connections graphs in one layout)
         with open(topology_json.resolve(), "w") as json_file:
             subprocess.run(
-                ["fpl-layout"], stdout=json_file, input=topology_connections.encode(), check=True
+                ["fpl-layout"],
+                stdout=json_file,
+                input=topology_connections.encode(),
+                check=True,
             )
         source_dirs.append(viz_cache)
     source_resolved = [str(source.resolve()) for source in source_dirs]
