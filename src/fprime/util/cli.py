@@ -364,7 +364,11 @@ def parse_args(args):
         cmake_args, make_args = validate(parsed, unknown)
     except ArgValidationException as exc:
         print(f"[ERROR] {exc}", end="\n\n")
-        parsers.get(parsed.command, (parser,))[0].print_usage()
+        selected_parser = parsers.get(parsed.command, parser)
+        if type(selected_parser) is tuple:
+            selected_parser[0].print_usage()
+        else:
+            selected_parser.print_usage()
         sys.exit(1)
     return parsed, cmake_args, make_args, parser, runners
 
