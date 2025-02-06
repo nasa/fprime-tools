@@ -27,8 +27,7 @@ def run_fprime_visualize(
     ___: List[str],
 ):
     """Run pipeline of utilities to generate visualization. This includes:
-    - fpp-to-xml
-    - fpl-convert-xml
+    - fpp-to-layout
     - fpl-layout
     - start fprime-visual Flask app to serve visualization
 
@@ -44,7 +43,7 @@ def run_fprime_visualize(
             "fprime-visual is not installed. Please install with `pip install fprime-visual`"
         )
 
-    if not (shutil.which("fpl-convert-xml") and shutil.which("fpl-layout")):
+    if not shutil.which("fpl-layout"):
         raise FileNotFoundError(
             "fpl-layout is not installed. Please install with `pip install fprime-fpp>1.2.0`"
         )
@@ -58,86 +57,56 @@ def run_fprime_visualize(
         ).resolve()
 
     # Set sub-paths for different types of generated files
-    xml_cache = (viz_cache_base / "xml").resolve()
+    txt_cache = (viz_cache_base / "txt").resolve()
     try:
-        xml_cache.mkdir(parents=True, exist_ok=True)
+        txt_cache.mkdir(parents=True, exist_ok=True)
     except PermissionError:
         raise PermissionError(
             f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
         )
 
-    # Run fpp-to-xml
-    FppUtility("fpp-to-xml").execute(
+    # Run fpp-to-layout
+    FppUtility("fpp-to-layout").execute(
         build,
         parsed.path,
         args=(
             {},
-            ["--directory", str(xml_cache)],
+            ["--directory", str(txt_cache)],
         ),
     )
-    topology_match = list(xml_cache.glob("*TopologyAppAi.xml"))
-
-    if not topology_match:
-        raise Exception(f"Did not generate any '*TopologyAppAi.xml'")
+    topology_dirs = list(txt_cache.glob("*Layout"))
     source_dirs = []
-    for topology_xml in topology_match:
-        print(f"Generated topology XML file: {topology_xml.resolve()}")
-        topology_name = topology_xml.name.replace("TopologyAppAi.xml", "")
+    for dir in topology_dirs:
+        layout_txt_file_match = list(dir.glob("*.txt"))
+        if not layout_txt_file_match:
+            raise Exception(f"Did not generate any '*.txt' layout files")
+        topology_name = dir.name.replace("Layout", "")
         viz_cache = viz_cache_base / topology_name
-        extract_cache = (viz_cache / "extracted").resolve()
+        topology_json = viz_cache / f"{topology_name}Topology.json"
+        # keep track of all connections in the topology (used in topology layout JSON file)
+        topology_connections = ""
         try:
             viz_cache.mkdir(parents=True, exist_ok=True)
-            extract_cache.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             raise PermissionError(
                 f"Unable to write to {viz_cache_base.resolve()}. Use --working-dir to set a different location."
             )
-        topology_txt = viz_cache / f"{topology_name}Topology.txt"
-        topology_json = viz_cache / f"{topology_name}Topology.json"
-
-        # Execute: fpl-convert-xml Topology.xml > Topology.txt
-        with open(topology_txt.resolve(), "w") as txt_file:
-            subprocess.run(
-                ["fpl-convert-xml", topology_xml.resolve()], stdout=txt_file, check=True
-            )
-
-        # Execute: fpl-layout < Topology.txt > Topology.json
-        with open(topology_json.resolve(), "w") as json_file:
-            with open(topology_txt.resolve(), "r") as txt_file:
-                subprocess.run(
-                    ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
-                )
-
-        print("Extracting subtopologies...")
-        try:
-            extract_cache.mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            raise PermissionError(
-                f"Unable to write to {viz_cache.resolve()}. Use --working-dir to set a different location."
-            )
-
-        # Execute: fpl-extract-xml -d extracted/ Topology.xml
-        subprocess.run(
-            ["fpl-extract-xml", "-d", extract_cache.resolve(), topology_xml.resolve()],
-            check=True,
-        )
-        subtopologies = list(extract_cache.glob("*.xml"))
-        for subtopology in subtopologies:
-            # Execute: fpl-convert-xml subtopology.xml > subtopology.txt
-            subtopology_txt = extract_cache / f"{subtopology.stem}.txt"
-            with open(subtopology_txt.resolve(), "w") as txt_file:
-                subprocess.run(
-                    ["fpl-convert-xml", subtopology.resolve()],
-                    stdout=txt_file,
-                    check=True,
-                )
-            # Execute: fpl-layout < subtopology.txt > subtopology.json
-            subtopology_json = viz_cache / f"{subtopology.stem}.json"
-            with open(subtopology_json.resolve(), "w") as json_file:
-                with open(subtopology_txt.resolve(), "r") as txt_file:
+        for layout_txt in layout_txt_file_match:
+            print(f"Generated layout TXT file: {layout_txt.resolve()}")  
+            connection_graph_json = viz_cache / f"{layout_txt.stem}.json"
+            # Execute: fpl-layout < ConnectionGraph.txt > ConnectionGraph.json
+            with open(connection_graph_json.resolve(), "w") as json_file:
+                with open(layout_txt.resolve(), "r") as txt_file:
+                    txt_contents = txt_file.read()
+                    topology_connections += txt_contents
                     subprocess.run(
-                        ["fpl-layout"], stdin=txt_file, stdout=json_file, check=True
+                        ["fpl-layout"], stdout=json_file, input=txt_contents.encode(), check=True
                     )
+        # Generate layout JSON for entire topology (all connections graphs in one layout)
+        with open(topology_json.resolve(), "w") as json_file:
+            subprocess.run(
+                ["fpl-layout"], stdout=json_file, input=topology_connections.encode(), check=True
+            )
         source_dirs.append(viz_cache)
     source_resolved = [str(source.resolve()) for source in source_dirs]
     print("[INFO] Starting fprime-visual server...")
