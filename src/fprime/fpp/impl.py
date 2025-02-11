@@ -74,7 +74,7 @@ def fpp_generate_implementation(
     context: Path,
     apply_formatting: bool,
     generate_ut: bool,
-    auto_test_helpers: bool = False,
+    generate_test_helpers: bool = False,
 ) -> int:
     """
     Generate implementation files from FPP templates.
@@ -85,7 +85,7 @@ def fpp_generate_implementation(
         context: The path to the F´ module to generate files for
         apply_formatting: Whether to format the generated files using clang-format
         generate_ut: Generates UT files if set to True
-        auto_test_helpers: Generate of test helper code if set to True
+        generate_test_helpers: Generate of test helper code if set to True
     """
 
     prefixes = [
@@ -110,7 +110,7 @@ def fpp_generate_implementation(
             [
                 "--template",
                 *(["--unit-test"] if generate_ut else []),
-                *(["--auto-test-helpers"] if auto_test_helpers else []),
+                *(["--auto-test-helpers"] if not generate_test_helpers else []),
                 "--names",
                 gen_files.name,
                 "--directory",
@@ -159,7 +159,7 @@ def run_fpp_impl(
         Path(parsed.path),
         not parsed.no_format,
         parsed.ut,
-        parsed.auto_test_helpers,
+        parsed.generate_test_helpers,
     )
 
 
@@ -197,9 +197,10 @@ def add_fpp_impl_parsers(
         required=False,
     )
     impl_parser.add_argument(
-        "--auto-test-helpers",
+        "--generate-test-helpers",
         action="store_true",
-        help="Enable automatic generation of test helper code",
+        default=False,
+        help="Generate test helper code for handcoding. Default to False, leveraging the test helpers autocoded by FPP.",
         required=False,
     )
     return {"impl": run_fpp_impl}, {"impl": impl_parser}
