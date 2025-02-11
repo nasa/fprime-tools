@@ -200,7 +200,7 @@ def add_fpp_impl_parsers(
         "--generate-test-helpers",
         action="store_true",
         default=False,
-        help="Generate test helper code for handcoding. Default to False, leveraging the test helpers autocoded by FPP.",
+        help="Generate test helper code for hand-coding. Default to False, leveraging the test helpers autocoded by FPP.",
         required=False,
     )
     return {"impl": run_fpp_impl}, {"impl": impl_parser}
