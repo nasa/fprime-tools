@@ -119,10 +119,13 @@ module {{cookiecutter.deployment_name}} {
 
   instance textLogger: Svc.PassiveTextLogger base id 0x4800
 
-  instance deframer: Svc.Deframer base id 0x4900
+  instance deframer: Svc.FprimeDeframer base id 0x4900
 
   instance systemResources: Svc.SystemResources base id 0x4A00
 
   instance comStub: Svc.ComStub base id 0x4B00
 
+  instance frameAccumulator: Svc.FrameAccumulator base id 0x4C00
+
+  instance uplinkRouter: Svc.Router base id 0x4D00
 }

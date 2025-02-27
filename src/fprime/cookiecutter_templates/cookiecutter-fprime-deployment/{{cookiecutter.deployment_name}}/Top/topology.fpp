@@ -24,7 +24,9 @@ module {{cookiecutter.deployment_name}} {
     instance comDriver
     instance comQueue
     instance comStub
+    instance uplinkRouter
     instance deframer
+    instance frameAccumulator
     instance eventLogger
     instance fatalAdapter
     instance fatalHandler
@@ -120,16 +122,18 @@ module {{cookiecutter.deployment_name}} {
 
       comDriver.allocate -> bufferManager.bufferGetCallee
       comDriver.$recv -> comStub.drvDataIn
-      comStub.comDataOut -> deframer.framedIn
+      comStub.comDataOut -> frameAccumulator.dataIn
 
-      deframer.framedDeallocate -> bufferManager.bufferSendIn
-      deframer.comOut -> cmdDisp.seqCmdBuff
+      frameAccumulator.bufferDeallocate -> bufferManager.bufferSendIn
+      frameAccumulator.bufferAllocate -> bufferManager.bufferGetCallee
+      frameAccumulator.frameOut -> deframer.framedIn
+      deframer.deframedOut -> uplinkRouter.dataIn
 
-      cmdDisp.seqCmdStatus -> deframer.cmdResponseIn
+      uplinkRouter.commandOut -> cmdDisp.seqCmdBuff
+      uplinkRouter.fileOut -> fileUplink.bufferSendIn
+      uplinkRouter.bufferDeallocate -> bufferManager.bufferSendIn
 
-      deframer.bufferAllocate -> bufferManager.bufferGetCallee
-      deframer.bufferOut -> fileUplink.bufferSendIn
-      deframer.bufferDeallocate -> bufferManager.bufferSendIn
+      cmdDisp.seqCmdStatus -> uplinkRouter.cmdResponseIn
       fileUplink.bufferSendOut -> bufferManager.bufferSendIn
     }
 
