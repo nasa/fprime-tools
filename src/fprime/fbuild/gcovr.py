@@ -88,9 +88,9 @@ class Gcovr(ExecutableAction):
             None if include_type_ac else ".*SerializableAc.[ch]pp",
             None if include_type_ac else ".*ArrayAc.[ch]pp",
             None if include_type_ac else ".*EnumAc.[ch]pp",
-            None if include_test_ac else ".*/GTestBase.[ch]pp",
-            None if include_test_ac else ".*/TesterBase.[ch]pp",
-            None if include_test_ac else ".*/TesterHelpers.[ch]pp",
+            None if include_test_ac else ".*/.*GTestBase.[ch]pp",
+            None if include_test_ac else ".*/.*TesterBase.[ch]pp",
+            None if include_test_ac else ".*/.*TesterHelpers.[ch]pp",
         ]
         raw_source_exclusion_filter_bases = [
             None if include_test else ".*/test/ut/.*",
