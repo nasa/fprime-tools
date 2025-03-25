@@ -112,7 +112,8 @@ class Build:
         self.__setup_default(platform, build_dir)
         if not skip_validation and (
             not self.build_dir.exists()
-            or not (self.build_dir / "CMakeCache.txt").exists()
+            or (len(os.listdir(self.build_dir)) > 0 and 
+            not (self.build_dir / ".fprime-build-dir").exists())
         ):
             # Message for hard-supplied --build-cache message
             if build_dir is not None:

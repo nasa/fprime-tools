@@ -280,6 +280,8 @@ class CMakeHandler:
             ),
             args.keys(),
         )
+        # Creating a file to mark the directory as a F Prime directory
+        open(build_dir / ".fprime-build-dir", "w")
         self.cmake_validate_source_dir(source_dir)
         self._run_cmake(
             ["-S", source_dir] + list(fleshed_args),
