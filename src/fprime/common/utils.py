@@ -28,16 +28,20 @@ def replace_contents(filename, what, replacement, count=1):
         return new_file != changelog
 
 
-def check_path_is_within_fprime_module(path: Path):
-    """Check if the current working directory is within an F prime module
+def check_path_is_within_fprime_module(path: Path, is_component: bool):
+    """Check if the current working directory is within an F prime component or deployment module
 
     This is done by checking if any line in the path/CMakeLists.txt file starts
-    with register_fprime_*
+    with register_fprime_* to identify both component and deployment modules or
+    register_fprime_module to identify only component modules.
 
     This is useful to prevent users from running commands in the wrong location.
+    New components can be created within a deployment module but not within a
+    component module. New deployments cannot be created in deployment or component
+    modules.
 
     Returns:
-        bool: True if the path is within an F prime module, False otherwise
+        bool: True if the path is within a valid F prime module, False otherwise
     """
 
     if not Path(path / "CMakeLists.txt").exists():
@@ -48,6 +52,9 @@ def check_path_is_within_fprime_module(path: Path):
 
     # Looks for line "register_fprime_*" in CMakeLists.txt
     statement = "register_fprime_"
+    if is_component:
+        statement += "module"
+        
     for line in lines:
         if line.startswith(statement):
             return True
