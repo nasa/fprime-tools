@@ -110,10 +110,13 @@ class Build:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
+        # We only load empty directories or directories that contain the .fprime-build-dir file
         if not skip_validation and (
             not self.build_dir.exists()
-            or (len(os.listdir(self.build_dir)) > 0 and 
-            not (self.build_dir / ".fprime-build-dir").exists())
+            or (
+                len(os.listdir(self.build_dir)) > 0
+                and not (self.build_dir / ".fprime-build-dir").exists()
+            )
         ):
             # Message for hard-supplied --build-cache message
             if build_dir is not None:
