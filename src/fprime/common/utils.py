@@ -1,4 +1,4 @@
-""" fprime.common.utils: defines common utility functions to be used across sub packages
+"""fprime.common.utils: defines common utility functions to be used across sub packages
 
 @author thomas-bc
 """
@@ -54,7 +54,7 @@ def check_path_is_within_fprime_module(path: Path, is_component: bool):
     statement = "register_fprime_"
     if is_component:
         statement += "module"
-        
+
     for line in lines:
         if line.startswith(statement):
             return True

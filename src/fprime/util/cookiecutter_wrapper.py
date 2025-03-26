@@ -1,5 +1,4 @@
-""" Cookie cutter wrapper used to template out components
-"""
+"""Cookie cutter wrapper used to template out components"""
 
 import glob
 import os
@@ -88,7 +87,10 @@ def find_nearest_cmake_file(component_dir: Path, cmake_root: Path, proj_root: Pa
 def new_component(build: Build, parsed_args: "argparse.Namespace"):
     """Uses cookiecutter for making new components"""
 
-    if check_path_is_within_fprime_module(path=Path.cwd(), is_component=True) and not parsed_args.force:
+    if (
+        check_path_is_within_fprime_module(path=Path.cwd(), is_component=True)
+        and not parsed_args.force
+    ):
         print(
             "[ERROR] Wrong location. Cannot create component within an existing component."
             " Use --force to override."
@@ -157,7 +159,10 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
 def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new deployment using cookiecutter"""
 
-    if check_path_is_within_fprime_module(path=Path.cwd(), is_component=False) and not parsed_args.force:
+    if (
+        check_path_is_within_fprime_module(path=Path.cwd(), is_component=False)
+        and not parsed_args.force
+    ):
         print(
             "[ERROR] Wrong location. Cannot create deployment within an existing component or deployment"
         )
