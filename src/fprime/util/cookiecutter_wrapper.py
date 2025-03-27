@@ -159,10 +159,7 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
 def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new deployment using cookiecutter"""
 
-    if (
-        check_path_is_within_fprime_module(Path.cwd())
-        and not parsed_args.force
-    ):
+    if check_path_is_within_fprime_module(Path.cwd()) and not parsed_args.force:
         print(
             "[ERROR] Wrong location. Cannot create deployment within an existing component or deployment"
         )
