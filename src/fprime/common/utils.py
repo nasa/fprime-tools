@@ -28,7 +28,7 @@ def replace_contents(filename, what, replacement, count=1):
         return new_file != changelog
 
 
-def check_path_is_within_fprime_module(path: Path, is_component: bool):
+def check_path_is_within_fprime_module(path: Path, is_component: bool = False):
     """Check if the current working directory is within an F prime component or deployment module
 
     This is done by checking if any line in the path/CMakeLists.txt file starts
