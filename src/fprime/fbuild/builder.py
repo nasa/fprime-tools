@@ -94,7 +94,6 @@ class Build:
             if not force:
                 raise InvalidBuildCacheException(msg)
 
-  
     def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
 
@@ -111,12 +110,16 @@ class Build:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
-        
+
         if skip_validation:
             return
-        if self.build_dir.exists() and len(os.listdir(self.build_dir)) == 0 or (self.build_dir / ".fprime-build-dir").exists():
+        if (
+            self.build_dir.exists()
+            and len(os.listdir(self.build_dir)) == 0
+            or (self.build_dir / ".fprime-build-dir").exists()
+        ):
             return
-        
+
         # Message for hard-supplied --build-cache message
         if build_dir is not None:
             gen_args = f" --build-cache {build_dir}"
