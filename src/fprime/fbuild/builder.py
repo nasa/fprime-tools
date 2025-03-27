@@ -94,6 +94,7 @@ class Build:
             if not force:
                 raise InvalidBuildCacheException(msg)
 
+  
     def load(self, platform: str = None, build_dir: Path = None, skip_validation=False):
         """Load an existing build cache
 
@@ -110,31 +111,29 @@ class Build:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
-        # We only load empty directories or directories that contain the .fprime-build-dir file
-        if not skip_validation and (
-            not self.build_dir.exists()
-            or (
-                len(os.listdir(self.build_dir)) > 0
-                and not (self.build_dir / ".fprime-build-dir").exists()
+        
+        if skip_validation:
+            return
+        if self.build_dir.exists() and len(os.listdir(self.build_dir)) == 0 or (self.build_dir / ".fprime-build-dir").exists():
+            return
+        
+        # Message for hard-supplied --build-cache message
+        if build_dir is not None:
+            gen_args = f" --build-cache {build_dir}"
+        else:
+            gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
+            gen_args += (
+                " " + platform
+                if platform is not None
+                and platform != "native"
+                and platform != "default"
+                else ""
             )
-        ):
-            # Message for hard-supplied --build-cache message
-            if build_dir is not None:
-                gen_args = f" --build-cache {build_dir}"
-            else:
-                gen_args = " --ut" if self.build_type == BuildType.BUILD_TESTING else ""
-                gen_args += (
-                    " " + platform
-                    if platform is not None
-                    and platform != "native"
-                    and platform != "default"
-                    else ""
-                )
-            msg = f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'"
-            raise InvalidBuildCacheException(
-                msg,
-                self.build_dir,
-            )
+        msg = f"'{self.build_dir}' is not a valid build cache. Generate this build cache with 'fprime-util generate{gen_args} ...'"
+        raise InvalidBuildCacheException(
+            msg,
+            self.build_dir,
+        )
 
     def get_settings(
         self,
