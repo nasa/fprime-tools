@@ -113,11 +113,7 @@ class Build:
 
         if skip_validation:
             return
-        if (
-            self.build_dir.exists()
-            and len(os.listdir(self.build_dir)) == 0
-            or (self.build_dir / ".fprime-build-dir").exists()
-        ):
+        if self.build_dir.exists() or (self.build_dir / ".fprime-build-dir").exists():
             return
 
         # Message for hard-supplied --build-cache message
