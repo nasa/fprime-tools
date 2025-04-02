@@ -123,12 +123,16 @@ void configureTopology(const TopologyState& state) {
     // Note: Uncomment when using Svc:TlmPacketizer
     // tlmSend.setPacketList({{cookiecutter.deployment_name}}PacketsPkts, {{cookiecutter.deployment_name}}PacketsIgnore, 1);
 
+    // ComQueue configuration
     // Events (highest-priority)
-    configurationTable.entries[0] = {.depth = 100, .priority = 0};
+    configurationTable.entries[0].depth = 100;
+    configurationTable.entries[0].priority = 0;
     // Telemetry
-    configurationTable.entries[1] = {.depth = 500, .priority = 2};
+    configurationTable.entries[1].depth = 500;
+    configurationTable.entries[1].priority = 2;
     // File Downlink
-    configurationTable.entries[2] = {.depth = 100, .priority = 1};
+    configurationTable.entries[2].depth = 100;
+    configurationTable.entries[2].priority = 1;
     // Allocation identifier is 0 as the MallocAllocator discards it
     comQueue.configure(configurationTable, 0, mallocator);
 {%- if (cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]) %}
