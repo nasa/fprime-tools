@@ -337,7 +337,8 @@ class Build:
             possible_path = self.build_dir / possible / project_relative_path
             if possible_path.exists():
                 return possible_path
-        msg = f"The call to add_fprime_subdirectory could not be found for ComponentName\nPlease check the CMakeLists.txt files in the parent directories of {context}"
+        component_name = os.path.basename(context)
+        msg = f"The call to add_fprime_subdirectory could not be found for {component_name}\nPlease check the CMakeLists.txt files in the parent directories of {context}"
         raise MissingBuildCachePath(msg)
 
     def get_relative_path(self, path: Path) -> Path:
