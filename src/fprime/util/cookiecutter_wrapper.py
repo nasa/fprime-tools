@@ -318,7 +318,7 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
         return False
 
     # Handle calse where the last line does not end with a newline
-    if lines and (not lines[-1].endswith("\n")):
+    if len(lines) > 0 and (not lines[-1].endswith("\n")):
         lines[-1] += "\n"
 
     lines.append(addition)
