@@ -317,6 +317,10 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
     if not confirm(f"Add {comp_path} to {short_display_path} at end of file?"):
         return False
 
+    # Handle calse where the last line does not end with a newline
+    if lines and (not lines[-1].endswith("\n")):
+        lines[-1] += "\n"
+
     lines.append(addition)
     with open(list_file, "w") as f:
         f.write("".join(lines))
