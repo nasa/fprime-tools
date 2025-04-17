@@ -15,6 +15,7 @@ from fprime.common.utils import confirm, check_path_is_within_fprime_module
 from fprime.fbuild.builder import Build
 from fprime.fbuild.cmake import CMakeExecutionException
 from fprime.fpp.impl import fpp_generate_implementation
+from fprime.util.file_util import get_directory_path_relative_to_root
 
 if TYPE_CHECKING:
     import argparse
@@ -180,26 +181,13 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
         print("[INFO] Cookiecutter: using builtin template for new deployment")
 
     # Determine the include path prefix based on the current directory
-    proj_root = Path(build.get_settings("project_root", None)).resolve()
-    cwd = Path.cwd()
     extra_context = {}
+    rel_path = get_directory_path_relative_to_root(build)
 
-    # If we're in a subdirectory of the project root, set the include_path_prefix
-    if proj_root != cwd and proj_root in cwd.parents:
-        # Get the relative path from project root to current directory
-        rel_path = cwd.relative_to(proj_root)
-
-        # Ask for confirmation before setting the include path prefix
-        if confirm(
-            f"You are creating a deployment in a subdirectory '{rel_path}'. "
-            f"Would you like to adjust include paths to account for this?"
-        ):
-            # Use the relative path as the include path prefix
-            extra_context["__include_path_prefix"] = f"{rel_path}/"
-            print(f"[INFO] Include paths will be prefixed with '{rel_path}/'")
-        else:
-            print("[INFO] Include paths will not be adjusted")
-
+    if rel_path:
+        extra_context["__include_path_prefix"] = f"{rel_path}/"
+        print(f"[INFO] Creating a deployment in a subdirectory. Include paths will be prefixed with '{rel_path}/'")
+        
     try:
         gen_path = Path(
             cookiecutter(
