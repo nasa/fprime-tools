@@ -24,7 +24,12 @@ def get_directory_path_relative_to_root(build: Build) -> str:
             an empty string if the current directory is the project root,
             or None if not within the project root.
     """
-    proj_root = Path(build.get_settings("project_root", None)).resolve()
+    proj_root = build.get_settings("project_root", None)
+    if proj_root is None:
+        print("[WARNING] No project root found. Cannot determine relative path.")
+        return None
+
+    proj_root = Path(proj_root).resolve()
     cwd = Path.cwd()
 
     if proj_root == cwd:
