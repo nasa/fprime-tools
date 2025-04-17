@@ -8,7 +8,7 @@
 
 #include "Drv/BlockDriver/BlockDriver.hpp"
 #include "Fw/Types/MallocAllocator.hpp"
-#include "{{cookiecutter.deployment_name}}/Top/FppConstantsAc.hpp"
+#include "{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/FppConstantsAc.hpp"
 #include "Svc/FramingProtocol/FprimeProtocol.hpp"
 #include "Svc/Health/Health.hpp"
 

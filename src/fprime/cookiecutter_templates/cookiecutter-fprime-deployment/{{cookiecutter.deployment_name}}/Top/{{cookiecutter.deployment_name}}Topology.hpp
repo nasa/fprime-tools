@@ -7,7 +7,7 @@
 #define {{cookiecutter.__deployment_name_upper}}_{{cookiecutter.__deployment_name_upper}}TOPOLOGY_HPP
 // Included for access to {{cookiecutter.deployment_name}}::TopologyState and {{cookiecutter.deployment_name}}::ConfigObjects::pingEntries. These definitions are required by the
 // autocoder, but are also used in this hand-coded topology.
-#include <{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}TopologyDefs.hpp>
+#include <{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}TopologyDefs.hpp>
 
 // Remove unnecessary {{cookiecutter.deployment_name}}:: qualifications
 using namespace {{cookiecutter.deployment_name}};
