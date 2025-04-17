@@ -1,5 +1,6 @@
 """
-Test the new_deployment function in fprime.util.cookiecutter_wrapper
+(test) fprime.util.cookiecutter_wrapper - new_deployment():
+Test adding a new deployment to a project using cookiecutter.
 
 This test verifies the behavior of creating deployments in non-root directories,
 specifically testing the automatic detection and adjustment of include paths.
@@ -52,9 +53,8 @@ class TestNewDeployment(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     @patch("fprime.util.cookiecutter_wrapper.cookiecutter")
-    @patch("fprime.util.cookiecutter_wrapper.confirm")
     @patch("fprime.util.cookiecutter_wrapper.register_with_cmake")
-    def test_new_deployment_in_root_dir(self, mock_register, mock_confirm, mock_cookiecutter):
+    def test_new_deployment_in_root_dir(self, mock_register, mock_cookiecutter):
         """Test creating a deployment in the project root directory"""
         # Change to the project root directory
         os.chdir(self.project_root)
@@ -78,9 +78,6 @@ class TestNewDeployment(unittest.TestCase):
         # Verify the result
         self.assertEqual(result, 0)
         
-        # Verify that confirm was not called (since we're in the root directory)
-        mock_confirm.assert_not_called()
-        
         # Verify that cookiecutter was called with the correct arguments
         mock_cookiecutter.assert_called_once()
         args, kwargs = mock_cookiecutter.call_args
@@ -88,10 +85,9 @@ class TestNewDeployment(unittest.TestCase):
         self.assertEqual(kwargs["extra_context"], {})  # No include path prefix
 
     @patch("fprime.util.cookiecutter_wrapper.cookiecutter")
-    @patch("fprime.util.cookiecutter_wrapper.confirm")
     @patch("fprime.util.cookiecutter_wrapper.register_with_cmake")
-    def test_new_deployment_in_subdir_confirmed(self, mock_register, mock_confirm, mock_cookiecutter):
-        """Test creating a deployment in a subdirectory with confirmation"""
+    def test_new_deployment_in_subdir(self, mock_register, mock_cookiecutter):
+        """Test creating a deployment in a subdirectory"""
         # Change to the Deployments directory
         os.chdir(self.deployments_dir)
         
@@ -105,9 +101,6 @@ class TestNewDeployment(unittest.TestCase):
         mock_args.force = False
         mock_args.overwrite = False
         
-        # Mock the confirm function to return True (user confirms)
-        mock_confirm.return_value = True
-        
         # Mock the cookiecutter function to return a path
         mock_cookiecutter.return_value = str(self.deployments_dir / "MyDeployment")
         
@@ -116,11 +109,6 @@ class TestNewDeployment(unittest.TestCase):
         
         # Verify the result
         self.assertEqual(result, 0)
-        
-        # Verify that confirm was called with the correct message
-        mock_confirm.assert_called_once()
-        args, kwargs = mock_confirm.call_args
-        self.assertIn("You are creating a deployment in a subdirectory", args[0])
         
         # Verify that cookiecutter was called with the correct arguments
         mock_cookiecutter.assert_called_once()
@@ -128,47 +116,6 @@ class TestNewDeployment(unittest.TestCase):
         self.assertIn("extra_context", kwargs)
         self.assertIn("__include_path_prefix", kwargs["extra_context"])
         self.assertEqual(kwargs["extra_context"]["__include_path_prefix"], "Deployments/")
-
-    @patch("fprime.util.cookiecutter_wrapper.cookiecutter")
-    @patch("fprime.util.cookiecutter_wrapper.confirm")
-    @patch("fprime.util.cookiecutter_wrapper.register_with_cmake")
-    def test_new_deployment_in_subdir_declined(self, mock_register, mock_confirm, mock_cookiecutter):
-        """Test creating a deployment in a subdirectory with confirmation declined"""
-        # Change to the Deployments directory
-        os.chdir(self.deployments_dir)
-        
-        # Mock the build object
-        mock_build = MagicMock(spec=Build)
-        mock_build.get_settings.return_value = self.project_root
-        mock_build.cmake_root = self.project_root
-        
-        # Mock the parsed arguments
-        mock_args = MagicMock()
-        mock_args.force = False
-        mock_args.overwrite = False
-        
-        # Mock the confirm function to return False (user declines)
-        mock_confirm.return_value = False
-        
-        # Mock the cookiecutter function to return a path
-        mock_cookiecutter.return_value = str(self.deployments_dir / "MyDeployment")
-        
-        # Call the function
-        result = new_deployment(mock_build, mock_args)
-        
-        # Verify the result
-        self.assertEqual(result, 0)
-        
-        # Verify that confirm was called with the correct message
-        mock_confirm.assert_called_once()
-        args, kwargs = mock_confirm.call_args
-        self.assertIn("You are creating a deployment in a subdirectory", args[0])
-        
-        # Verify that cookiecutter was called with the correct arguments
-        mock_cookiecutter.assert_called_once()
-        args, kwargs = mock_cookiecutter.call_args
-        self.assertIn("extra_context", kwargs)
-        self.assertEqual(kwargs["extra_context"], {})  # No include path prefix
 
 
 if __name__ == "__main__":
