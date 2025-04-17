@@ -186,8 +186,10 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
 
     if rel_path:
         extra_context["__include_path_prefix"] = f"{rel_path}/"
-        print(f"[INFO] Creating a deployment in a subdirectory. Include paths will be prefixed with '{rel_path}/'")
-        
+        print(
+            f"[INFO] Creating a deployment in a subdirectory. Include paths will be prefixed with '{rel_path}/'"
+        )
+
     try:
         gen_path = Path(
             cookiecutter(
