@@ -46,9 +46,9 @@ enum TopologyConstants {
     HEALTH_WATCHDOG_CODE = 0x123,
     COMM_PRIORITY = 100,
     // bufferManager constants
-    FRAMER_BUFFER_SIZE = FW_MAX(FW_COM_BUFFER_MAX_SIZE, FW_FILE_BUFFER_MAX_SIZE + sizeof(U32)) + HASH_DIGEST_LENGTH + Svc::FpFrameHeader::SIZE,
+    FRAMER_BUFFER_SIZE = FW_MAX(FW_COM_BUFFER_MAX_SIZE, FW_FILE_BUFFER_MAX_SIZE) + Svc::FpFrameHeader::SIZE + Svc::FpFrameTrailer::SIZE,
     FRAMER_BUFFER_COUNT = 30,
-    DEFRAMER_BUFFER_SIZE = FW_MAX(FW_COM_BUFFER_MAX_SIZE, FW_FILE_BUFFER_MAX_SIZE + sizeof(U32)),
+    DEFRAMER_BUFFER_SIZE = FW_MAX(FW_COM_BUFFER_MAX_SIZE, FW_FILE_BUFFER_MAX_SIZE),
     DEFRAMER_BUFFER_COUNT = 30,
     COM_DRIVER_BUFFER_SIZE = 3000,
     COM_DRIVER_BUFFER_COUNT = 30,
@@ -80,15 +80,15 @@ Svc::Health::PingEntry pingEntries[] = {
  */
 void configureTopology(const TopologyState& state) {
     // Buffer managers need a configured set of buckets and an allocator used to allocate memory for those buckets.
-    Svc::BufferManager::BufferBins upBuffMgrBins;
-    memset(&upBuffMgrBins, 0, sizeof(upBuffMgrBins));
-    upBuffMgrBins.bins[0].bufferSize = FRAMER_BUFFER_SIZE;
-    upBuffMgrBins.bins[0].numBuffers = FRAMER_BUFFER_COUNT;
-    upBuffMgrBins.bins[1].bufferSize = DEFRAMER_BUFFER_SIZE;
-    upBuffMgrBins.bins[1].numBuffers = DEFRAMER_BUFFER_COUNT;
-    upBuffMgrBins.bins[2].bufferSize = COM_DRIVER_BUFFER_SIZE;
-    upBuffMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
-    bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, upBuffMgrBins);
+    Svc::BufferManager::BufferBins bufferMgrBins;
+    memset(&bufferMgrBins, 0, sizeof(bufferMgrBins));
+    bufferMgrBins.bins[0].bufferSize = FRAMER_BUFFER_SIZE;
+    bufferMgrBins.bins[0].numBuffers = FRAMER_BUFFER_COUNT;
+    bufferMgrBins.bins[1].bufferSize = DEFRAMER_BUFFER_SIZE;
+    bufferMgrBins.bins[1].numBuffers = DEFRAMER_BUFFER_COUNT;
+    bufferMgrBins.bins[2].bufferSize = COM_DRIVER_BUFFER_SIZE;
+    bufferMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
+    bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, bufferMgrBins);
 
     // Frame accumulator needs to be passed a frame detector (default F Prime frame detector)
     frameAccumulator.configure(frameDetector, 1, mallocator, 2048);
