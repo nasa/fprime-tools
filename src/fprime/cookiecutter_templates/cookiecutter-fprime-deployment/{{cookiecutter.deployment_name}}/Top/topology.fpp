@@ -68,16 +68,16 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
 
-      eventLogger.PktSend -> comQueue.comQueueIn[0]
-      tlmSend.PktSend -> comQueue.comQueueIn[1]
+      eventLogger.PktSend -> comQueue.comPktQueueIn[0]
+      tlmSend.PktSend -> comQueue.comPktQueueIn[1]
       fileDownlink.bufferSendOut -> comQueue.buffQueueIn[0]
 
-      comQueue.comQueueSend -> framer.comIn
-      comQueue.buffQueueSend -> framer.bufferIn
+      comQueue.queueSend -> framer.dataIn
+      framer.dataReturn -> comQueue.bufferReturnIn
+      comQueue.bufferReturnOut[0] -> fileDownlink.bufferReturn
 
-      framer.framedAllocate -> bufferManager.bufferGetCallee
-      framer.framedOut -> comStub.comDataIn
-      framer.bufferDeallocate -> fileDownlink.bufferReturn
+      framer.bufferAllocate -> bufferManager.bufferGetCallee
+      framer.framedDataOut -> comStub.comDataIn
 
       comDriver.deallocate -> bufferManager.bufferSendIn
       comDriver.ready -> comStub.drvConnected

@@ -10,7 +10,6 @@
 
 // Necessary project-specified types
 #include <Fw/Types/MallocAllocator.hpp>
-#include <Svc/FramingProtocol/FprimeProtocol.hpp>
 #include <Svc/FrameAccumulator/FrameDetector/FprimeFrameDetector.hpp>
 
 // Used for 1Hz synthetic cycling
@@ -23,9 +22,7 @@ using namespace {{cookiecutter.deployment_name}};
 // initialization phase.
 Fw::MallocAllocator mallocator;
 
-// The reference topology uses the F´ packet protocol when communicating with the ground and therefore uses the F´
-// framing and deframing implementations.
-Svc::FprimeFraming framing;
+// FprimeFrameDetector is used to configure the FrameAccumulator to detect F Prime frames
 Svc::FrameDetectors::FprimeFrameDetector frameDetector;
 
 Svc::ComQueue::QueueConfigurationTable configurationTable;
@@ -93,8 +90,6 @@ void configureTopology(const TopologyState& state) {
     upBuffMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
     bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, upBuffMgrBins);
 
-    // Framer needs to be passed a protocol handler (default F Prime protocol)
-    framer.setup(framing);
     // Frame accumulator needs to be passed a frame detector (default F Prime frame detector)
     frameAccumulator.configure(frameDetector, 1, mallocator, 2048);
 
