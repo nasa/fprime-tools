@@ -7,7 +7,6 @@ Tests the file utility functions for the fprime project.
 """
 
 import os
-import pathlib
 from pathlib import Path
 import pytest
 from unittest.mock import MagicMock, patch
