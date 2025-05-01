@@ -1,8 +1,9 @@
-""" Generic representation of autocoded array types
+"""Generic representation of autocoded array types
 
 Created on May 29, 2020
 @author: jishii
 """
+
 from fprime.util.string_util import format_string_template
 
 from . import serializable_type
@@ -134,5 +135,5 @@ class ArrayType(DictionaryType):
         return cls.MEMBER_TYPE.getMaxSize() * cls.LENGTH
 
     def __iter__(self):
-        """ Allow the array object to be iterated """
+        """Allow the array object to be iterated"""
         return iter(self._val)
