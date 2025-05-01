@@ -3,7 +3,6 @@
 Created on May 29, 2020
 @author: jishii
 """
-
 from fprime.util.string_util import format_string_template
 
 from . import serializable_type
@@ -133,3 +132,7 @@ class ArrayType(DictionaryType):
     def getMaxSize(cls):
         """Return the maximum size in bytes of the array"""
         return cls.MEMBER_TYPE.getMaxSize() * cls.LENGTH
+
+    def __iter__(self):
+        """ Allow the array object to be iterated """
+        return iter(self._val)

@@ -174,3 +174,11 @@ class SerializableType(DictionaryType):
             members[member_name] = {"format": member_format, "description": member_desc}
             members[member_name].update(value)
         return members
+
+    def items(self):
+        """ Allow dictionary like iteration """
+        def items_generator():
+            """ Generator of items """
+            for member_name, member_value, member_format, member_desc in self.MEMBER_LIST:
+                yield member_name, self._val.get(member_name)
+        return items_generator()
