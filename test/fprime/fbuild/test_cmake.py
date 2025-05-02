@@ -1,8 +1,9 @@
-""" Test CMake interaction
+"""Test CMake interaction
 
 This file contains a set of tests for validating CMake interaction on the back-end of fprime-util. These tests poke at
 the CMakeHandler component.
 """
+
 import json
 import os
 import shutil
@@ -460,6 +461,7 @@ def test_refresh_cache_noop_with_environment(cmake_handler):
 
 @patch("os.makedirs")
 @patch("os.path.exists")
+@patch("pathlib.Path.touch")
 @patch("fprime.fbuild.cmake.CMakeHandler.cmake_validate_source_dir")
 @patch("fprime.fbuild.cmake.CMakeHandler._run_cmake")
 def generate_build(
@@ -468,6 +470,7 @@ def generate_build(
     cmake_handler,
     mock_run_cmake,
     mock_validate_source_dir,
+    mock_touch,
     mock_path_exists,
     mock_makedirs,
     **kwargs,
@@ -492,6 +495,9 @@ def generate_build(
 
     # Call the generate_build function
     cmake_handler.generate_build(source_dir, build_dir, **kwargs)
+
+    # Asset that the touch method was called once
+    mock_touch.assert_called_once()
 
     # Assert that cmake_validate_source_dir was called with the correct source_dir
     mock_validate_source_dir.assert_called_once_with(source_dir)
