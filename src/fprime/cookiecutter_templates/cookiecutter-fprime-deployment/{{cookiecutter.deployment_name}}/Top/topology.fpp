@@ -9,6 +9,13 @@ module {{cookiecutter.deployment_name}} {
     rateGroup2
     rateGroup3
   }
+  enum Ports_ComPacketQueue {
+    EVENTS,
+    TELEMETRY
+  }
+  enum Ports_ComBufferQueue {
+    FILE_DOWNLINK
+  }
 
   topology {{cookiecutter.deployment_name}} {
 
@@ -68,14 +75,14 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
       # Inputs to ComQueue (events, telemetry, file)
-      eventLogger.PktSend         -> comQueue.comPacketQueueIn[0]
-      tlmSend.PktSend             -> comQueue.comPacketQueueIn[1]
-      fileDownlink.bufferSendOut  -> comQueue.bufferQueueIn[0]
-      comQueue.bufferReturnOut[0] -> fileDownlink.bufferReturn
+      eventLogger.PktSend         -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.EVENTS]
+      tlmSend.PktSend             -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.TELEMETRY]
+      fileDownlink.bufferSendOut  -> comQueue.bufferQueueIn[Ports_ComBufferQueue.FILE_DOWNLINK]
+      comQueue.bufferReturnOut[Ports_ComBufferQueue.FILE_DOWNLINK] -> fileDownlink.bufferReturn
 
       # ComQueue <-> Framer
-      comQueue.queueSend   -> framer.dataIn
-      framer.dataReturnOut -> comQueue.bufferReturnIn
+      comQueue.dataOut   -> framer.dataIn
+      framer.dataReturnOut -> comQueue.dataReturnIn
       framer.comStatusOut  -> comQueue.comStatusIn
 
       # Buffer Management for Framer
@@ -83,13 +90,13 @@ module {{cookiecutter.deployment_name}} {
       framer.bufferDeallocate -> bufferManager.bufferSendIn
 
       # Framer <-> ComStub
-      framer.dataOut        -> comStub.comDataIn
+      framer.dataOut        -> comStub.dataIn
       comStub.dataReturnOut -> framer.dataReturnIn
       comStub.comStatusOut  -> framer.comStatusIn
 
       # ComStub <-> ComDriver
-      comStub.drvDataOut      -> comDriver.$send
-      comDriver.dataReturnOut -> comStub.dataReturnIn
+      comStub.drvSendOut      -> comDriver.$send
+      comDriver.sendReturnOut -> comStub.drvSendReturnIn
       comDriver.ready         -> comStub.drvConnected
     }
 
@@ -125,23 +132,32 @@ module {{cookiecutter.deployment_name}} {
     }
 
     connections Uplink {
-
-      comDriver.allocate -> bufferManager.bufferGetCallee
-      comDriver.$recv -> comStub.drvDataIn
-      comStub.comDataOut -> frameAccumulator.dataIn
-
+      # ComDriver buffer allocations
+      comDriver.allocate      -> bufferManager.bufferGetCallee
+      comDriver.deallocate    -> bufferManager.bufferSendIn
+      # ComDriver <-> ComStub
+      comDriver.$recv             -> comStub.drvReceiveIn
+      comStub.drvReceiveReturnOut -> comDriver.recvReturnIn
+      # ComStub <-> FrameAccumulator
+      comStub.dataOut                -> frameAccumulator.dataIn
+      frameAccumulator.dataReturnOut -> comStub.dataReturnIn
+      # FrameAccumulator buffer allocations
       frameAccumulator.bufferDeallocate -> bufferManager.bufferSendIn
-      frameAccumulator.bufferAllocate -> bufferManager.bufferGetCallee
-      frameAccumulator.frameOut -> deframer.framedIn
-      deframer.deframedOut -> fprimeRouter.dataIn
-      deframer.bufferDeallocate -> bufferManager.bufferSendIn
-
-      fprimeRouter.commandOut -> cmdDisp.seqCmdBuff
-      fprimeRouter.fileOut -> fileUplink.bufferSendIn
+      frameAccumulator.bufferAllocate   -> bufferManager.bufferGetCallee
+      # FrameAccumulator <-> Deframer
+      frameAccumulator.dataOut  -> deframer.dataIn
+      deframer.dataReturnOut    -> frameAccumulator.dataReturnIn
+      # Deframer <-> Router
+      deframer.dataOut           -> fprimeRouter.dataIn
+      fprimeRouter.dataReturnOut -> deframer.dataReturnIn
+      # Router buffer allocations
+      fprimeRouter.bufferAllocate   -> bufferManager.bufferGetCallee
       fprimeRouter.bufferDeallocate -> bufferManager.bufferSendIn
-
-      cmdDisp.seqCmdStatus -> fprimeRouter.cmdResponseIn
-      fileUplink.bufferSendOut -> bufferManager.bufferSendIn
+      # Router <-> CmdDispatcher/FileUplink
+      fprimeRouter.commandOut  -> cmdDisp.seqCmdBuff
+      cmdDisp.seqCmdStatus     -> fprimeRouter.cmdResponseIn
+      fprimeRouter.fileOut     -> fileUplink.bufferSendIn
+      fileUplink.bufferSendOut -> fprimeRouter.fileBufferReturnIn
     }
 
     connections {{cookiecutter.deployment_name}} {
