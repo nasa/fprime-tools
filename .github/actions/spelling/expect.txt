@@ -27,6 +27,7 @@ FILEID
 FPGA
 fpl
 fpp
+fppi
 fprime
 funcs
 gcov
