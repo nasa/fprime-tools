@@ -50,6 +50,7 @@ module {{cookiecutter.deployment_name}} {
     instance rateGroupDriver
     instance textLogger
     instance systemResources
+    instance version
 
     # ----------------------------------------------------------------------
     # Pattern graph specifiers
@@ -68,6 +69,13 @@ module {{cookiecutter.deployment_name}} {
     time connections instance chronoTime
 
     health connections instance $health
+
+    # ----------------------------------------------------------------------
+    # Telemetry packets
+    # ----------------------------------------------------------------------
+
+    include "{{cookiecutter.deployment_name}}Packets.fppi"
+
 
     # ----------------------------------------------------------------------
     # Direct graph specifiers

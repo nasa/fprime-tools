@@ -9,10 +9,10 @@
 # https://fprime.jpl.nasa.gov/latest/documentation/reference/
 ####
 
-set(SOURCE_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.module_name}}.fpp"
-)
-
+register_fprime_library(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.module_name}}.fpp"
+#
 # Uncomment and add any modules that this module depends on, else
 # they might not be available when cmake tries to build this module.
 #
@@ -21,8 +21,6 @@ set(SOURCE_FILES
 # `Ref/SignalGen/CMakeLists.txt` will be named `Ref_SignalGen`.  `Ref/SignalGen`
 # is an acceptable alternative and will be internally converted to `Ref_SignalGen`.
 #
-#set(MOD_DEPS
-#  MyPackage_MyOtherModule
-#)
-
-register_fprime_module()
+#    DEPENDS
+#      MyPackage_MyOtherModule
+)
