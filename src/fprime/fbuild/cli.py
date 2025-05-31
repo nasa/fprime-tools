@@ -1,4 +1,4 @@
-""" fprime.fbuild.cli: fbuild command line processing
+"""fprime.fbuild.cli: fbuild command line processing
 
 Command line processing functions for fbuild (fprime build system targets) of "generate", "purge", and build system
 target operations.
@@ -64,14 +64,14 @@ def run_fbuild_cli(
             cmake_args["ENABLE_SANITIZER_UNDEFINED_BEHAVIOR"] = "OFF"
         if toolchain is not None:
             cmake_args["CMAKE_TOOLCHAIN_FILE"] = toolchain
-        
+
         if parsed.make:
             # No need to change CMAKE_GENERATOR since the default is Unix Makefiles
             pass
         else:
             # Sets Ninja as the default build system
             cmake_args["CMAKE_GENERATOR"] = "Ninja"
-        
+
         build.generate(cmake_args)
     elif parsed.command == "purge":
         # Since purge does not load its "base", we need to overload the platform
