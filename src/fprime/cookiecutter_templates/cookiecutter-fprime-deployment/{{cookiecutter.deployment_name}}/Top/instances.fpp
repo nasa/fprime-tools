@@ -13,11 +13,6 @@ module {{cookiecutter.deployment_name}} {
   # Active component instances
   # ----------------------------------------------------------------------
 
-  instance blockDrv: Drv.BlockDriver base id 0x0100 \
-    queue size Default.QUEUE_SIZE \
-    stack size Default.STACK_SIZE \
-    priority 140
-
   instance rateGroup1: Svc.ActiveRateGroup base id 0x0200 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
@@ -130,4 +125,6 @@ module {{cookiecutter.deployment_name}} {
   instance fprimeRouter: Svc.FprimeRouter base id 0x4D00
 
   instance version: Svc.Version base id 0x4E00
+
+  instance linuxTimer: Svc.LinuxTimer base id 0x4F00
 }
