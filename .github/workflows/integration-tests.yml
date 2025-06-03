@@ -40,18 +40,18 @@ jobs:
       - name: Test generation and building on Ref
         working-directory: fprime/Ref
         run: |
-          fprime-util generate
+          fprime-util generate --make
           fprime-util build
           fprime-util hash-to-file 0x72ad3277
       - name: Test generation and building on Ref with Ninja
         working-directory: fprime/Ref
         run: |
-          fprime-util generate --ninja --build-cache ./build-ninja
+          fprime-util generate --build-cache ./build-ninja
           fprime-util build --build-cache ./build-ninja
           fprime-util hash-to-file 0x72ad3277 --build-cache ./build-ninja
       - name: Test special generation on Ref
         working-directory: fprime/Ref
         run: |
-          fprime-util generate --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
+          fprime-util generate --make --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
           fprime-util hash-to-file 0x2ed4bda6 --build-cache ./special-cache
