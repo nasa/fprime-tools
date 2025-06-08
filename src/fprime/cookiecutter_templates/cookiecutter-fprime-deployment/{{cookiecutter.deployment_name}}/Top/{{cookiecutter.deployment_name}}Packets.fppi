@@ -37,10 +37,6 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     {{cookiecutter.deployment_name}}.fileManager.Errors
   }
 
-  packet DriveTlm id 3 group 1 {
-    {{cookiecutter.deployment_name}}.blockDrv.BD_Cycles
-  }
-
   packet SystemRes1 id 4 group 2 {
     {{cookiecutter.deployment_name}}.systemResources.MEMORY_TOTAL
     {{cookiecutter.deployment_name}}.systemResources.MEMORY_USED

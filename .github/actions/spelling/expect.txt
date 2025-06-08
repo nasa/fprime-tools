@@ -46,6 +46,7 @@ jpl
 JSO
 jsonable
 kevin
+linux
 lld
 Makefiles
 mallocator
