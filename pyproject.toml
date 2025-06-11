@@ -33,7 +33,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "lxml>=4.6.3",
     "Markdown>=3.3.4",
     "pexpect>=4.8.0",
     "pytest>=6.2.4",
