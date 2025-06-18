@@ -100,5 +100,6 @@ usec
 useconds
 usr
 viewcode
+Werror
 workdir
 wxgui
