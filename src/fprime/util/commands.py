@@ -167,8 +167,9 @@ def run_code_format(
     options = {
         "quiet": parsed.quiet,
         "verbose": parsed.verbose,
-        "backup": not parsed.no_backup,
+        "backup": parsed.backup,
         "validate_extensions": not parsed.force,
+        "check": parsed.check,
     }
     clang_formatter = ClangFormatter(
         "clang-format",
@@ -191,6 +192,15 @@ def run_code_format(
     # Stage all files that are passed through --files
     for filename in parsed.files:
         clang_formatter.stage_file(Path(filename))
+    # Search for files within --dirs and stage them
+    for dirname in parsed.dirs:
+        dir_path = Path(dirname)
+        if not dir_path.is_dir():
+            print(f"[INFO] {dir_path} is not a directory. Skipping.")
+            continue
+        for allowed_ext in clang_formatter.allowed_extensions:
+            for file in dir_path.rglob(f"*{allowed_ext}"):
+                clang_formatter.stage_file(file)
     return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
 
 

@@ -312,6 +312,9 @@ Examples:
   {EXECUTABLE} format -f Main.cpp Main.hpp
   {EXECUTABLE} format -f Imu/*
   {EXECUTABLE} format -f *.hpp --pass-through --dry-run
+
+  -- Format all files in a given directory -- 
+  {EXECUTABLE} format --dirs Svc Fw Drv
   
   -- From stdin using Git | format all changed files --
   git diff --name-only --relative | {EXECUTABLE} format --stdin
