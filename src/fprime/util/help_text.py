@@ -1,4 +1,4 @@
-""" fprime.util.help_text:
+"""fprime.util.help_text:
 
 Contains the strings and minor constructs used to specify help text in fprime utility. Any new help strings for new
 commands should be written here. Implementers should use HelpText.long(key) and HelpText.short(key) to get appropriate

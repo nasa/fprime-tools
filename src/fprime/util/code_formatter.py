@@ -1,4 +1,4 @@
-""" fprime.fbuild.code_formatter
+"""fprime.fbuild.code_formatter
 
 Wrapper for clang-format utility.
 

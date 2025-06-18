@@ -1,4 +1,4 @@
-""" fprime.util.cli: CLI handling
+"""fprime.util.cli: CLI handling
 
 Defines main entrypoint for fprime-util and sets up parsers for general CLI targets.
 
@@ -203,7 +203,9 @@ def add_special_parsers(
         conflict_handler="resolve",
     ).add_argument_group("format utility arguments")
     format_parser.add_argument(
-        "--backup", action="store_true", help="Creates a .bak backup file for each formatted file"
+        "--backup",
+        action="store_true",
+        help="Creates a .bak backup file for each formatted file",
     )
     format_parser.add_argument(
         "-q", "--quiet", action="store_true", help="Disable clang-format verbose mode"

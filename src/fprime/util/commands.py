@@ -1,4 +1,4 @@
-""" fprime.util.commands: General-purpose command definitions
+"""fprime.util.commands: General-purpose command definitions
 
 Defines general-purpose command processing. Those are commands that do not belong in fbuild or fpp.
 Current commands include:
