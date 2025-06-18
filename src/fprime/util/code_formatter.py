@@ -49,7 +49,7 @@ class ClangFormatter(ExecutableAction):
         super().__init__(TargetScope.LOCAL)
         self.executable = executable
         self.style_file = style_file
-        self.backup = options.get("backup", True)
+        self.backup = options.get("backup", False)
         self.verbose = options.get("verbose", False)
         self.quiet = options.get("quiet", False)
         self.check = options.get("check", False)
