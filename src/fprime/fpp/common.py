@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 import shutil
 import sys
+import os
 from typing import Dict, List, Tuple
 
 from fprime.common.error import FprimeException
@@ -132,6 +133,9 @@ class FppUtility(ExecutableAction):
         locations = self.get_locations_file(builder)
         imports, sources = self.get_fpp_inputs(builder, context)
 
+        combined_env = os.environ.copy()
+        combined_env.update(builder.settings.get("environment", {}))
+
         if not sources:
             print("[WARNING] No FPP sources found in this module.")
 
@@ -151,4 +155,4 @@ class FppUtility(ExecutableAction):
         app_args = [self.utility] + user_args + input_args
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
-        return subprocess.run(app_args, cwd=context, capture_output=False).returncode
+        return subprocess.run(app_args, cwd=context, capture_output=False, env=combined_env).returncode

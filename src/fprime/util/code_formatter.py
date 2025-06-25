@@ -6,6 +6,7 @@ Wrapper for clang-format utility.
 """
 
 import re
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -126,6 +127,8 @@ class ClangFormatter(ExecutableAction):
             context (Path): context path of module clang-format can run on if --module is provided
             args (Tuple[Dict[str, str], List[str]]): extra arguments to supply to the utility
         """
+        combined_env = os.environ.copy()
+        combined_env.update(builder.settings.get("environment", {}))
 
         if len(self._files_to_format) == 0:
             print("[INFO] No files were formatted.")
@@ -158,6 +161,6 @@ class ClangFormatter(ExecutableAction):
             print(f"[INFO]    {clang_args[1:]}")
             print("[INFO] Clang format style file:")
             print(f"[INFO]    {self.style_file}")
-        status = subprocess.run(clang_args)
+        status = subprocess.run(clang_args, env=combined_env)
         self._postprocess_files()
         return status.returncode

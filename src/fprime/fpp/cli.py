@@ -9,6 +9,7 @@ import argparse
 from typing import Callable, Dict, List, Tuple
 
 from fprime.fpp.common import FppUtility
+from fprime.fbuild.builder import Build
 
 
 def run_fpp_check(

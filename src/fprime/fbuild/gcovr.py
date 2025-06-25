@@ -4,6 +4,7 @@ import itertools
 import shutil
 import subprocess
 import sys
+import os
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
@@ -135,6 +136,8 @@ class Gcovr(ExecutableAction):
         framework_path = builder.get_settings(
             "framework_path", builder.build_dir.parent.parent
         )
+        combined_env = os.environ.copy()
+        combined_env.update(builder.settings.get("environment", {}))
         # gcovr is an unhappy beast
         cli_args = (
             [
@@ -168,7 +171,7 @@ class Gcovr(ExecutableAction):
             joined_args = "' '".join(cli_args)
             print(f"[INFO] Running \"'{ joined_args }'\"")
         # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
-        subprocess.call(cli_args)
+        subprocess.call(cli_args, env=combined_env)
 
     def option_args(self):
         """Option arguments"""

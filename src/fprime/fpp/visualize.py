@@ -4,6 +4,7 @@
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import tempfile
@@ -56,6 +57,9 @@ def run_fprime_visualize(
             tempfile.TemporaryDirectory(prefix="fprime-visual-").name
         ).resolve()
 
+    combined_env = os.environ.copy()
+    combined_env.update(build.settings.get("environment", {}))
+
     # Set sub-paths for different types of generated files
     txt_cache = (viz_cache_base / "txt").resolve()
     try:
@@ -104,6 +108,7 @@ def run_fprime_visualize(
                         stdout=json_file,
                         input=txt_contents.encode(),
                         check=True,
+                        env=combined_env,
                     )
         # Generate layout JSON for entire topology (all connections graphs in one layout)
         with open(topology_json.resolve(), "w") as json_file:
@@ -112,6 +117,7 @@ def run_fprime_visualize(
                 stdout=json_file,
                 input=topology_connections.encode(),
                 check=True,
+                env=combined_env,
             )
         source_dirs.append(viz_cache)
     source_resolved = [str(source.resolve()) for source in source_dirs]
