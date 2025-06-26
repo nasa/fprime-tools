@@ -87,36 +87,6 @@ class ClangFormatter(ExecutableAction):
         else:
             self._files_to_format.append(filepath)
 
-    def _preprocess_files(self) -> None:
-        """Preprocess a file to ensure that clang-format behaves.
-        This is because of the access specifier macros (e.g. PROTECTED)
-        that are defined in F', which clang-format does not recognize
-        """
-        for filepath in self._files_to_format:
-            # It is unsafe to write to file while reading from it
-            # Better to read in memory, close the file, then re-open to write out from memory
-            with open(filepath, "r") as file:
-                content = file.read()
-            # Replace the strings in the file content
-            content = re.sub(r"PROTECTED[\s]*:", PROTECTED_PRE_PATTERN, content)
-            content = re.sub(r"PRIVATE[\s]*:", PRIVATE_PRE_PATTERN, content)
-            content = re.sub(r"STATIC[\s]*:", STATIC_PRE_PATTERN, content)
-            # Write the file out to the same location, seemingly in-place
-            with open(filepath, "w") as file:
-                file.write(content)
-
-    def _postprocess_files(self) -> None:
-        """Postprocess a file to restore the access specifier macros."""
-        for filepath in self._files_to_format:
-            # Same logic as _preprocess_files()
-            with open(filepath, "r") as file:
-                content = file.read()
-            content = re.sub(PROTECTED_POST_PATTERN, "PROTECTED:", content)
-            content = re.sub(PRIVATE_POST_PATTERN, "PRIVATE:", content)
-            content = re.sub(STATIC_POST_PATTERN, "STATIC:", content)
-            with open(filepath, "w") as file:
-                file.write(content)
-
     def execute(
         self, builder: "Build", context: "Path", args: Tuple[Dict[str, str], List[str]]
     ):
@@ -144,7 +114,6 @@ class ClangFormatter(ExecutableAction):
             for file in self._files_to_format:
                 shutil.copy2(file, file.parent / f"{file.stem}.bak{file.suffix}")
         pass_through = args[1]
-        self._preprocess_files()
         clang_args = [
             self.executable,
             "-i",
@@ -162,5 +131,4 @@ class ClangFormatter(ExecutableAction):
             print("[INFO] Clang format style file:")
             print(f"[INFO]    {self.style_file}")
         status = subprocess.run(clang_args, env=combined_env)
-        self._postprocess_files()
         return status.returncode
