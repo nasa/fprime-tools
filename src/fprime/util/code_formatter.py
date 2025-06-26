@@ -14,20 +14,6 @@ from typing import Dict, List, Tuple
 
 from fprime.fbuild.target import ExecutableAction, TargetScope
 
-# MARKER is needed to differentiate at postprocess between access specifiers
-# that were previously an uppercase MACRO, and those that were originally lowercase.
-# MARKER must be a comment for the formatting to behave - so might as well make it
-# a meaningful warning in case it's not postprocessed correctly
-MARKER = "// WARNING: fprime-util format mishap"
-
-# POST pattern is different because the formatting will likely introduce whitespaces
-PRIVATE_PRE_PATTERN = f"private:{MARKER}"
-PRIVATE_POST_PATTERN = rf"private:[\s]*{MARKER}"
-PROTECTED_PRE_PATTERN = f"protected:{MARKER}"
-PROTECTED_POST_PATTERN = rf"protected:[\s]*{MARKER}"
-STATIC_PRE_PATTERN = f"static:{MARKER}"
-STATIC_POST_PATTERN = rf"static:[\s]*{MARKER}"
-
 # clang-format will try to format everything it is given - restrict for the time being
 ALLOWED_EXTENSIONS = [
     ".cpp",
