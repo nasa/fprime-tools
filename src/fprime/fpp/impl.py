@@ -1,4 +1,4 @@
-""" fprime.fpp.impl: Command line targets for `fprime-util impl`
+"""fprime.fpp.impl: Command line targets for `fprime-util impl`
 
 Processing and CLI entry points for `fprime-util impl` command line tool.
 
@@ -19,7 +19,12 @@ from fprime.util.code_formatter import ClangFormatter
 from fprime.constants import UT_FILES_TARGET_PATH, UT_TEMPLATE_FILE_SUFFIX
 
 
-def _apply_clang_formatting(build: Build, framework_path: Path, files_dir: Path, generated_file_names: list[Path]):
+def _apply_clang_formatting(
+    build: Build,
+    framework_path: Path,
+    files_dir: Path,
+    generated_file_names: list[Path],
+):
     """
     Format files if clang-format is available.
 
