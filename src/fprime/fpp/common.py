@@ -1,4 +1,4 @@
-""" fprime.fpp.common:
+"""fprime.fpp.common:
 
 Common implementations for FPP tool wrapping.
 
@@ -155,4 +155,6 @@ class FppUtility(ExecutableAction):
         app_args = [self.utility] + user_args + input_args
         if builder.cmake.verbose:
             print(f"[FPP] '{' '.join(app_args)}'")
-        return subprocess.run(app_args, cwd=context, capture_output=False, env=combined_env).returncode
+        return subprocess.run(
+            app_args, cwd=context, capture_output=False, env=combined_env
+        ).returncode
