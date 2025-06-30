@@ -115,7 +115,15 @@ class MultiTargetAction(ExecutableAction):
     def __repr__(self):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{self.action}]"
-
+    
+    def enumerate_from_build_cache(self, build_cache_path: Path):
+        """ Enumerate from the build cache path """
+        # Enumerate all build targets in the current context
+        build_targets_file = build_cache_path / self.BUILD_TARGETS_FILE
+        with open(build_targets_file, "r") as file_handle:
+            build_targets = file_handle.readlines()
+        return [build_target.strip() for build_target in build_targets]
+    
     def enumerate(self, builder: "Build", context: TargetContext):
         """ Enumerate the build targets in the current context
         
@@ -129,10 +137,7 @@ class MultiTargetAction(ExecutableAction):
                 raise ValueError("Global targets cannot be enumerated")
             build_cache_path = builder.get_build_cache_path(context)
             # Enumerate all build targets in the current context
-            build_targets_file = build_cache_path / self.BUILD_TARGETS_FILE
-            with open(build_targets_file, "r") as file_handle:
-                build_targets = file_handle.readlines()
-            return [build_target.strip() for build_target in build_targets]
+            return self.enumerate_from_build_cache(build_cache_path)
         except (MissingBuildCachePath, FileNotFoundError, ValueError):
             return [context]
 
@@ -147,10 +152,45 @@ class MultiTargetAction(ExecutableAction):
         """ Execute the composite target with enumerated contexts """
         enumerated = self.enumerate(builder, context)
     
+        if not enumerated:
+            print("[INFO] No build targets found")
         for context in enumerated:
-            print("Building:", context)
+            print("[INFO] Building:", context)
             self.action.execute(builder, context, args)
 
+
+class RecursiveMultiTargetAction(MultiTargetAction):
+    """ MultiTargetAction that recursively applies directories """
+    SUBDIRECTORIES_FILE = "sub-directories.fprime-util"
+
+    def enumerate(self, builder: "Build", context: TargetContext):
+        """ Enumerate the build targets in the current context
+
+        Enumerates the build targets in the current context recursively using the build targets file.
+        """
+        try:
+            # Intentionally raise an error if the target is global to have it caught by the
+            # below except block.
+            if self.action.scope == TargetScope.GLOBAL:
+                raise ValueError("Global targets cannot be enumerated")
+            build_cache_path = builder.get_build_cache_path(context)
+            try:
+                local_enumerated = super().enumerate_from_build_cache(build_cache_path)
+            # When local enumeration fails, provide nothing as a stand-in
+            except FileNotFoundError:
+                local_enumerated = []
+
+            # Enumerate all sub-directories targets in the current context
+            sub_directories_targets_file = build_cache_path / self.SUBDIRECTORIES_FILE
+            with open(sub_directories_targets_file, "r") as file_handle:
+                sub_directories = file_handle.readlines()
+            # Sub-directories are relative to the current context
+            for sub_directory in sub_directories:
+                sub_directory_enumerated = self.enumerate(builder, Path(sub_directory.strip()))
+                local_enumerated.extend(sub_directory_enumerated)
+        except (MissingBuildCachePath, FileNotFoundError, ValueError) as exc:
+            pass
+        return local_enumerated
 
 class Target(ExecutableAction):
     """Generic build target base class
@@ -293,6 +333,10 @@ class MultiTargetTarget(MultiTargetAction, Target):
             flags=target.flags
         )
 
+class RecursiveMultiTargetTarget(RecursiveMultiTargetAction, MultiTargetTarget):
+    """ Recursive Multi-Target Target """
+
+
 class CompositeTarget(Target):
     """Target whose execution is a composition of other targets"""
 
@@ -357,68 +401,6 @@ class CompositeTarget(Target):
                 child.execute(*args, **kwargs)
             finally:
                 child.scope = old_scope
-
-# class RecursiveTarget(ExecutableAction):
-#     """Target that recursively performs another target on the subdirectory tree """
-#     SUBDIRECTORIES_FILE = "sub-directories.fprime-util"
-#     BUILD_TARGETS_FILE = "build-targets.fprime-util"
-
-#     def __init__(self, target, *args, **kwargs):
-#         """Constructor setting child targets"""
-#         super().__init__(*args, **kwargs)
-#         self.target = target
-
-#     def __repr__(self):
-#         """So we can see what it delegated to"""
-#         return f"{self.__class__.__name__}[{self.target}]"
-
-#     def enumerate(self, builder: "Build", context: TargetContext):
-#         """ Generate a list of module, context pairs by recursing the subdirectory tree """
-#         try:
-#             build_cache_path = builder.get_build_cache_path(context)
-#             # Enumerate all build targets in the current context
-#             build_targets_file = build_cache_path / self.BUILD_TARGETS_FILE
-#             local_build_targets = []
-#             if build_targets_file.exists():
-#                 with open(build_targets_file, "r") as file_handle:
-#                     build_targets = file_handle.readlines()
-#                     print("Found Build Targets:\n", build_targets)
-#                 local_build_targets = [(build_target.strip(), context) for build_target in build_targets]
-
-#             # Enumerate all subdirectories
-#             sub_directory_file = build_cache_path / self.SUBDIRECTORIES_FILE
-#             sub_build_targets = []
-#             if sub_directory_file.exists():
-#                 with open(sub_directory_file, "r") as file_handle:
-#                     sub_directories = file_handle.readlines()
-#                     for sub_directory in sub_directories:
-#                         sub_build_targets.extend(self.enumerate(builder, Path(sub_directory.strip())))
-#             return local_build_targets + sub_build_targets
-#         except MissingBuildCachePath:
-#             return []
-
-#     def is_supported(self, builder: "Build", context: TargetContext):
-#         """ For now, assume that all targets are supported in all contexts
-
-#         Return:
-#             True if supported false otherwise
-#         """
-#         return True
-
-#     @override
-#     def execute(self, builder: "Build", context: TargetContext, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
-#         """ Execute the target """
-#         if self.target.scope == TargetScope.GLOBAL:
-#             self.target.execute(builder, context, args)
-#         else:
-#             self.target.scope = TargetScope.GLOBAL
-#             enumerated = self.enumerate(builder, context)
-#             print(self.target)
-
-#             for module, context in enumerated:
-#                 print("Executing", module, "in", context)
-#                 self.target.set_build_target(module)
-#                 self.target.execute(builder, context, args)
 
 
 class BuildSystemTarget(Target):
