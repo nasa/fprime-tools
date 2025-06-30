@@ -337,6 +337,8 @@ class Build:
         Args:
             context: contextual path to return
         """
+        if not isinstance(context, Path):
+            raise ValueError("Context must be a Path")
         project_relative_path = self.get_relative_path(context)
         for possible in [".", "F-Prime"]:
             possible_path = self.build_dir / possible / project_relative_path

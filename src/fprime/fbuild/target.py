@@ -12,9 +12,11 @@ from abc import ABC, abstractmethod
 from argparse import Action
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Union
 
-from .types import BuildType, NoSuchTargetException
+from .types import BuildType, NoSuchTargetException, MissingBuildCachePath
+
+TargetContext = Union[str, Path]
 
 
 class TargetScope(Enum):
@@ -43,7 +45,7 @@ class ExecutableAction(ABC):
         """Set scope of this action"""
         self.scope = scope
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context: TargetContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -62,7 +64,7 @@ class ExecutableAction(ABC):
     def execute(
         self,
         builder: "Build",
-        context: Path,
+        context: TargetContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the given target"""
@@ -93,6 +95,61 @@ class ExecutableAction(ABC):
     def __repr__(self):
         """Representation"""
         return f"{self.__class__.__name__}"
+
+
+
+class MultiTargetAction(ExecutableAction):
+    """ ExecutableAction that applies to a set of targets read from the build system
+
+    This action will read the specified file in the given context path, should it exist, and will replicate the call to
+    execute for each build target found.
+
+    """
+    BUILD_TARGETS_FILE = "build-targets.fprime-util"
+
+    def __init__(self, action, *args, **kwargs):
+        """Constructor setting child targets"""
+        super().__init__(*args, **kwargs)
+        self.action = action
+
+    def __repr__(self):
+        """So we can see what it delegated to"""
+        return f"{self.__class__.__name__}[{self.action}]"
+
+    def enumerate(self, builder: "Build", context: TargetContext):
+        """ Enumerate the build targets in the current context
+        
+        Enumerates the build targets in the current context, should the build targets file exist. Otherwise, returns a
+        list of just the supplied context.
+        """
+        try:
+            # Intentionally raise an error if the target is global to have it caught by the
+            # below except block.
+            if self.action.scope == TargetScope.GLOBAL:
+                raise ValueError("Global targets cannot be enumerated")
+            build_cache_path = builder.get_build_cache_path(context)
+            # Enumerate all build targets in the current context
+            build_targets_file = build_cache_path / self.BUILD_TARGETS_FILE
+            with open(build_targets_file, "r") as file_handle:
+                build_targets = file_handle.readlines()
+            return [build_target.strip() for build_target in build_targets]
+        except (MissingBuildCachePath, FileNotFoundError, ValueError):
+            return [context]
+
+    def is_supported(self, builder: "Build", context: TargetContext):
+        """ Check if this target is supported in the given context
+
+        This will just delegate to the composed target.
+        """
+        return self.action.is_supported(builder, context)
+
+    def execute(self, builder: "Build", context: TargetContext, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
+        """ Execute the composite target with enumerated contexts """
+        enumerated = self.enumerate(builder, context)
+    
+        for context in enumerated:
+            print("Building:", context)
+            self.action.execute(builder, context, args)
 
 
 class Target(ExecutableAction):
@@ -142,19 +199,10 @@ class Target(ExecutableAction):
         )
         self.flags = flags if flags is not None else set()
 
-        # Targets defined as either local or global scope are registered directly. "Both" targets are wrapped in a
-        # delegator for both scopes and those end up being registered.
-        if self.scope != TargetScope.BOTH:
-            self.ALL_TARGETS.append(
-                self
-            )  # Add newly minted target to the tracked list of targets
-        else:
-            DelegatorTarget(self, mnemonic, desc, TargetScope.LOCAL, build_type, flags)
-            new_flags = {"all"}
-            new_flags = new_flags.union(flags) if flags else new_flags
-            DelegatorTarget(
-                self, mnemonic, desc, TargetScope.GLOBAL, build_type, new_flags
-            )
+    @classmethod
+    def register_target(cls, target: "Target"):
+        """Registers the target"""
+        cls.ALL_TARGETS.append(target)
 
     def __repr__(self):
         """Representation"""
@@ -224,6 +272,27 @@ class Target(ExecutableAction):
         return matching[0]
 
 
+class MultiTargetTarget(MultiTargetAction, Target):
+    """Target whose execution is a composition of other targets"""
+    def __init__(self, target: Target):
+        """ Initialize the multi-target action for all the targets """
+        # This calls __init__ based on the MRO, which in this case should be:
+        # 1. MultiTargetAction.__init__
+        # 2. Target.__init__
+        # 3. ExecutableAction.__init__
+        #
+        # This assumes that MultiTargetAction.__init__ has a `super().__init__(*args, **kwargs)` call that will forward
+        # the arguments to `Target.__init__` and that `Target.__init__` calls `super().__init__(scope)` to trigger
+        # `ExecutableAction.__init__`.
+        super().__init__(
+            action=target,
+            mnemonic=target.mnemonic,
+            desc=target.desc,
+            scope=target.scope,
+            build_type=target.build_type,
+            flags=target.flags
+        )
+
 class CompositeTarget(Target):
     """Target whose execution is a composition of other targets"""
 
@@ -236,7 +305,7 @@ class CompositeTarget(Target):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{', '.join([target.__repr__() for target in self.targets])}]"
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context: TargetContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -289,6 +358,68 @@ class CompositeTarget(Target):
             finally:
                 child.scope = old_scope
 
+# class RecursiveTarget(ExecutableAction):
+#     """Target that recursively performs another target on the subdirectory tree """
+#     SUBDIRECTORIES_FILE = "sub-directories.fprime-util"
+#     BUILD_TARGETS_FILE = "build-targets.fprime-util"
+
+#     def __init__(self, target, *args, **kwargs):
+#         """Constructor setting child targets"""
+#         super().__init__(*args, **kwargs)
+#         self.target = target
+
+#     def __repr__(self):
+#         """So we can see what it delegated to"""
+#         return f"{self.__class__.__name__}[{self.target}]"
+
+#     def enumerate(self, builder: "Build", context: TargetContext):
+#         """ Generate a list of module, context pairs by recursing the subdirectory tree """
+#         try:
+#             build_cache_path = builder.get_build_cache_path(context)
+#             # Enumerate all build targets in the current context
+#             build_targets_file = build_cache_path / self.BUILD_TARGETS_FILE
+#             local_build_targets = []
+#             if build_targets_file.exists():
+#                 with open(build_targets_file, "r") as file_handle:
+#                     build_targets = file_handle.readlines()
+#                     print("Found Build Targets:\n", build_targets)
+#                 local_build_targets = [(build_target.strip(), context) for build_target in build_targets]
+
+#             # Enumerate all subdirectories
+#             sub_directory_file = build_cache_path / self.SUBDIRECTORIES_FILE
+#             sub_build_targets = []
+#             if sub_directory_file.exists():
+#                 with open(sub_directory_file, "r") as file_handle:
+#                     sub_directories = file_handle.readlines()
+#                     for sub_directory in sub_directories:
+#                         sub_build_targets.extend(self.enumerate(builder, Path(sub_directory.strip())))
+#             return local_build_targets + sub_build_targets
+#         except MissingBuildCachePath:
+#             return []
+
+#     def is_supported(self, builder: "Build", context: TargetContext):
+#         """ For now, assume that all targets are supported in all contexts
+
+#         Return:
+#             True if supported false otherwise
+#         """
+#         return True
+
+#     @override
+#     def execute(self, builder: "Build", context: TargetContext, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
+#         """ Execute the target """
+#         if self.target.scope == TargetScope.GLOBAL:
+#             self.target.execute(builder, context, args)
+#         else:
+#             self.target.scope = TargetScope.GLOBAL
+#             enumerated = self.enumerate(builder, context)
+#             print(self.target)
+
+#             for module, context in enumerated:
+#                 print("Executing", module, "in", context)
+#                 self.target.set_build_target(module)
+#                 self.target.execute(builder, context, args)
+
 
 class BuildSystemTarget(Target):
     """Target whose execution invokes a command within the build system"""
@@ -301,7 +432,7 @@ class BuildSystemTarget(Target):
     def execute(
         self,
         builder: "Build",
-        context: Path,
+        context: TargetContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Execute a build target
@@ -320,11 +451,38 @@ class BuildSystemTarget(Target):
             if self.build_target != "" or self.scope == TargetScope.LOCAL
             else "all"
         )
+
+        # When the context is a path, and the scope is local then the build target is prepended with the context path
+        # (e.g. building "" in Svc/FatalHandler yields "Svc_FatalHandler"). This is historical behavior of fprime-util
+        # when operating without the --target flag nor operating by reading multi-target files.
+        if isinstance(context, Path) and self.scope == TargetScope.LOCAL:
+            prepend_context_path = True
+            build_target = self.build_target
+            context = context
+        # When the context is a path, but the scope is global, then the build target is not prepended with the context
+        # path. This is historical behavior of fprime-util when operating without the --target flag nor operating by
+        # reading multi-target files and triggering "global" targets.
+        elif isinstance(context, Path) and self.scope == TargetScope.GLOBAL:
+            prepend_context_path = False
+            build_target = self.build_target if self.build_target != "" else "all"
+            context = context
+        # When context is not a path then the context must contain the build target, and prepending the context path
+        # should not be done. Context is set to the current working directory for lack of a better solution.
+        #
+        # TODO: how do we pass the context in (e.g. if -p was used.  Do we care?)
+        elif not isinstance(context, Path):
+            prepend_context_path = False
+            build_target = context
+            context = Path.cwd()
+        else:
+            assert False, f"Invalid scope supplied to execute: {self.scope}"
+
+        # Execute the build target
         builder.execute_build_target(
-            build_target, context, self.scope == TargetScope.GLOBAL, args[0]
+            build_target, context, not prepend_context_path, args[0]
         )
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context: TargetContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -360,8 +518,11 @@ class DesignateTargetAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         """Required __call__ function triggered by the parse"""
         assert len(values) == 1, "Values object should contain 1 value"
+
+        # Build system targets are determined by appending the suffix (target in python) to a name determined by the
+        # context. When specifying a specific build system target, the context must be updated to indicate this change.
         for designee in self._DESIGNEES:
-            designee.set_target(values[0])
+            designee.set_context(values[0])
         # The build target detection looks for true/false flags to be set. Mimic this by setting 'target' to True
         setattr(namespace, "target", True)
 
@@ -371,12 +532,31 @@ class DesignatedBuildSystemTarget(BuildSystemTarget):
 
     def __init__(self, _, *args, **kwargs):
         """Constructor setting child targets"""
+        self.context = None
         super().__init__(None, *args, **kwargs)
         DesignateTargetAction.register_designee(self)
 
-    def set_target(self, target):
-        """Set the target to build"""
-        self.build_target = target
+    def set_context(self, context: TargetContext):
+        """Set the context to build"""
+        self.context = context
+
+    def execute(
+        self,
+        builder: "Build",
+        context: TargetContext,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
+    ):
+        """ Execute with overridden context
+
+        This will execute the underlying build system target with the context specified by the --target flag.
+
+        Args:
+            builder: builder to execute target with
+            context: context path for local targets, will be ignored
+            args: make system arguments directly supplied
+        """
+        self.execute(builder, self.context, args)
+
 
 
 class DelegatorTarget(Target):
@@ -395,7 +575,7 @@ class DelegatorTarget(Target):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{self.delegate.__repr__()}]"
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context: TargetContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -408,6 +588,11 @@ class DelegatorTarget(Target):
             True if supported false otherwise
         """
         return self.delegate.is_supported(builder, context)
+
+    def set_build_target(self, target):
+        """Set the build target"""
+        if hasattr(self.delegate, "set_build_target"):
+            self.delegate.set_build_target(target)
 
     def option_args(self):
         """Delegate the arguments"""
