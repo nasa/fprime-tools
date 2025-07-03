@@ -207,9 +207,20 @@ class GcovrTarget(CompositeTarget):
     it must support extra arguments as we pass these to the gcovr executable.
     """
 
-    def __init__(self, scope: TargetScope, build_target_enumerators: List[BuildTargetEnumerator], *args, **kwargs):
+    def __init__(
+        self,
+        scope: TargetScope,
+        build_target_enumerators: List[BuildTargetEnumerator],
+        *args,
+        **kwargs,
+    ):
         """Constructor setting child targets"""
-        check_target = CheckTarget(scope=scope, build_target_enumerators=build_target_enumerators, *args, **kwargs)
+        check_target = CheckTarget(
+            scope=scope,
+            build_target_enumerators=build_target_enumerators,
+            *args,
+            **kwargs,
+        )
         # Reuse the enumerator for tests
         gcovr_target = Gcovr(scope, build_target_enumerators[1])
         super().__init__(

@@ -18,7 +18,7 @@ from .enumerator import BuildTargetEnumerator
 from .types import BuildType, NoSuchTargetException, MissingBuildCachePath
 
 TargetContext = List[str]
-#Union[str, Path]
+# Union[str, Path]
 
 
 class TargetScope(Enum):
@@ -43,7 +43,9 @@ class ExecutableAction(ABC):
     without generating all the normal target metadata.
     """
 
-    def __init__(self, scope: TargetScope, build_target_enumerator: BuildTargetEnumerator):
+    def __init__(
+        self, scope: TargetScope, build_target_enumerator: BuildTargetEnumerator
+    ):
         """Set scope of this action"""
         self.original_context = None
         self.scope = scope
@@ -61,7 +63,9 @@ class ExecutableAction(ABC):
         Return:
             True if supported false otherwise
         """
-        enumerated_targets : TargetContext =self.build_target_enumerator.enumerate(builder, context_path)
+        enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
+            builder, context_path
+        )
         return self.any_supported(builder, enumerated_targets)
 
     def execute(
@@ -72,7 +76,9 @@ class ExecutableAction(ABC):
     ):
         """Executes the given target"""
         self.original_context = context
-        enumerated_targets : TargetContext = self.build_target_enumerator.enumerate(builder, context)
+        enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
+            builder, context
+        )
         return self.execute_all(builder, enumerated_targets, args)
 
     def option_args(self) -> List[Tuple[str, str]]:
@@ -293,6 +299,7 @@ class CompositeTarget(Target):
 
 class BuildSystemTarget(Target):
     """Target whose execution invokes a command within the build system"""
+
     def execute_all(
         self,
         builder: "Build",
@@ -304,7 +311,12 @@ class BuildSystemTarget(Target):
                 print(f"[INFO] Building: {build_target}")
             self.execute_one(builder, build_target, args)
 
-    def execute_one(self, builder: "Build", build_target: str, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
+    def execute_one(
+        self,
+        builder: "Build",
+        build_target: str,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
+    ):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the build system.
@@ -320,9 +332,7 @@ class BuildSystemTarget(Target):
         assert not isinstance(build_target, Path), "Build target shall no be a path"
 
         # Execute the build target
-        builder.execute_build_target(
-            build_target, self.original_context, args[0]
-        )
+        builder.execute_build_target(build_target, self.original_context, args[0])
 
     def is_supported(self, builder: "Build", context: TargetContext):
         """Any of the build targets supported by the list of build target names
@@ -339,4 +349,9 @@ class BuildSystemTarget(Target):
         build_target_names = builder.cmake.get_available_targets(
             str(builder.build_dir), context
         )
-        return functools.reduce(lambda accumulator, build_target: accumulator or build_target in build_target_names, context, False)
+        return functools.reduce(
+            lambda accumulator, build_target: accumulator
+            or build_target in build_target_names,
+            context,
+            False,
+        )

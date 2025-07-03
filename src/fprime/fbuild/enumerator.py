@@ -45,36 +45,51 @@ class BuildTargetEnumerator(ABC):
 
     @abstractmethod
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
-        """Enumerates build targets available in the given context path. """
+        """Enumerates build targets available in the given context path."""
         raise NotImplementedError()
 
 
 class BasicBuildTargetEnumerator(BuildTargetEnumerator):
     """A basic enumerator that just returns the context given."""
+
     def __init__(self, target_suffix: str = ""):
-        self.target_suffix = target_suffix if target_suffix == ""  else f"_{target_suffix}"
+        self.target_suffix = (
+            target_suffix if target_suffix == "" else f"_{target_suffix}"
+        )
 
     def enumerate_helper(self, builder: "Build", context_path: Path) -> List[str]:
-        """ Enumeration helper without error handling """
-        return [builder.cmake.get_cmake_module(context_path, builder.build_dir) + self.target_suffix]
+        """Enumeration helper without error handling"""
+        return [
+            builder.cmake.get_cmake_module(context_path, builder.build_dir)
+            + self.target_suffix
+        ]
 
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
-        """ Enumerate through conversion to cmake module name directly """
+        """Enumerate through conversion to cmake module name directly"""
         return self.enumerate_helper(builder, context_path)
 
 
 class MultiBuildTargetEnumerator(BuildTargetEnumerator):
     """Enumerates targets from the 'build-targets.fprime-util' file."""
+
     BUILD_TARGETS_FILE = "build-targets.fprime-util"
     TEST_BUILD_TARGETS_FILE = "tests.fprime-util"
 
-    def __init__(self, build_file_name: str = BUILD_TARGETS_FILE, fail_safe_enumerator: BuildTargetEnumerator = None):
-        """ Construct the enumerator with the name of the file """
+    def __init__(
+        self,
+        build_file_name: str = BUILD_TARGETS_FILE,
+        fail_safe_enumerator: BuildTargetEnumerator = None,
+    ):
+        """Construct the enumerator with the name of the file"""
         self.build_file_name = build_file_name
-        self.fail_safe_enumerator = BasicBuildTargetEnumerator() if fail_safe_enumerator is None else fail_safe_enumerator
+        self.fail_safe_enumerator = (
+            BasicBuildTargetEnumerator()
+            if fail_safe_enumerator is None
+            else fail_safe_enumerator
+        )
 
     def enumerate_helper(self, builder: "Build", context_path: Path) -> List[str]:
-        """ Enumeration helper without error handling """
+        """Enumeration helper without error handling"""
         build_cache_path = builder.get_build_cache_path(context_path)
         build_targets_file = build_cache_path / self.build_file_name
         with open(build_targets_file, "r") as file_handle:
@@ -94,10 +109,13 @@ class MultiBuildTargetEnumerator(BuildTargetEnumerator):
 
 class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
     """Recursively enumerates targets."""
+
     SUBDIRECTORIES_FILE = "sub-directories.fprime-util"
 
-    def __init__(self, directory_enumerator: BuildTargetEnumerator = MultiBuildTargetEnumerator()):
-        """ Construct the enumerator with the name of the file """
+    def __init__(
+        self, directory_enumerator: BuildTargetEnumerator = MultiBuildTargetEnumerator()
+    ):
+        """Construct the enumerator with the name of the file"""
         self.directory_enumerator = directory_enumerator
 
     def enumerate_helper(self, builder: "Build", context_path: Path) -> List[str]:
@@ -106,7 +124,9 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
         try:
             # Get local targets
             try:
-                enumerated_targets.extend(MultiBuildTargetEnumerator().enumerate_helper(builder, context_path))
+                enumerated_targets.extend(
+                    MultiBuildTargetEnumerator().enumerate_helper(builder, context_path)
+                )
             except FileNotFoundError:
                 pass  # No local targets, continue to recursion
 
@@ -117,8 +137,12 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
                 for sub_dir in file_handle.readlines():
                     # Each line is a new path relative to the current context
                     # We need to construct the full path for the recursive call
-                    full_sub_dir_path = (build_cache_path.parent / sub_dir.strip()).resolve()
-                    enumerated_targets.extend(self.enumerate_helper(builder, full_sub_dir_path))
+                    full_sub_dir_path = (
+                        build_cache_path.parent / sub_dir.strip()
+                    ).resolve()
+                    enumerated_targets.extend(
+                        self.enumerate_helper(builder, full_sub_dir_path)
+                    )
         except (MissingBuildCachePath, FileNotFoundError):
             pass
         return enumerated_targets
@@ -126,28 +150,34 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
         """Recursively enumerates build targets."""
         enumerated_targets = self.enumerate_helper(builder, context_path)
-        enumerated_targets = enumerated_targets if enumerated_targets else self.directory_enumerator.enumerate(builder, context_path)
+        enumerated_targets = (
+            enumerated_targets
+            if enumerated_targets
+            else self.directory_enumerator.enumerate(builder, context_path)
+        )
         return enumerated_targets
 
+
 class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
-    """ Enumerates a specific singular build target """
+    """Enumerates a specific singular build target"""
+
     def __init__(self, build_targets: List[str] = None):
-        """ Construct the enumerator with the name of the build target """
+        """Construct the enumerator with the name of the build target"""
         self.build_targets = build_targets
-    
+
     def set_build_targets(self, build_targets: List[str]):
-        """ Set the build targets """
+        """Set the build targets"""
         self.build_targets = build_targets
 
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
-        """ Enumerates exactly a build target """
+        """Enumerates exactly a build target"""
         assert self.build_targets is not None, "Build targets were never set"
         return self.build_targets
 
+
 class CliBuildTargetEnumerator(SpecificBuildTargetEnumerator):
-    """ Allows users to specify a build target on the command line """
+    """Allows users to specify a build target on the command line"""
+
     def __init__(self):
         super().__init__(build_targets=None)
         DesignateTargetAction.register_designee(self)
-        
-    

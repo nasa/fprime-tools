@@ -357,9 +357,7 @@ class Build:
         relative_path, _ = self.cmake.get_include_info(path, self.build_dir)
         return Path(relative_path)
 
-    def execute_build_target(
-        self, build_target: str, context: Path, make_args: dict
-    ):
+    def execute_build_target(self, build_target: str, context: Path, make_args: dict):
         """Execute a build target
 
         Executes a target within the build system. This will execute the target by calling into the make system. Context
