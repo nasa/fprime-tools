@@ -2,7 +2,7 @@
 Supplies high-level build functions to the greater fprime helper CLI. This maps from user command space to the specific
 build system handler underneath.
 """
-
+import copy
 import os
 import re
 from pathlib import Path
@@ -68,6 +68,10 @@ class Build:
         self.build_dir = None
         self.cmake = CMakeHandler()
         self.cmake.set_verbose(verbose)
+
+    def is_verbose(self) -> bool:
+        """Returns the verbose setting of the build"""
+        return self.cmake.verbose
 
     def invent(self, platform: str = None, build_dir: Path = None, force=False):
         """Invents a build path from a given platform
@@ -354,7 +358,7 @@ class Build:
         return Path(relative_path)
 
     def execute_build_target(
-        self, build_target: str, context: Path, top: bool, make_args: dict
+        self, build_target: str, context: Path, make_args: dict
     ):
         """Execute a build target
 
@@ -364,16 +368,16 @@ class Build:
         Args:
             build_target: build system target to run as string
             context: context path for local targets
-            top: True if it is a top-level (global) target, False if it is a local target
             make_args: args to supply to the build tool (make or ninja)
         """
+        make_args = copy.deepcopy(make_args)
         self.cmake.execute_known_target(
             build_target,
             self.build_dir,
             context.absolute(),
             cmake_args=self.get_cmake_args(),
             make_args=make_args,
-            top_target=top,
+            top_target=True,
             environment=self.settings.get("environment", None),
         )
 

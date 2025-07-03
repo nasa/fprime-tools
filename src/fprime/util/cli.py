@@ -54,6 +54,7 @@ def utility_entry(args):
         print(f"[ERROR] Could not detect project directory for: {parsed.path}")
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
+        raise
     return 1
 
 
@@ -369,6 +370,7 @@ def parse_args(args):
             selected_parser[0].print_usage()
         else:
             selected_parser.print_usage()
+        raise
         sys.exit(1)
     return parsed, cmake_args, make_args, parser, runners
 
