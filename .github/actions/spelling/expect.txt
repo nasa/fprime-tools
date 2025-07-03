@@ -10,6 +10,7 @@ Comms
 configs
 confparse
 COOLDOWN
+ctest
 deframed
 deframer
 deframing

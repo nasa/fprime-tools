@@ -45,7 +45,8 @@ class Check(ExecutableAction):
             cli_args.extend(["-R", test_regex])
         if builder.is_verbose():
             cli_args.append("-V")
-            print(f"[INFO] Running CTest: '{'\' \''.join(cli_args)}'")
+            joined = "' '".join(cli_args)}
+            print(f"[INFO] Running CTest: '{joined}'")
         subprocess.call(cli_args)
 
 class CheckTarget(CompositeTarget):
