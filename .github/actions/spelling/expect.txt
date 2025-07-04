@@ -1,8 +1,10 @@
 aei
+Anps
 bak
 baudrate
 cargs
 CDH
+Cdioux
 cexc
 ci
 cls
@@ -20,6 +22,7 @@ dinkel
 dirone
 drv
 dumpable
+Efg
 excinfo
 extlinks
 fbuild
@@ -48,6 +51,7 @@ JSO
 jsonable
 kevin
 linux
+LIw
 lld
 Makefiles
 mallocator
