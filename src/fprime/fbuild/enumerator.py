@@ -94,8 +94,6 @@ class MultiBuildTargetEnumerator(BuildTargetEnumerator):
         build_targets_file = build_cache_path / self.build_file_name
         with open(build_targets_file, "r") as file_handle:
             enumerated_targets = [line.strip() for line in file_handle.readlines()]
-        print("[ENUM] Enumerated targets: ", enumerated_targets)
-        print("File: ", build_targets_file)
         return enumerated_targets
 
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
@@ -143,6 +141,7 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
                     enumerated_targets.extend(
                         self.enumerate_helper(builder, full_sub_dir_path)
                     )
+        # Any error should return the result of the last update to enumerate_targets hance passing
         except (MissingBuildCachePath, FileNotFoundError):
             pass
         return enumerated_targets

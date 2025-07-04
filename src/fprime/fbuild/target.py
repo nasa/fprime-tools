@@ -8,17 +8,15 @@ contain build system targets (e.g. CMake target invokers), and miscellaneous tar
 
 import functools
 import itertools
-from abc import ABC, abstractmethod
-from argparse import Action
+from abc import ABC
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple
 
 from .enumerator import BuildTargetEnumerator
-from .types import BuildType, NoSuchTargetException, MissingBuildCachePath
+from .types import BuildType, NoSuchTargetException
 
 TargetContext = List[str]
-# Union[str, Path]
 
 
 class TargetScope(Enum):
