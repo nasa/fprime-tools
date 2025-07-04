@@ -110,11 +110,13 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
 
     SUBDIRECTORIES_FILE = "sub-directories.fprime-util"
 
-    def __init__(
-        self, directory_enumerator: BuildTargetEnumerator = MultiBuildTargetEnumerator()
-    ):
+    def __init__(self, directory_enumerator: "MultiBuildTargetEnumerator" = None):
         """Construct the enumerator with the name of the file"""
-        self.directory_enumerator = directory_enumerator
+        self.directory_enumerator = (
+            directory_enumerator
+            if directory_enumerator is not None
+            else MultiBuildTargetEnumerator()
+        )
 
     def enumerate_helper(self, builder: "Build", context_path: Path) -> List[str]:
         """Enumeration helper without error handling"""
@@ -123,7 +125,7 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
             # Get local targets
             try:
                 enumerated_targets.extend(
-                    MultiBuildTargetEnumerator().enumerate_helper(builder, context_path)
+                    self.directory_enumerator.enumerate_helper(builder, context_path)
                 )
             except FileNotFoundError:
                 pass  # No local targets, continue to recursion
@@ -135,9 +137,7 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
                 for sub_dir in file_handle.readlines():
                     # Each line is a new path relative to the current context
                     # We need to construct the full path for the recursive call
-                    full_sub_dir_path = (
-                        build_cache_path.parent / sub_dir.strip()
-                    ).resolve()
+                    full_sub_dir_path = (build_cache_path / sub_dir.strip()).resolve()
                     enumerated_targets.extend(
                         self.enumerate_helper(builder, full_sub_dir_path)
                     )
