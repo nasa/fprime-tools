@@ -69,13 +69,13 @@ class ExecutableAction(ABC):
     def execute(
         self,
         builder: "Build",
-        context_path: Path,
+        context: Path,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the given target"""
-        self.original_context = context_path
+        self.original_context = context
         enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
-            builder, context_path
+            builder, context
         )
         return self.execute_all(builder, enumerated_targets, args)
 
