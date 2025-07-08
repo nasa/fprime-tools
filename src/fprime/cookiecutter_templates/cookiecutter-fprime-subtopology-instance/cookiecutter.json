@@ -1,0 +1,10 @@
+{
+    "subtopology_instance_name": "MyInstance",
+    "base_id": "0xC000",
+    "subtopology_template": ["ComLogTSplit", "None"],
+    "__prompts__": {
+        "subtopology_instance_name": "Subtopology Instance name",
+        "base_id": "Base ID (in hex, e.g., 0xC000)",
+        "subtopology_template": "Select Core Subtopology Template"
+    }
+}

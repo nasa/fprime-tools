@@ -191,6 +191,13 @@ def add_special_parsers(
         dest="new_subtopology",
         help="Generate a new subtopology",
     )
+    new_exclusive.add_argument(
+        "--subtopology-instance",
+        default=False,
+        action="store_true",
+        dest="new_subtopology_instance",
+        help="Generate a new subtopology instance",
+    )
 
     # Code formatting with clang-format
     format_parser = subparsers.add_parser(

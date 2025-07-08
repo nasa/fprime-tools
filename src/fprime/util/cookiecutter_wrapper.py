@@ -263,6 +263,74 @@ def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
     return 0
 
 
+def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
+    """Creates a new subtopology instance using cookiecutter"""
+    framework_path = build.settings.get("framework_path", Path("."))
+    
+    # Define available core subtopologies
+    subtopology_mapping = {
+        "ComLogTSplit": "ComLogTSplit",
+        # Add more mappings here as needed
+    }
+    
+    # Pre-calculate include paths for template
+    extra_context = {"framework_path_str": str(framework_path)}
+    for name, dir_name in subtopology_mapping.items():
+        core_path = framework_path / "Svc" / "Subtopologies" / dir_name
+        extra_context[f"{name}_include_path"] = f"{core_path}/subtopology-template.fppi"
+    extra_context["fallback_include_path"] = "INSERT INCLUDE PATH"
+    
+    # Checks if subtopology_instance_cookiecutter is set in settings.ini file, else uses local install template as default
+    if (
+        build.get_settings("subtopology_instance_cookiecutter", None) is not None
+        and build.get_settings("subtopology_instance_cookiecutter", None) != "default"
+    ):
+        source = build.get_settings("subtopology_instance_cookiecutter", None)
+        print(f"[INFO] Cookiecutter source: {source}")
+    else:
+        source = (
+            os.path.dirname(__file__)
+            + "/../cookiecutter_templates/cookiecutter-fprime-subtopology-instance"
+        )
+        print("[INFO] Cookiecutter: using builtin template for new subtopology instance")
+    try:
+        gen_path = Path(
+            cookiecutter(source, overwrite_if_exists=parsed_args.overwrite, extra_context=extra_context)
+        ).resolve()
+        
+        """
+        # Check if user needs to manually specify include path
+        topology_file = gen_path / "topology.fpp"
+        if topology_file.exists():
+            with open(topology_file, 'r') as f:
+                content = f.read()
+                if "INSERT INCLUDE PATH" in content:
+                    print("[INFO] Please specify your template include path in the topology.fpp file!")
+        """
+        
+        # Attempt to register to CMakeLists.txt or project.cmake
+        register_with_cmake(
+            gen_path,
+            Path(build.get_settings("project_root", None)).resolve(),
+            build.cmake_root,
+        )
+
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    except FileNotFoundError as e:
+        print(
+            f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"[INFO] New subtopology instance successfully created: {gen_path}")
+    return 0
+
+
 def new_module(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new F' project"""
 
