@@ -1,6 +1,6 @@
 {
     "subtopology_instance_name": "MySubtopologyInstance",
-    "base_id": "0xC000",
+    "base_id": "0x1000",
     "subtopology_template": ["ComLogTSplit", "None"],
     "_ComLogTSplit_include_path": "",
     "_fallback_include_path": "",

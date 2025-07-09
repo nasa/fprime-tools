@@ -297,14 +297,6 @@ def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
             cookiecutter(source, overwrite_if_exists=parsed_args.overwrite, extra_context=extra_context)
         ).resolve()
         
-        # Check if user needs to manually specify include path
-        # The file will be named after the instance name, not "topology.fpp"
-        instance_files = list(gen_path.glob("*.fpp"))
-        for fpp_file in instance_files:
-            if fpp_file.exists() and "INSERT INCLUDE PATH" in fpp_file.read_text():
-                print(f"[INFO] Please specify your template include path in the {fpp_file.name} file!")
-                break
-        
         # Attempt to register to CMakeLists.txt or project.cmake
         register_with_cmake(
             gen_path,
