@@ -6,15 +6,10 @@ CDH
 cexc
 ci
 cls
-Comms
-configs
 confparse
 COOLDOWN
-deframed
 deframer
-deframing
 deser
-deserializes
 dinkel
 dirone
 drv
@@ -29,7 +24,6 @@ fpl
 fpp
 fppi
 fprime
-funcs
 gcov
 gcovr
 genex
@@ -39,7 +33,6 @@ gtest
 HJK
 hpaulson
 intersphinx
-Isr
 jishii
 joshuaa
 jpl
@@ -89,12 +82,11 @@ testimpl
 thostname
 timebase
 toctree
-toolchains
 TOPOLOGYDEFS
 tport
+TSplit
 tz
 uart
-Udp
 unittests
 usec
 useconds
