@@ -14,7 +14,7 @@ LOGGER = logging.getLogger("string_util_logger")
 
 
 def format_string_template(format_str, given_values):
-    """
+    r"""
     Function to convert C-string style to python format
     without using python interpolation
     Considered the following format for C-string:
@@ -82,7 +82,7 @@ def format_string_template(format_str, given_values):
     else:
         values = given_values
 
-    pattern = "(?<!%)(?:%%)*%([\-\+0\ \#])?(\d+|\*)?(\.\*|\.\d+)?([hLIw]|l{1,2}|I32|I64)?([cCdiouxXeEfgGaAnpsSZ])"
+    pattern = r"(?<!%)(?:%%)*%([\-\+0\ \#])?(\d+|\*)?(\.\*|\.\d+)?([hLIw]|l{1,2}|I32|I64)?([cCdiouxXeEfgGaAnpsSZ])"
 
     match = re.compile(pattern)
 

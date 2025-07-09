@@ -12,7 +12,8 @@ from typing import Callable, Dict, List, Tuple
 
 from fprime.common.utils import confirm
 from fprime.fbuild.builder import Build
-from fprime.fbuild.target import Target, DesignateTargetAction
+from fprime.fbuild.enumerator import DesignateTargetAction
+from fprime.fbuild.target import Target
 from fprime.fbuild.types import BuildType
 
 
