@@ -10,7 +10,7 @@ from typing import Tuple, Dict, List
 from fprime.fbuild.target import (
     TargetContext,
     TargetScope,
-    ExecutableAction,
+    EnumeratedAction,
     CompositeTarget,
 )
 
@@ -18,7 +18,7 @@ from fprime.fbuild.target import BuildSystemTarget
 from .enumerator import BuildTargetEnumerator
 
 
-class Check(ExecutableAction):
+class Check(EnumeratedAction):
     """Target invoking CTest executable to run tests"""
 
     EXECUTABLE = "ctest"
@@ -87,8 +87,5 @@ class CheckTarget(CompositeTarget):
         )
         super().__init__(
             composite_targets=[build_target, check_action],
-            scope=scope,
-            build_target_enumerator=build_target_enumerators[0],
-            *args,
-            **kwargs,
+            scope=scope
         )
