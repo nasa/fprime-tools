@@ -268,18 +268,17 @@ def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
     framework_path = build.settings.get("framework_path", Path("."))
     
     # Define available core subtopologies
-    subtopology_mapping = {
-        "ComLogTSplit": "ComLogTSplit",
-        # Add more mappings here as needed
-    }
+    core_subtopology_list = [
+        "ComLogTSplit",
+        # Add more core subtopologies that support instances here as needed
+    ]
     
     # Pre-calculate include paths for template
-    extra_context = {"framework_path_str": str(framework_path)}
-    for name, dir_name in subtopology_mapping.items():
-        core_path = framework_path / "Svc" / "Subtopologies" / dir_name
-        extra_context[f"{name}_include_path"] = f"{core_path}/subtopology-template.fppi"
-    extra_context["fallback_include_path"] = "INSERT INCLUDE PATH"
-    
+    extra_context = {"_framework_path_str": str(framework_path)}
+    for name in core_subtopology_list:
+        core_path = framework_path / "Svc" / "Subtopologies" / name
+        extra_context[f"_{name}_include_path"] = f"{core_path}/subtopology-template.fppi"
+
     # Checks if subtopology_instance_cookiecutter is set in settings.ini file, else uses local install template as default
     if (
         build.get_settings("subtopology_instance_cookiecutter", None) is not None
@@ -298,15 +297,13 @@ def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
             cookiecutter(source, overwrite_if_exists=parsed_args.overwrite, extra_context=extra_context)
         ).resolve()
         
-        """
         # Check if user needs to manually specify include path
-        topology_file = gen_path / "topology.fpp"
-        if topology_file.exists():
-            with open(topology_file, 'r') as f:
-                content = f.read()
-                if "INSERT INCLUDE PATH" in content:
-                    print("[INFO] Please specify your template include path in the topology.fpp file!")
-        """
+        # The file will be named after the instance name, not "topology.fpp"
+        instance_files = list(gen_path.glob("*.fpp"))
+        for fpp_file in instance_files:
+            if fpp_file.exists() and "INSERT INCLUDE PATH" in fpp_file.read_text():
+                print(f"[INFO] Please specify your template include path in the {fpp_file.name} file!")
+                break
         
         # Attempt to register to CMakeLists.txt or project.cmake
         register_with_cmake(
