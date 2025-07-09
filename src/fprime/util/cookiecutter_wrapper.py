@@ -275,6 +275,8 @@ def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
     
     # Pre-calculate include paths for template
     extra_context = {"_framework_path_str": str(framework_path)}
+    
+    # Add include paths for each core subtopology
     for name in core_subtopology_list:
         core_path = framework_path / "Svc" / "Subtopologies" / name
         extra_context[f"_{name}_include_path"] = f"{core_path}/subtopology-template.fppi"
