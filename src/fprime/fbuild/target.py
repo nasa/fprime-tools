@@ -41,16 +41,14 @@ class ExecutableAction(ABC):
     without generating all the normal target metadata.
     """
 
-    def __init__(
-        self, scope: TargetScope
-    ):
+    def __init__(self, scope: TargetScope):
         """Set scope of this action"""
         self.original_context = None
         self.scope = scope
 
     @abstractmethod
     def is_supported(self, builder: "Build", context_path: Path):
-        """Is this target supported via the given contextual path """
+        """Is this target supported via the given contextual path"""
         pass
 
     @abstractmethod
@@ -91,7 +89,8 @@ class ExecutableAction(ABC):
 
 
 class EnumeratedAction(ExecutableAction):
-    """ Action that derives targets for a given context path using an enumeration """
+    """Action that derives targets for a given context path using an enumeration"""
+
     def __init__(
         self, scope: TargetScope, build_target_enumerator: BuildTargetEnumerator
     ):
@@ -129,9 +128,14 @@ class EnumeratedAction(ExecutableAction):
         )
         return self.execute_all(builder, enumerated_targets, args)
 
-    def execute_all(self, builder: "Build", context: TargetContext, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
+    def execute_all(
+        self,
+        builder: "Build",
+        context: TargetContext,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
+    ):
         """Executes all targets supplied via the context list
-        
+
         This method is passed the enumerated context path, receiving context as a list of strings representing
         enumerated context as specified via self.build_target_enumerator.enumerate.
 

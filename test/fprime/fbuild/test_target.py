@@ -2,7 +2,7 @@
 Tests for fprime.fbuild.target
 """
 from pathlib import Path
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -15,12 +15,11 @@ from fprime.fbuild.target import (
     EnumeratedAction,
 )
 from fprime.fbuild.enumerator import BuildTargetEnumerator
-from fprime.fbuild.types import BuildType
 
 
 @pytest.fixture(autouse=True)
 def clear_registered_targets():
-    """ Fixture to clear registered targets before each test """
+    """Fixture to clear registered targets before each test"""
     Target._Target__REGISTRY = {}
     yield
     Target._Target__REGISTRY = {}
@@ -28,14 +27,14 @@ def clear_registered_targets():
 
 @pytest.fixture
 def mock_builder():
-    """ Pytest fixture for a mock builder object """
+    """Pytest fixture for a mock builder object"""
     builder = MagicMock()
     builder.is_verbose.return_value = False
     return builder
 
 
 def test_register_and_get_target():
-    """ Test target registration and retrieval """
+    """Test target registration and retrieval"""
     target = Target("test", "A test target", TargetScope.LOCAL)
     Target.register_target(target)
 
@@ -47,7 +46,7 @@ def test_register_and_get_target():
 
 
 def test_composite_target_execution(mock_builder):
-    """ Test that a composite target executes its children """
+    """Test that a composite target executes its children"""
     child1 = MagicMock(spec=Target, scope=TargetScope.LOCAL)
     child2 = MagicMock(spec=Target, scope=TargetScope.LOCAL)
     composite = CompositeTarget([child1, child2], "composite", "", TargetScope.LOCAL)
@@ -59,7 +58,7 @@ def test_composite_target_execution(mock_builder):
 
 
 def test_build_system_target_execution(mock_builder):
-    """ Test that BuildSystemTarget calls the build system """
+    """Test that BuildSystemTarget calls the build system"""
     target = BuildSystemTarget("build", "", TargetScope.LOCAL)
     target.original_context = Path(".")
 
@@ -71,7 +70,7 @@ def test_build_system_target_execution(mock_builder):
 
 
 def test_enumerated_action_execution(mock_builder):
-    """ Test that EnumeratedAction executes its enumerator and then execute_all """
+    """Test that EnumeratedAction executes its enumerator and then execute_all"""
     mock_enumerator = MagicMock(spec=BuildTargetEnumerator)
     enumerated_results = ["target1", "target2"]
     mock_enumerator.enumerate.return_value = enumerated_results
@@ -91,13 +90,11 @@ def test_enumerated_action_execution(mock_builder):
     action.execute(mock_builder, context_path, args)
 
     mock_enumerator.enumerate.assert_called_once_with(mock_builder, context_path)
-    action.execute_all.assert_called_once_with(
-        mock_builder, enumerated_results, args
-    )
+    action.execute_all.assert_called_once_with(mock_builder, enumerated_results, args)
 
 
 def test_enumerated_action_is_supported(mock_builder):
-    """ Test that EnumeratedAction.is_supported calls the enumerator and any_supported """
+    """Test that EnumeratedAction.is_supported calls the enumerator and any_supported"""
     mock_enumerator = MagicMock(spec=BuildTargetEnumerator)
     enumerated_results = ["target1", "target2"]
     mock_enumerator.enumerate.return_value = enumerated_results
@@ -193,4 +190,3 @@ def test_composite_target_pass_handler():
         [child1, child2, child3], "composite", "", TargetScope.LOCAL
     )
     assert composite.pass_handler() == "handler1,handler3"
-

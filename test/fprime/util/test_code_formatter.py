@@ -24,7 +24,7 @@ def test_init():
 
 
 def test_stage_file(tmp_path):
-    """ Test staging files for formatting """
+    """Test staging files for formatting"""
     # Create dummy files
     cpp_file = tmp_path / "test.cpp"
     cpp_file.touch()
@@ -46,7 +46,7 @@ def test_stage_file(tmp_path):
 
 
 def test_stage_file_no_validation(tmp_path):
-    """ Test staging files with extension validation disabled """
+    """Test staging files with extension validation disabled"""
     # Create dummy files
     cpp_file = tmp_path / "test.cpp"
     cpp_file.touch()
@@ -67,7 +67,7 @@ def test_stage_file_no_validation(tmp_path):
 
 
 def test_allow_extension(tmp_path):
-    """ Test allowing a new extension """
+    """Test allowing a new extension"""
     txt_file = tmp_path / "test.txt"
     txt_file.touch()
 
@@ -85,7 +85,7 @@ DATA_DIR = Path(__file__).parent / "data"
 
 @pytest.fixture
 def mock_build():
-    """ Pytest fixture for a mock build object """
+    """Pytest fixture for a mock build object"""
     build = MagicMock()
     build.settings = {}
     return build
@@ -93,7 +93,7 @@ def mock_build():
 
 @pytest.fixture
 def style_file(tmp_path):
-    """ Pytest fixture for a style file """
+    """Pytest fixture for a style file"""
     clang_format_file = tmp_path / ".clang-format"
     clang_format_file.write_text("BasedOnStyle: LLVM\n")
     return clang_format_file

@@ -3,21 +3,13 @@ Tests for fprime.util.cookiecutter_wrapper
 """
 
 import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-from fprime.util.cookiecutter_wrapper import (
-    find_nearest_cmake_file,
-    register_with_cmake,
-    run_impl,
-    new_component,
-    new_deployment,
-)
+from fprime.util.cookiecutter_wrapper import find_nearest_cmake_file
 
 
 @pytest.fixture
 def file_structure(tmp_path):
-    """ Pytest fixture for a temporary file structure """
+    """Pytest fixture for a temporary file structure"""
     proj_root = tmp_path
     component_dir = proj_root / "component"
     component_subdir = component_dir / "sub"
@@ -34,7 +26,7 @@ def file_structure(tmp_path):
 
 
 def test_find_nearest_cmake_in_component_parent(file_structure):
-    """ Test finding CMakeLists.txt in a component's parent directory """
+    """Test finding CMakeLists.txt in a component's parent directory"""
     proj_root, component_dir, component_subdir, deployment_dir = file_structure
     (component_dir / "CMakeLists.txt").touch()
 
@@ -43,7 +35,7 @@ def test_find_nearest_cmake_in_component_parent(file_structure):
 
 
 def test_find_nearest_cmake_project_cmake(file_structure):
-    """ Test falling back to project.cmake """
+    """Test falling back to project.cmake"""
     proj_root, component_dir, component_subdir, deployment_dir = file_structure
 
     found_path = find_nearest_cmake_file(component_subdir, deployment_dir, proj_root)
@@ -51,7 +43,7 @@ def test_find_nearest_cmake_project_cmake(file_structure):
 
 
 def test_find_nearest_cmake_no_file(file_structure):
-    """ Test returning None when no file is found """
+    """Test returning None when no file is found"""
     proj_root, component_dir, component_subdir, deployment_dir = file_structure
     (proj_root / "project.cmake").unlink()
     (proj_root / "CMakeLists.txt").unlink()
