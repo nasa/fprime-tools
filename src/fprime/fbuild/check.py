@@ -3,8 +3,9 @@
 The 'check' target is designed to call CTest executable(s) to run tests. It is a composite target used to build and run
 the test targets.
 """
-import sys
+import shutil
 import subprocess
+import sys
 from typing import Tuple, Dict, List
 
 from fprime.fbuild.target import (
@@ -87,5 +88,7 @@ class CheckTarget(CompositeTarget):
         )
         super().__init__(
             composite_targets=[build_target, check_action],
-            scope=scope
+            scope=scope,
+            *args,
+            **kwargs,
         )

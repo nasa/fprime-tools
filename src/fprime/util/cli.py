@@ -54,6 +54,7 @@ def utility_entry(args):
         print(f"[ERROR] Could not detect project directory for: {parsed.path}")
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
+        raise
     return 1
 
 

@@ -228,5 +228,7 @@ class GcovrTarget(CompositeTarget):
         gcovr_target = Gcovr(scope)
         super().__init__(
             [check_target, gcovr_target],
-            scope=scope
+            scope=scope,
+            *args,
+            **kwargs,
         )

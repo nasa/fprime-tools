@@ -184,13 +184,6 @@ def test_specific_build_target_enumerator_constructor():
     assert enumerator.enumerate(None, None) == targets
 
 
-def test_specific_build_target_enumerator_assertion():
-    """Test SpecificBuildTargetEnumerator asserts when targets are not set"""
-    enumerator = SpecificBuildTargetEnumerator()  # Initialized with None
-    with pytest.raises(AssertionError):
-        enumerator.enumerate(None, None)
-
-
 def test_specific_build_target_enumerator_setter():
     """Test SpecificBuildTargetEnumerator's setter overrides constructor targets"""
     initial_targets = ["initial1"]

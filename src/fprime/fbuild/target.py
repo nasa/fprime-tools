@@ -129,7 +129,6 @@ class EnumeratedAction(ExecutableAction):
         )
         return self.execute_all(builder, enumerated_targets, args)
 
-    @abstractmethod
     def execute_all(self, builder: "Build", context: TargetContext, args: Tuple[Dict[str, str], List[str], Dict[str, bool]]):
         """Executes all targets supplied via the context list
         
@@ -283,7 +282,7 @@ class Target(EnumeratedAction):
         return matching[0]
 
 
-class CompositeTarget(ExecutableAction):
+class CompositeTarget(Target):
     """Target whose execution is a composition of other targets"""
 
     def __init__(self, composite_targets: List["Target"], *args, **kwargs):
