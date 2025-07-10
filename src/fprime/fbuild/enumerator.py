@@ -162,7 +162,7 @@ class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
 
     def __init__(self, build_targets: List[str] = None):
         """Construct the enumerator with the name of the build target"""
-        self.build_targets = build_targets
+        self.build_targets = build_targets if build_targets is not None else []
 
     def set_build_targets(self, build_targets: List[str]):
         """Set the build targets"""
@@ -170,7 +170,6 @@ class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
 
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
         """Enumerates exactly a build target"""
-        assert self.build_targets is not None, "Build targets were never set"
         return self.build_targets
 
 

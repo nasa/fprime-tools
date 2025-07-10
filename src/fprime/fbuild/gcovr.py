@@ -225,7 +225,7 @@ class GcovrTarget(CompositeTarget):
             **kwargs,
         )
         # Reuse the enumerator for tests
-        gcovr_target = Gcovr(scope, build_target_enumerators[1])
+        gcovr_target = Gcovr(scope)
         super().__init__(
             [check_target, gcovr_target],
             scope=scope,
