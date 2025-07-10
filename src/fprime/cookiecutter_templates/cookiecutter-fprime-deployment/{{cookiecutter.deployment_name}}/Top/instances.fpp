@@ -9,6 +9,8 @@ module {{cookiecutter.deployment_name}} {
     constant STACK_SIZE = 64 * 1024
   }
 
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
+
   # ----------------------------------------------------------------------
   # Active component instances
   # ----------------------------------------------------------------------
@@ -27,6 +29,29 @@ module {{cookiecutter.deployment_name}} {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 118
+
+  # ----------------------------------------------------------------------
+  # Queued component instances
+  # ----------------------------------------------------------------------
+
+
+  # ----------------------------------------------------------------------
+  # Passive component instances
+  # ----------------------------------------------------------------------
+
+  instance chronoTime: Svc.ChronoTime base id 0x4500
+
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x4600
+
+  instance systemResources: Svc.SystemResources base id 0x4A00
+
+  instance linuxTimer: Svc.LinuxTimer base id 0x4F00
+
+{%- else %}
+
+  # ----------------------------------------------------------------------
+  # Active component instances
+  # ----------------------------------------------------------------------
 
   instance cmdDisp: Svc.CommandDispatcher base id 0x0500 \
     queue size 20 \
@@ -82,6 +107,21 @@ module {{cookiecutter.deployment_name}} {
     stack size Default.STACK_SIZE \
     priority 96
 
+  instance rateGroup1: Svc.ActiveRateGroup base id 0x0200 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 120
+
+  instance rateGroup2: Svc.ActiveRateGroup base id 0x0300 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 119
+
+  instance rateGroup3: Svc.ActiveRateGroup base id 0x0400 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 118
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
@@ -127,4 +167,7 @@ module {{cookiecutter.deployment_name}} {
   instance version: Svc.Version base id 0x4E00
 
   instance linuxTimer: Svc.LinuxTimer base id 0x4F00
+
+{%- endif %}
+
 }

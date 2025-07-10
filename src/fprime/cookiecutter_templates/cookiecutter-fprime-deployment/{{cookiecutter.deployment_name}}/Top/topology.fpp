@@ -9,6 +9,7 @@ module {{cookiecutter.deployment_name}} {
     rateGroup2
     rateGroup3
   }
+{%- if cookiecutter.use_core_subtopologies == "no" %}
   enum Ports_ComPacketQueue {
     EVENTS,
     TELEMETRY
@@ -16,13 +17,34 @@ module {{cookiecutter.deployment_name}} {
   enum Ports_ComBufferQueue {
     FILE_DOWNLINK
   }
+{%- endif %}
 
   topology {{cookiecutter.deployment_name}} {
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
 
-    # ----------------------------------------------------------------------
-    # Instances used in the topology
-    # ----------------------------------------------------------------------
+  # ----------------------------------------------------------------------
+  # Subtopology imports
+  # ----------------------------------------------------------------------
+    import CdhCore.Subtopology
+    import {{cookiecutter.communication_type}}.Subtopology
+    import DataProducts.Subtopology
+    import FileHandling.Subtopology
+{%- endif %}
+    
+  # ----------------------------------------------------------------------
+  # Instances used in the topology
+  # ----------------------------------------------------------------------
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
 
+    instance chronoTime
+    instance rateGroup1
+    instance rateGroup2
+    instance rateGroup3
+    instance rateGroupDriver
+    instance systemResources
+    instance linuxTimer
+
+{%- else %}
     instance $health
     instance tlmSend
     instance cmdDisp
@@ -51,36 +73,74 @@ module {{cookiecutter.deployment_name}} {
     instance systemResources
     instance version
     instance linuxTimer
+{%- endif %}
 
-    # ----------------------------------------------------------------------
-    # Pattern graph specifiers
-    # ----------------------------------------------------------------------
+  # ----------------------------------------------------------------------
+  # Pattern graph specifiers
+  # ----------------------------------------------------------------------
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
 
-    command connections instance cmdDisp
-
-    event connections instance eventLogger
-
-    param connections instance prmDb
-
-    telemetry connections instance tlmSend
-
-    text event connections instance textLogger
-
+    command connections instance CdhCore.cmdDisp
+    event connections instance CdhCore.events
+    telemetry connections instance CdhCore.tlmSend
+    text event connections instance CdhCore.textLogger
+    health connections instance CdhCore.$health
+    param connections instance FileHandling.prmDb
     time connections instance chronoTime
 
+{%- else %}
+    command connections instance cmdDisp
+    event connections instance eventLogger
+    param connections instance prmDb
+    telemetry connections instance tlmSend
+    text event connections instance textLogger
+    time connections instance chronoTime
     health connections instance $health
+{%- endif %}
 
-    # ----------------------------------------------------------------------
-    # Telemetry packets
-    # ----------------------------------------------------------------------
+  # ----------------------------------------------------------------------
+  # Telemetry packets
+  # ----------------------------------------------------------------------
 
     include "{{cookiecutter.deployment_name}}Packets.fppi"
 
+  # ----------------------------------------------------------------------
+  # Direct graph specifiers
+  # ----------------------------------------------------------------------
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
 
-    # ----------------------------------------------------------------------
-    # Direct graph specifiers
-    # ----------------------------------------------------------------------
+    connections {{cookiecutter.communication_type}}_CdhCore {
+      # Core events and telemetry to communication queue
+      CdhCore.events.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.EVENTS]
+      CdhCore.tlmSend.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.TELEMETRY]
 
+      # Router to Command Dispatcher
+      {{cookiecutter.communication_type}}.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> {{cookiecutter.communication_type}}.fprimeRouter.cmdResponseIn
+      
+      # Command Sequencer
+      {{cookiecutter.communication_type}}.cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> {{cookiecutter.communication_type}}.cmdSeq.cmdResponseIn
+    }
+
+    connections {{cookiecutter.communication_type}}_FileHandling {
+      # File Downlink to Communication Queue
+      FileHandling.fileDownlink.bufferSendOut -> {{cookiecutter.communication_type}}.comQueue.bufferQueueIn[{{cookiecutter.communication_type}}.Ports_ComBufferQueue.FILE_DOWNLINK]
+      {{cookiecutter.communication_type}}.comQueue.bufferReturnOut[{{cookiecutter.communication_type}}.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
+
+      # Router to File Uplink
+      {{cookiecutter.communication_type}}.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn
+      FileHandling.fileUplink.bufferSendOut -> {{cookiecutter.communication_type}}.fprimeRouter.fileBufferReturnIn
+    }
+
+    connections FileHandling_DataProducts {
+      # Data Products to File Downlink
+      DataProducts.dpCat.fileOut -> FileHandling.fileDownlink.SendFile
+      FileHandling.fileDownlink.FileComplete -> DataProducts.dpCat.fileDone
+    }
+
+{%- else %}
+    # Legacy connections
     connections Downlink {
       # Inputs to ComQueue (events, telemetry, file)
       eventLogger.PktSend         -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.EVENTS]
@@ -110,27 +170,6 @@ module {{cookiecutter.deployment_name}} {
 
     connections FaultProtection {
       eventLogger.FatalAnnounce -> fatalHandler.FatalReceive
-    }
-
-    connections RateGroups {
-      # LinuxTimer to drive rate group
-      linuxTimer.CycleOut -> rateGroupDriver.CycleIn
-
-      # Rate group 1
-      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup1] -> rateGroup1.CycleIn
-      rateGroup1.RateGroupMemberOut[0] -> tlmSend.Run
-      rateGroup1.RateGroupMemberOut[1] -> fileDownlink.Run
-      rateGroup1.RateGroupMemberOut[2] -> systemResources.run
-      rateGroup1.RateGroupMemberOut[3] -> comQueue.run
-
-      # Rate group 2
-      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> cmdSeq.schedIn
-
-      # Rate group 3
-      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
-      rateGroup3.RateGroupMemberOut[0] -> $health.Run
-      rateGroup3.RateGroupMemberOut[1] -> bufferManager.schedIn
     }
 
     connections Sequencer {
@@ -165,6 +204,53 @@ module {{cookiecutter.deployment_name}} {
       cmdDisp.seqCmdStatus     -> fprimeRouter.cmdResponseIn
       fprimeRouter.fileOut     -> fileUplink.bufferSendIn
       fileUplink.bufferSendOut -> fprimeRouter.fileBufferReturnIn
+    }
+{%- endif %}
+
+    connections RateGroups {
+      # LinuxTimer to drive rate group
+      linuxTimer.CycleOut -> rateGroupDriver.CycleIn
+
+      # Rate group 1
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup1] -> rateGroup1.CycleIn
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
+      rateGroup1.RateGroupMemberOut[0] -> CdhCore.tlmSend.Run
+      rateGroup1.RateGroupMemberOut[1] -> FileHandling.fileDownlink.Run
+      rateGroup1.RateGroupMemberOut[2] -> systemResources.run
+      rateGroup1.RateGroupMemberOut[3] -> {{cookiecutter.communication_type}}.comQueue.run
+{%- else %}
+      rateGroup1.RateGroupMemberOut[0] -> tlmSend.Run
+      rateGroup1.RateGroupMemberOut[1] -> fileDownlink.Run
+      rateGroup1.RateGroupMemberOut[2] -> systemResources.run
+      rateGroup1.RateGroupMemberOut[3] -> comQueue.run
+{%- endif %}
+
+      # Rate group 2
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
+      rateGroup2.RateGroupMemberOut[0] -> {{cookiecutter.communication_type}}.cmdSeq.schedIn
+{%- else %}
+      rateGroup2.RateGroupMemberOut[0] -> cmdSeq.schedIn
+{%- endif %}
+
+      # Rate group 3
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
+{%- if cookiecutter.use_core_subtopologies == "yes" %}
+      rateGroup3.RateGroupMemberOut[0] -> CdhCore.$health.Run
+{%- if cookiecutter.communication_type == "ComCcsds" %}
+      rateGroup3.RateGroupMemberOut[1] -> {{cookiecutter.communication_type}}.commsBufferManager.schedIn
+      rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
+      rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
+      rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
+{%- else %}
+      rateGroup3.RateGroupMemberOut[1] -> DataProducts.dpBufferManager.schedIn
+      rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpWriter.schedIn
+      rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpMgr.schedIn
+{%- endif %}
+{%- else %}
+      rateGroup3.RateGroupMemberOut[0] -> $health.Run
+      rateGroup3.RateGroupMemberOut[1] -> bufferManager.schedIn
+{%- endif %}
     }
 
     connections {{cookiecutter.deployment_name}} {

@@ -9,9 +9,12 @@
 //#include <{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}PacketsAc.hpp>
 
 // Necessary project-specified types
+#include <Os/Console.hpp>
+{%- if cookiecutter.use_core_subtopologies == "no" %}
 #include <Fw/Types/MallocAllocator.hpp>
 #include <Svc/FrameAccumulator/FrameDetector/FprimeFrameDetector.hpp>
 #include <{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/Ports_ComPacketQueueEnumAc.hpp>
+{%- endif %}
 
 // Used for 1Hz synthetic cycling
 #include <Os/Mutex.hpp>
@@ -19,14 +22,17 @@
 // Allows easy reference to objects in FPP/autocoder required namespaces
 using namespace {{cookiecutter.deployment_name}};
 
-// The reference topology uses a malloc-based allocator for components that need to allocate memory during the
-// initialization phase.
-Fw::MallocAllocator mallocator;
+// Instantiate a system logger that will handle Fw::Logger::log calls
+Os::Console logger;
 
+
+{%- if cookiecutter.use_core_subtopologies == "no" %}
 // FprimeFrameDetector is used to configure the FrameAccumulator to detect F Prime frames
 Svc::FrameDetectors::FprimeFrameDetector frameDetector;
-
+// Malloc-based allocator for components that need to allocate memory during the initialization phase.
+Fw::MallocAllocator mallocator;
 Svc::ComQueue::QueueConfigurationTable configurationTable;
+{%- endif %}
 
 // The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
 {{"Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};"}}
@@ -37,6 +43,7 @@ U32 rateGroup1Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup2Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup3Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
+{%- if cookiecutter.use_core_subtopologies == "no" %}
 // A number of constants are needed for construction of the topology. These are specified here.
 enum TopologyConstants {
     CMD_SEQ_BUFFER_SIZE = 5 * 1024,
@@ -70,6 +77,7 @@ Svc::Health::PingEntry pingEntries[] = {
     {PingEntries::{{cookiecutter.deployment_name}}_rateGroup2::WARN, PingEntries::{{cookiecutter.deployment_name}}_rateGroup2::FATAL, "rateGroup2"},
     {PingEntries::{{cookiecutter.deployment_name}}_rateGroup3::WARN, PingEntries::{{cookiecutter.deployment_name}}_rateGroup3::FATAL, "rateGroup3"},
 };
+{%- endif %}
 
 /**
  * \brief configure/setup components in project-specific way
@@ -79,6 +87,15 @@ Svc::Health::PingEntry pingEntries[] = {
  * desired, but is extracted here for clarity.
  */
 void configureTopology(const TopologyState& state) {
+    // Rate group driver needs a divisor list
+    rateGroupDriver.configure(rateGroupDivisorsSet);
+
+    // Rate groups require context arrays.
+    rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
+    rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
+    rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+
+{%- if cookiecutter.use_core_subtopologies == "no" %}
     // Buffer managers need a configured set of buckets and an allocator used to allocate memory for those buckets.
     Svc::BufferManager::BufferBins bufferMgrBins;
     memset(&bufferMgrBins, 0, sizeof(bufferMgrBins));
@@ -88,21 +105,13 @@ void configureTopology(const TopologyState& state) {
     bufferMgrBins.bins[1].numBuffers = DEFRAMER_BUFFER_COUNT;
     bufferMgrBins.bins[2].bufferSize = COM_DRIVER_BUFFER_SIZE;
     bufferMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
-    bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, bufferMgrBins);
+    bufferManager.setup(200, 0, mallocator, bufferMgrBins);
 
     // Frame accumulator needs to be passed a frame detector (default F Prime frame detector)
     frameAccumulator.configure(frameDetector, 1, mallocator, 2048);
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, CMD_SEQ_BUFFER_SIZE);
-
-    // Rate group driver needs a divisor list
-    rateGroupDriver.configure(rateGroupDivisorsSet);
-
-    // Rate groups require context arrays.
-    rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
-    rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
-    rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
 
     // File downlink requires some project-derived properties.
     fileDownlink.configure(FILE_DOWNLINK_TIMEOUT, FILE_DOWNLINK_COOLDOWN, FILE_DOWNLINK_CYCLE_TIME,
@@ -114,9 +123,6 @@ void configureTopology(const TopologyState& state) {
 
     // Health is supplied a set of ping entires.
     health.setPingEntries(pingEntries, FW_NUM_ARRAY_ELEMENTS(pingEntries), HEALTH_WATCHDOG_CODE);
-
-    // Note: Uncomment when using Svc:TlmPacketizer
-    // tlmSend.setPacketList({{cookiecutter.deployment_name}}PacketsPkts, {{cookiecutter.deployment_name}}PacketsIgnore, 1);
 
     // ComQueue configuration
     // Events (highest-priority)
@@ -135,6 +141,10 @@ void configureTopology(const TopologyState& state) {
         comDriver.configure(state.hostname, state.port);
     }
 {%- endif %}
+{%- endif %}
+
+    // Note: Uncomment when using Svc:TlmPacketizer
+    // tlmSend.setPacketList({{cookiecutter.deployment_name}}PacketsPkts, {{cookiecutter.deployment_name}}PacketsIgnore, 1);
 }
 
 // Public functions for use in main program are namespaced with deployment name {{cookiecutter.deployment_name}}
@@ -146,22 +156,23 @@ void setupTopology(const TopologyState& state) {
     setBaseIds();
     // Autocoded connection wiring. Function provided by autocoder.
     connectComponents();
-    // Autocoded configuration. Function provided by autocoder.
-    configComponents(state);
-    // Deployment-specific component configuration. Function provided above. May be inlined, if desired.
-    configureTopology(state);
     // Autocoded command registration. Function provided by autocoder.
     regCommands();
+    // Autocoded configuration. Function provided by autocoder.
+    configComponents(state);
+    // Project-specific component configuration. Function provided above. May be inlined, if desired.
+    configureTopology(state);
     // Autocoded parameter loading. Function provided by autocoder.
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
+{%- if cookiecutter.use_core_subtopologies == "no" %}
 {%- if (cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]) %}
     // Initialize socket communication if and only if there is a valid specification
     if (state.hostname != nullptr && state.port != 0) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
-        comDriver.start(name, COMM_PRIORITY, Default::STACK_SIZE);
+        comDriver.start(name, 100, Default::STACK_SIZE);
     }
 {%- elif cookiecutter.com_driver_type == "UART" %}
     if (state.uartDevice != nullptr) {
@@ -169,23 +180,24 @@ void setupTopology(const TopologyState& state) {
         // Uplink is configured for receive so a socket task is started
         if (comDriver.open(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate), 
                            Drv::LinuxUartDriver::NO_FLOW, Drv::LinuxUartDriver::PARITY_NONE, 2048)) {
-            comDriver.start(COMM_PRIORITY, Default::STACK_SIZE);
+            comDriver.start(100, Default::STACK_SIZE);
         } else {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
 {%- endif %}
+{%- endif %}
 }
 
-// Variables used for cycle simulation
-Os::Mutex cycleLock;
-volatile bool cycleFlag = true;
-
-void startSimulatedCycle(Fw::TimeInterval interval) {
+void startRateGroups(Fw::TimeInterval interval) {
+    // This timer drives the fundamental tick rate of the system.
+    // Svc::RateGroupDriver will divide this down to the slower rate groups.
+    // This call will block until the stopRateGroups() call is made.
+    // For this Linux demo, that call is made from a signal handler.
     linuxTimer.startTimer(interval.getSeconds()*1000+interval.getUSeconds()/1000);
 }
 
-void stopSimulatedCycle() {
+void stopRateGroups() {
     linuxTimer.quit();
 }
 
@@ -193,7 +205,8 @@ void teardownTopology(const TopologyState& state) {
     // Autocoded (active component) task clean-up. Functions provided by topology autocoder.
     stopTasks(state);
     freeThreads(state);
-
+    tearDownComponents(state);
+{%- if cookiecutter.use_core_subtopologies == "no" %}
     // Other task clean-up.
 {%- if cookiecutter.com_driver_type == "UART" %}
     comDriver.quitReadThread();
@@ -202,9 +215,9 @@ void teardownTopology(const TopologyState& state) {
     comDriver.stop();
     (void)comDriver.join();
 {%- endif %}
-
     // Resource deallocation
     cmdSeq.deallocateBuffer(mallocator);
     bufferManager.cleanup();
+{%- endif %}
 }
 };  // namespace {{cookiecutter.deployment_name}}
