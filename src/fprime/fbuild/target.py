@@ -8,7 +8,7 @@ contain build system targets (e.g. CMake target invokers), and miscellaneous tar
 
 import functools
 import itertools
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
@@ -41,12 +41,61 @@ class ExecutableAction(ABC):
     without generating all the normal target metadata.
     """
 
+    def __init__(self, scope: TargetScope):
+        """Set scope of this action"""
+        self.original_context = None
+        self.scope = scope
+
+    @abstractmethod
+    def is_supported(self, builder: "Build", context_path: Path):
+        """Is this target supported via the given contextual path"""
+        pass
+
+    @abstractmethod
+    def execute(
+        self,
+        builder: "Build",
+        context: Path,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
+    ):
+        """Executes the given targe with the given contextual path"""
+
+    def option_args(self) -> List[Tuple[str, str]]:
+        """List of option arguments handled by this target
+
+        Option flags are switches that are not allowed arguments. The current design defaults the value to False unless
+        the switch is supplied. This function is expected to return a list of pairs of switch flag and description help
+        text. e.g.
+        [
+            (--turn-on, "Turns on a switch"),
+        ]
+
+        Returns:
+            list of tuples containing the paired flag and description
+        """
+        return []
+
+    def allows_pass_args(self):
+        """Target allows pass-through arguments"""
+        return False
+
+    def pass_handler(self):
+        """Handler of pass-through args"""
+        return None
+
+    def __repr__(self):
+        """Representation"""
+        return f"{self.__class__.__name__}"
+
+
+class EnumeratedAction(ExecutableAction):
+    """Action that derives targets for a given context path using an enumeration"""
+
     def __init__(
         self, scope: TargetScope, build_target_enumerator: BuildTargetEnumerator
     ):
         """Set scope of this action"""
-        self.original_context = None
-        self.scope = scope
+        super().__init__(scope)
         self.build_target_enumerator = build_target_enumerator
 
     def is_supported(self, builder: "Build", context_path: Path):
@@ -79,35 +128,43 @@ class ExecutableAction(ABC):
         )
         return self.execute_all(builder, enumerated_targets, args)
 
-    def option_args(self) -> List[Tuple[str, str]]:
-        """List of option arguments handled by this target
+    def execute_all(
+        self,
+        builder: "Build",
+        context: TargetContext,
+        args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
+    ):
+        """Executes all targets supplied via the context list
 
-        Option flags are switches that are not allowed arguments. The current design defaults the value to False unless
-        the switch is supplied. This function is expected to return a list of pairs of switch flag and description help
-        text. e.g.
-        [
-            (--turn-on, "Turns on a switch"),
-        ]
+        This method is passed the enumerated context path, receiving context as a list of strings representing
+        enumerated context as specified via self.build_target_enumerator.enumerate.
+
+        Args:
+            builder: builder to execute the target
+            context: contextual path to execute the target
+            args: arguments to pass to the target
 
         Returns:
-            list of tuples containing the paired flag and description
+            List of results from executing the target
         """
-        return []
+        pass
 
-    def allows_pass_args(self):
-        """Target allows pass-through arguments"""
-        return False
+    def any_supported(self, builder: "Build", context: TargetContext) -> bool:
+        """Is supported by the list of build target names
 
-    def pass_handler(self):
-        """Handler of pass-through args"""
-        return None
+        Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
-    def __repr__(self):
-        """Representation"""
-        return f"{self.__class__.__name__}"
+        Args:
+            builder: builder to check if this action is supported
+            context: contextual path to check
+
+        Return:
+            True if supported false otherwise
+        """
+        return len(context) > 0
 
 
-class Target(ExecutableAction):
+class Target(EnumeratedAction):
     """Generic build target base class
 
     A target can be specified by the user using a mnemonic and flags. The mnemonic is the command typed in by the user,
@@ -331,25 +388,3 @@ class BuildSystemTarget(Target):
 
         # Execute the build target
         builder.execute_build_target(build_target, self.original_context, args[0])
-
-    def is_supported(self, builder: "Build", context: TargetContext):
-        """Any of the build targets supported by the list of build target names
-
-        Checks if the build target names supplied will support this target. Is overridden by subclasses.
-
-        Args:
-            builder: builder to check if this action is supported
-            context: contextual path to check
-
-        Return:
-            True if supported false otherwise
-        """
-        build_target_names = builder.cmake.get_available_targets(
-            str(builder.build_dir), context
-        )
-        return functools.reduce(
-            lambda accumulator, build_target: accumulator
-            or build_target in build_target_names,
-            context,
-            False,
-        )
