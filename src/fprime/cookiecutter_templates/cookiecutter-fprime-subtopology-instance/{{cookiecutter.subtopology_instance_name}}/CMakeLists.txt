@@ -17,6 +17,8 @@ if(EXISTS "${CONFIG_DIR}" AND IS_DIRECTORY "${CONFIG_DIR}")
     list(APPEND SUBTOPOLOGY_DEPENDS "${MODULE_NAME}")
 endif()
 
+message(STATUS "SUBTOPOLOGY_DEPENDS: ${SUBTOPOLOGY_DEPENDS}")
+
 register_fprime_module(
     AUTOCODER_INPUTS
         "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.subtopology_instance_name}}.fpp"

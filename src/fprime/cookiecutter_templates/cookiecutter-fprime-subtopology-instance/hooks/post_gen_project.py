@@ -43,11 +43,19 @@ print(f"[INFO] Successfully copied and modified PingEntries.hpp from {template_p
 with open(subtopology_file, 'r') as f:
     subtopology_content = f.read()
 
+with open(cmake_file, 'r') as f:
+    cmake_content = f.read()
+
 # If the original template path was relative, prepend ../ to all its occurrences in the subtopology instance file
 if was_relative:
     subtopology_content = subtopology_content.replace(subtopology_template_path, f"../{subtopology_template_path}")
+    cmake_content = cmake_content.replace(subtopology_template_path, f"../{subtopology_template_path}")
 
 with open(subtopology_file, 'w') as f:
     f.write(subtopology_content)
 
+with open(cmake_file, 'w') as f:
+    f.write(cmake_content)
+
 print(f"[INFO] Updated {subtopology_file} with correct include path(s) if needed.")
+print(f"[INFO] Updated {cmake_file} with correct include path(s) if needed.")
