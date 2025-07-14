@@ -59,3 +59,7 @@ with open(cmake_file, 'w') as f:
 
 print(f"[INFO] Updated {subtopology_file} with correct include path(s) if needed.")
 print(f"[INFO] Updated {cmake_file} with correct include path(s) if needed.")
+
+print("\n[REMINDER] Don't forget to:")
+print(f"  1. Import {subtopology_instance_name}.Subtopology in your main topology.fpp file")
+print(f"  2. Include {subtopology_instance_name}/PingEntries.hpp in your main topology's TopologyDefs.hpp file")
