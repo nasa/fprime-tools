@@ -125,8 +125,8 @@ module {{cookiecutter.deployment_name}} {
 
     connections {{cookiecutter.communication_type}}_FileHandling {
       # File Downlink to Communication Queue
-      FileHandling.fileDownlink.bufferSendOut -> {{cookiecutter.communication_type}}.comQueue.bufferQueueIn[{{cookiecutter.communication_type}}.Ports_ComBufferQueue.FILE_DOWNLINK]
-      {{cookiecutter.communication_type}}.comQueue.bufferReturnOut[{{cookiecutter.communication_type}}.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
+      FileHandling.fileDownlink.bufferSendOut -> {{cookiecutter.communication_type}}.comQueue.bufferQueueIn[FileHandling.Ports_ComBufferQueue.FILE_DOWNLINK]
+      {{cookiecutter.communication_type}}.comQueue.bufferReturnOut[FileHandling.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
 
       # Router to File Uplink
       {{cookiecutter.communication_type}}.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn

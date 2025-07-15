@@ -17,7 +17,7 @@ register_fprime_module(
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.deployment_name}}Topology.cpp"
     DEPENDS
-        Fw/Logger
+        Fw_Logger
 {%- if cookiecutter.use_core_subtopologies == "no" %}
         # Legacy component dependencies
 {%- if cookiecutter.com_driver_type == "TcpClient" %}
