@@ -53,16 +53,16 @@ class BasicBuildTargetEnumerator(BuildTargetEnumerator):
     """A basic enumerator that just returns the context given."""
 
     def __init__(self, target_suffix: str = ""):
-        self.target_suffix = (
-            target_suffix if target_suffix == "" else f"_{target_suffix}"
-        )
+        self.target_suffix = target_suffix
 
     def enumerate_helper(self, builder: "Build", context_path: Path) -> List[str]:
         """Enumeration helper without error handling"""
-        return [
-            builder.cmake.get_cmake_module(context_path, builder.build_dir)
-            + self.target_suffix
-        ]
+        module = builder.cmake.get_cmake_module(context_path, builder.build_dir)
+        if module and self.target_suffix:
+            return [module + "_" + self.target_suffix]
+        elif module:
+            return [module]
+        return [self.target_suffix]
 
     def enumerate(self, builder: "Build", context_path: Path) -> List[str]:
         """Enumerate through conversion to cmake module name directly"""
