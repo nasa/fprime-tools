@@ -105,7 +105,7 @@ void configureTopology(const TopologyState& state) {
     bufferMgrBins.bins[1].numBuffers = DEFRAMER_BUFFER_COUNT;
     bufferMgrBins.bins[2].bufferSize = COM_DRIVER_BUFFER_SIZE;
     bufferMgrBins.bins[2].numBuffers = COM_DRIVER_BUFFER_COUNT;
-    bufferManager.setup(200, 0, mallocator, bufferMgrBins);
+    bufferManager.setup(BUFFER_MANAGER_ID, 0, mallocator, bufferMgrBins);
 
     // Frame accumulator needs to be passed a frame detector (default F Prime frame detector)
     frameAccumulator.configure(frameDetector, 1, mallocator, 2048);
@@ -172,7 +172,7 @@ void setupTopology(const TopologyState& state) {
     if (state.hostname != nullptr && state.port != 0) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
-        comDriver.start(name, 100, Default::STACK_SIZE);
+        comDriver.start(name, COMM_PRIORITY, Default::STACK_SIZE);
     }
 {%- elif cookiecutter.com_driver_type == "UART" %}
     if (state.uartDevice != nullptr) {
@@ -180,7 +180,7 @@ void setupTopology(const TopologyState& state) {
         // Uplink is configured for receive so a socket task is started
         if (comDriver.open(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate), 
                            Drv::LinuxUartDriver::NO_FLOW, Drv::LinuxUartDriver::PARITY_NONE, 2048)) {
-            comDriver.start(100, Default::STACK_SIZE);
+            comDriver.start(COMM_PRIORITY, Default::STACK_SIZE);
         } else {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
