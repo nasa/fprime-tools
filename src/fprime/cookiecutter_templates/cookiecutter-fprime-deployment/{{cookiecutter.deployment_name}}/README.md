@@ -63,3 +63,4 @@ cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
   - File upload and download services
   - Parameter database management
   - File system operations
+{%- endif %}
