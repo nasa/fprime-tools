@@ -29,6 +29,10 @@ module {{cookiecutter.deployment_name}} {
     import {{cookiecutter.communication_type}}.Subtopology
     import DataProducts.Subtopology
     import FileHandling.Subtopology
+{%- if cookiecutter.enable_logging == "yes" %}
+    import EventLoggerTee.Subtopology
+    import TlmLoggerTee.Subtopology
+{%- endif %}
 {%- endif %}
     
   # ----------------------------------------------------------------------
@@ -110,9 +114,18 @@ module {{cookiecutter.deployment_name}} {
 {%- if cookiecutter.use_core_subtopologies == "yes" %}
 
     connections {{cookiecutter.communication_type}}_CdhCore {
+{%- if cookiecutter.enable_logging == "yes" %}
+      # Core events and telemetry to logging subtopologies, then to communication queue
+      CdhCore.events.PktSend -> EventLoggerTee.comSplitter.comIn
+      EventLoggerTee.comSplitter.comOut -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.EVENTS]
+      
+      CdhCore.tlmSend.PktSend -> TlmLoggerTee.comSplitter.comIn
+      TlmLoggerTee.comSplitter.comOut -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.TELEMETRY]
+{%- else %}
       # Core events and telemetry to communication queue
       CdhCore.events.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.EVENTS]
       CdhCore.tlmSend.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.TELEMETRY]
+{%- endif %}
 
       # Router to Command Dispatcher
       {{cookiecutter.communication_type}}.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff

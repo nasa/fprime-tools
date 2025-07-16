@@ -28,4 +28,9 @@ register_fprime_module(
         Drv_LinuxUartDriver
 {%- endif %}
 {%- endif %}
+{%- if cookiecutter.use_core_subtopologies == "yes" and cookiecutter.enable_logging == "yes" %}
+        # ComLoggerTee subtopology instances for logging
+        {{cookiecutter.__include_path_prefix|replace("/", "_")|replace("\\", "_")|replace(" ", "_")|replace("-", "_")}}{{cookiecutter.deployment_name}}_Top_EventLoggerTee
+        {{cookiecutter.__include_path_prefix|replace("/", "_")|replace("\\", "_")|replace(" ", "_")|replace("-", "_")}}{{cookiecutter.deployment_name}}_Top_TlmLoggerTee
+{%- endif %}
 )

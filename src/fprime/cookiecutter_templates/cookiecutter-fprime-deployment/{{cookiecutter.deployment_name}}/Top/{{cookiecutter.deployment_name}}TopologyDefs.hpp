@@ -14,6 +14,10 @@
 #include "Svc/Subtopologies/{{cookiecutter.communication_type}}/PingEntries.hpp"
 #include "Svc/Subtopologies/DataProducts/PingEntries.hpp"
 #include "Svc/Subtopologies/FileHandling/PingEntries.hpp"
+{%- if cookiecutter.enable_logging == "yes" %}
+#include "EventLoggerTee/PingEntries.hpp"
+#include "TlmLoggerTee/PingEntries.hpp"
+{%- endif %}
 
 //SubtopologyTopologyDefs includes
 #include "Svc/Subtopologies/{{cookiecutter.communication_type}}/SubtopologyTopologyDefs.hpp"

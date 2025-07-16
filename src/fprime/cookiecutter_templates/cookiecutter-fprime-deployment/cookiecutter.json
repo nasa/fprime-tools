@@ -4,12 +4,14 @@
     "use_core_subtopologies": ["yes", "no"],
     "communication_type": ["ComFprime", "ComCcsds"],
     "com_driver_type": ["TcpClient", "TcpServer", "UART"],
+    "enable_logging": ["yes", "no"],
     "__include_path_prefix": "",
     "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}",
     "__prompts__": {
         "deployment_name": "Deployment name",
         "use_core_subtopologies": "Use F-Prime core subtopologies (CdhCore, ComFprime/ComCcsds, DataProducts, FileHandling)?",
         "communication_type": "Select communication subtopology type (only if using core subtopologies)",
-        "com_driver_type": "Select communication driver type"
+        "com_driver_type": "Select communication driver type",
+        "enable_logging": "Enable ComLoggerTee subtopologies for event and telemetry logging?"
     }
 }
