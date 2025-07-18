@@ -22,6 +22,7 @@ Dps
 drv
 dumpable
 Efg
+EVENTLOGGERTEE
 excinfo
 extlinks
 fbuild
@@ -62,6 +63,7 @@ OSAL
 Packetizer
 Paetz
 Peet
+PINGENTRIES
 Pkts
 ptf
 py
@@ -90,6 +92,7 @@ testbuild
 testimpl
 thostname
 timebase
+TLMLOGGERTEE
 toctree
 TOPOLOGYDEFS
 tport
