@@ -65,7 +65,7 @@ enum TopologyConstants {
 
 // Ping entries are autocoded, however; this code is not properly exported. Thus, it is copied here.
 Svc::Health::PingEntry pingEntries[] = {
-    {PingEntries::{{cookiecutter.deployment_name}}_tlmSend::WARN, PingEntries::{{cookiecutter.deployment_name}}_tlmSend::FATAL, "chanTlm"},
+    {PingEntries::{{cookiecutter.deployment_name}}_tlmSend::WARN, PingEntries::{{cookiecutter.deployment_name}}_tlmSend::FATAL, "tlmSend"},
     {PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::FATAL, "cmdDisp"},
     {PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::FATAL, "cmdSeq"},
     {PingEntries::{{cookiecutter.deployment_name}}_eventLogger::WARN, PingEntries::{{cookiecutter.deployment_name}}_eventLogger::FATAL, "eventLogger"},
