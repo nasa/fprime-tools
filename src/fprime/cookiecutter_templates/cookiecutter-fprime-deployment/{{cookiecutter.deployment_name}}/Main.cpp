@@ -22,7 +22,7 @@
  * @param app: name of application
  */
 void print_usage(const char* app) {
-{%- if cookiecutter.use_core_subtopologies == "no" and cookiecutter.com_driver_type == "UART" %}
+{%- if cookiecutter.com_driver_type == "UART" %}
     (void)printf("Usage: ./%s [options]\n-b\tBaud rate\n-d\tUART Device\n", app);
 {%- else %}
     (void)printf("Usage: ./%s [options]\n-a\thostname/IP address\n-p\tport_number\n", app);
@@ -53,7 +53,7 @@ static void signalHandler(int signum) {
  */
 int main(int argc, char* argv[]) {
     I32 option = 0;
-    {%- if cookiecutter.use_core_subtopologies == "no" and cookiecutter.com_driver_type == "UART" %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
     CHAR* uart_device = nullptr;
     U32 baud_rate = 0;
     {%- else %}
@@ -64,13 +64,13 @@ int main(int argc, char* argv[]) {
     Os::init();
 
     // Loop while reading the getopt supplied options
-    {%- if cookiecutter.use_core_subtopologies == "no" and cookiecutter.com_driver_type == "UART" %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
     while ((option = getopt(argc, argv, "hb:d:")) != -1) {  
     {%- else %}
     while ((option = getopt(argc, argv, "hp:a:")) != -1) {
     {%- endif %}
         switch (option) {
-            {%- if cookiecutter.use_core_subtopologies == "no" and cookiecutter.com_driver_type == "UART" %}
+            {%- if cookiecutter.com_driver_type == "UART" %}
             // Handle the -b baud rate argument
             case 'b':
                 baud_rate = static_cast<U32>(atoi(optarg));
@@ -101,23 +101,23 @@ int main(int argc, char* argv[]) {
     }
     // Object for communicating state to the reference topology
     {{cookiecutter.deployment_name}}::TopologyState inputs;
-    {%- if cookiecutter.use_core_subtopologies == "yes" %}
-        {%- if cookiecutter.communication_type == "ComFprime" %}
+{%- if cookiecutter.communication_type == "ComFprime" %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
+    inputs.comFprime.baudRate = baud_rate;
+    inputs.comFprime.uartDevice = uart_device;
+    {%- else %}
     inputs.comFprime.hostname = hostname;
     inputs.comFprime.port = port_number;
-        {%- else %}
+    {%- endif %}
+{%- else %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
+    inputs.comCcsds.baudRate = baud_rate;
+    inputs.comCcsds.uartDevice = uart_device;
+    {%- else %}
     inputs.comCcsds.hostname = hostname;
     inputs.comCcsds.port = port_number;
-        {%- endif %}
-    {%- else %}
-        {%- if cookiecutter.com_driver_type == "UART" %}
-    inputs.baudRate = baud_rate;
-    inputs.uartDevice = uart_device;
-        {%- else %}
-    inputs.hostname = hostname;
-    inputs.port = port_number;
-        {%- endif %}
     {%- endif %}
+{%- endif %}
 
     // Setup program shutdown via Ctrl-C
     signal(SIGINT, signalHandler);

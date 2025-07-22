@@ -39,8 +39,6 @@ cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
 ./{{cookiecutter.deployment_name}} -a 127.0.0.1 -p 50000
 ```
 
-{%- if cookiecutter.use_core_subtopologies == "yes" %}
-
 ## This deployment uses F' **core subtopologies** for a modular, reusable architecture:
 
 - **CdhCore**: Command & Data Handling
@@ -63,4 +61,3 @@ cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
   - File upload and download services
   - Parameter database management
   - File system operations
-{%- endif %}

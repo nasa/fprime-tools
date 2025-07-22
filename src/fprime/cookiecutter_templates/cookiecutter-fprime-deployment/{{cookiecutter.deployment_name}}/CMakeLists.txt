@@ -10,11 +10,6 @@
 ###
 # Topology and Components
 ###
-{%- if cookiecutter.use_core_subtopologies == "yes" and cookiecutter.enable_logging == "yes" %}
-# ComLoggerTee subtopology instances for logging (must come first)
-add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Top/EventLoggerTee/")
-add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Top/TlmLoggerTee/")
-{%- endif %}
 
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Top/")
 

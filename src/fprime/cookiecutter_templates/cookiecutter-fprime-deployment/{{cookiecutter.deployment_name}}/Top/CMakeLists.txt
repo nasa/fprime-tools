@@ -18,19 +18,4 @@ register_fprime_module(
         "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.deployment_name}}Topology.cpp"
     DEPENDS
         Fw_Logger
-{%- if cookiecutter.use_core_subtopologies == "no" %}
-        # Legacy component dependencies
-{%- if cookiecutter.com_driver_type == "TcpClient" %}
-        Drv_TcpClient
-{%- elif cookiecutter.com_driver_type == "TcpServer" %}
-        Drv_TcpServer
-{%- elif cookiecutter.com_driver_type == "UART" %}
-        Drv_LinuxUartDriver
-{%- endif %}
-{%- endif %}
-{%- if cookiecutter.use_core_subtopologies == "yes" and cookiecutter.enable_logging == "yes" %}
-        # ComLoggerTee subtopology instances for logging
-        {{cookiecutter.__include_path_prefix|replace("/", "_")|replace("\\", "_")|replace(" ", "_")|replace("-", "_")}}{{cookiecutter.deployment_name}}_Top_EventLoggerTee
-        {{cookiecutter.__include_path_prefix|replace("/", "_")|replace("\\", "_")|replace(" ", "_")|replace("-", "_")}}{{cookiecutter.deployment_name}}_Top_TlmLoggerTee
-{%- endif %}
 )
