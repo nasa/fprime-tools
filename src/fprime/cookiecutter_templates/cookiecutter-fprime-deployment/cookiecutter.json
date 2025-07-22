@@ -1,7 +1,7 @@
 
 {
     "deployment_name": "MyDeployment",
-    "communication_type": ["ComFprime", "ComCcsds"],
+    "communication_type": ["ComCcsds", "ComFprime"],
     "com_driver_type": ["TcpClient", "TcpServer", "UART"],
     "__include_path_prefix": "",
     "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}",
