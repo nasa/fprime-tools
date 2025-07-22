@@ -162,4 +162,8 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
 
 } omit {
   CdhCore.cmdDisp.CommandErrors
+{%- if cookiecutter.com_driver_type == "UART" %}
+  {{cookiecutter.communication_type}}.comDriver.BytesRecv
+  {{cookiecutter.communication_type}}.comDriver.BytesSent
+{%- endif %}
 }
