@@ -15,7 +15,7 @@ Update the following files based on your subtopology's requirements:
 ### Required Files:
 - **`{{cookiecutter.subtopology_name}}.fpp`**: Define your subtopology's instances and connections
 - **`{{cookiecutter.subtopology_name}}Config/{{cookiecutter.subtopology_name}}Config.fpp`**: Configure constants, queue sizes, stack sizes, and priorities
-- **`PingEntries.hpp`**: Define ping entries for health monitoring (if needed)
+- **`PingEntries.hpp`**: Define ping entries for health monitoring of components (if needed)
 
 ### Optional Files (add as needed):
 - **`{{cookiecutter.subtopology_name}}Config/{{cookiecutter.subtopology_name}}SubtopologyConfig.cpp/.hpp`**: 
@@ -42,14 +42,15 @@ Update the following files based on your subtopology's requirements:
 
 ## 3. Implementation Examples
 Look at existing core subtopologies for reference:
-- **ComFprime & ComCcsds**: Memory allocator configuration with C++ files, Communication driver configuration with additional FPP files
+- **ComFprime & ComCcsds**: Memory allocator configuration with C++ files, Communication driver configuration with additional FPP file
+- **CdhCore**: Core command and datahandling functionality, Fault Handler configuration with additional FPP file 
 - **FileHandling**: Simple configuration with only FPP files
-- **DataProducts**: Data product handling with state management
-- **ComLogTSplit**: Instance-based subtopology (special case)
+- **DataProducts**: Data product handling
+- **ComLoggerTee**: Instance-based subtopology (special case)
 
 ## 4. Common Patterns
 - **Queue/Stack/Priority Configuration**: Define in `{{cookiecutter.subtopology_name}}Config.fpp`
 - **Memory Management**: Add SubtopologyConfig.cpp/.hpp for custom allocators
-- **Component Communication**: Define connections in the main `.fpp` file
+- **Topology Connections**: Define connections in the main `.fpp` file
 - **Health Monitoring**: Update `PingEntries.hpp` with appropriate ping entries
-- **Driver Configuration**: Add additional FPP files for driver-specific settings
+- **Component Configuration**: Add additional FPP files in config `{{cookiecutter.subtopology_name}}Config` 
