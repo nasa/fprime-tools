@@ -5,7 +5,7 @@ bak
 baudrate
 cargs
 Ccsds
-CDH
+cdh
 Cdioux
 cexc
 ci
@@ -13,6 +13,7 @@ cls
 confparse
 COOLDOWN
 ctest
+datahandling
 deframer
 deser
 dinkel
@@ -92,7 +93,6 @@ timebase
 toctree
 TOPOLOGYDEFS
 tport
-TSplit
 tz
 uart
 unittests
