@@ -1,10 +1,10 @@
 {
     "subtopology_instance_name": "MySubtopologyInstance",
-    "base_id": "0x1000",
+    "base_id": "0x10800000",
     "subtopology_template_path": "",
     "__prompts__": {
         "subtopology_instance_name": "Subtopology Instance name",
-        "base_id": "Base ID for Subtopology Instance (in hex, e.g., 0x1000)",
+        "base_id": "Base ID for Subtopology Instance (in hex)",
         "subtopology_template_path": "Path to the subtopology template directory"
     }
 }
