@@ -3,6 +3,13 @@ import sys
 from pathlib import Path
 from fprime.util.cookiecutter_wrapper import is_valid_name
 
+"""
+Pre-generation hook that validates inputs before creating the subtopology instance:
+1. Validates subtopology instance name format and constraints
+2. Validates the template path exists and is accessible
+3. Validates that all required files are present in the template
+"""
+
 name = "{{ cookiecutter.subtopology_instance_name }}"
 subtopology_template_path = "{{ cookiecutter.subtopology_template_path }}"
 
