@@ -33,7 +33,7 @@ module {{cookiecutter.deployment_name}} {
     instance fprimeRouter
     instance deframer
     instance frameAccumulator
-    instance eventLogger
+    instance eventManager
     instance fatalAdapter
     instance fatalHandler
     instance fileDownlink
@@ -58,7 +58,7 @@ module {{cookiecutter.deployment_name}} {
 
     command connections instance cmdDisp
 
-    event connections instance eventLogger
+    event connections instance eventManager
 
     param connections instance prmDb
 
@@ -83,7 +83,7 @@ module {{cookiecutter.deployment_name}} {
 
     connections Downlink {
       # Inputs to ComQueue (events, telemetry, file)
-      eventLogger.PktSend         -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.EVENTS]
+      eventManager.PktSend         -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.EVENTS]
       tlmSend.PktSend             -> comQueue.comPacketQueueIn[Ports_ComPacketQueue.TELEMETRY]
       fileDownlink.bufferSendOut  -> comQueue.bufferQueueIn[Ports_ComBufferQueue.FILE_DOWNLINK]
       comQueue.bufferReturnOut[Ports_ComBufferQueue.FILE_DOWNLINK] -> fileDownlink.bufferReturn
@@ -109,7 +109,7 @@ module {{cookiecutter.deployment_name}} {
     }
 
     connections FaultProtection {
-      eventLogger.FatalAnnounce -> fatalHandler.FatalReceive
+      eventManager.FatalAnnounce -> fatalHandler.FatalReceive
     }
 
     connections RateGroups {

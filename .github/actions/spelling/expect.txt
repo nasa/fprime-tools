@@ -4,7 +4,8 @@ autouse
 bak
 baudrate
 cargs
-CDH
+Ccsds
+cdh
 Cdioux
 cexc
 ci
@@ -12,6 +13,7 @@ cls
 confparse
 COOLDOWN
 ctest
+datahandling
 deframer
 deser
 dinkel

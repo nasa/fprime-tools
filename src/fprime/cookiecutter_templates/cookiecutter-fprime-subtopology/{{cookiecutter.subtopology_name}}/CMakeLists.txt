@@ -1,12 +1,11 @@
-set(SOURCE_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.subtopology_name}}.fpp"
-    "${CMAKE_CURRENT_LIST_DIR}/intentionally-empty.cpp"
-)
+add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.subtopology_name}}Config/")
 
-register_fprime_module()
-
-set_target_properties(
-    ${FPRIME_CURRENT_MODULE}
-    PROPERTIES
-    SOURCES "${CMAKE_CURRENT_LIST_DIR}/intentionally-empty.cpp"
+register_fprime_module(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/{{cookiecutter.subtopology_name}}.fpp"
+    HEADERS
+        "${CMAKE_CURRENT_LIST_DIR}/PingEntries.hpp"
+    DEPENDS
+        {{cookiecutter.subtopology_name}}Config
+    INTERFACE
 )

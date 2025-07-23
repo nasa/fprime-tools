@@ -61,7 +61,7 @@ Svc::Health::PingEntry pingEntries[] = {
     {PingEntries::{{cookiecutter.deployment_name}}_tlmSend::WARN, PingEntries::{{cookiecutter.deployment_name}}_tlmSend::FATAL, "chanTlm"},
     {PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdDisp::FATAL, "cmdDisp"},
     {PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::WARN, PingEntries::{{cookiecutter.deployment_name}}_cmdSeq::FATAL, "cmdSeq"},
-    {PingEntries::{{cookiecutter.deployment_name}}_eventLogger::WARN, PingEntries::{{cookiecutter.deployment_name}}_eventLogger::FATAL, "eventLogger"},
+    {PingEntries::{{cookiecutter.deployment_name}}_eventManager::WARN, PingEntries::{{cookiecutter.deployment_name}}_eventManager::FATAL, "eventManager"},
     {PingEntries::{{cookiecutter.deployment_name}}_fileDownlink::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileDownlink::FATAL, "fileDownlink"},
     {PingEntries::{{cookiecutter.deployment_name}}_fileManager::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileManager::FATAL, "fileManager"},
     {PingEntries::{{cookiecutter.deployment_name}}_fileUplink::WARN, PingEntries::{{cookiecutter.deployment_name}}_fileUplink::FATAL, "fileUplink"},
