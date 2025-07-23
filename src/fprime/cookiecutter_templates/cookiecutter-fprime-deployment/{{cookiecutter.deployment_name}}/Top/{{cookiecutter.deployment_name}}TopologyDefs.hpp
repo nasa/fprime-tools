@@ -13,6 +13,7 @@
 #include "Svc/Subtopologies/FileHandling/PingEntries.hpp"
 
 // SubtopologyTopologyDefs includes
+#include "Svc/Subtopologies/CdhCore/SubtopologyTopologyDefs.hpp"
 #include "Svc/Subtopologies/{{cookiecutter.communication_type}}/SubtopologyTopologyDefs.hpp"
 #include "Svc/Subtopologies/DataProducts/SubtopologyTopologyDefs.hpp"
 #include "Svc/Subtopologies/FileHandling/SubtopologyTopologyDefs.hpp"
@@ -63,7 +64,10 @@ struct TopologyState {
     const char* hostname;   //!< Hostname for TCP communication
     U16 port;              //!< Port for TCP communication
 {%- endif %}
+    CdhCore::SubtopologyState cdhCore;           //!< Subtopology state for CdhCore
     {{cookiecutter.communication_type}}::SubtopologyState {{cookiecutter.communication_type.lower()}};  //!< Subtopology state for {{cookiecutter.communication_type}} 
+    DataProducts::SubtopologyState dataProducts; //!< Subtopology state for DataProducts
+    FileHandling::SubtopologyState fileHandling; //!< Subtopology state for FileHandling
 };
 
 namespace PingEntries = ::PingEntries;
