@@ -9,10 +9,10 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.PacketsSent
     FileHandling.fileManager.CommandsExecuted
 
-    {{cookiecutter.communication_type}}.cmdSeq.CS_LoadCommands
-    {{cookiecutter.communication_type}}.cmdSeq.CS_CancelCommands
-    {{cookiecutter.communication_type}}.cmdSeq.CS_CommandsExecuted
-    {{cookiecutter.communication_type}}.cmdSeq.CS_SequencesCompleted
+    FileHandling.cmdSeq.CS_LoadCommands
+    FileHandling.cmdSeq.CS_CancelCommands
+    FileHandling.cmdSeq.CS_CommandsExecuted
+    FileHandling.cmdSeq.CS_SequencesCompleted
     {{cookiecutter.communication_type}}.comQueue.comQueueDepth
     {{cookiecutter.communication_type}}.comQueue.buffQueueDepth
     {{cookiecutter.communication_type}}.commsBufferManager.TotalBuffs
@@ -32,7 +32,7 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.Warnings
     FileHandling.fileManager.Errors
 
-    {{cookiecutter.communication_type}}.cmdSeq.CS_Errors
+    FileHandling.cmdSeq.CS_Errors
     {{cookiecutter.communication_type}}.commsBufferManager.NoBuffs
     {{cookiecutter.communication_type}}.commsBufferManager.EmptyBuffs
 
@@ -163,7 +163,7 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
 } omit {
   CdhCore.cmdDisp.CommandErrors
 {%- if cookiecutter.com_driver_type == "UART" %}
-  {{cookiecutter.communication_type}}.comDriver.BytesRecv
-  {{cookiecutter.communication_type}}.comDriver.BytesSent
+  comDriver.BytesRecv
+  comDriver.BytesSent
 {%- endif %}
 }

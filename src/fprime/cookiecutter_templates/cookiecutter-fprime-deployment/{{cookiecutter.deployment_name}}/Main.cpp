@@ -99,24 +99,14 @@ int main(int argc, char* argv[]) {
                 return (option == 'h') ? 0 : 1;
         }
     }
-    // Object for communicating state to the reference topology
+    // Object for communicating state to the topology
     {{cookiecutter.deployment_name}}::TopologyState inputs;
-{%- if cookiecutter.communication_type == "ComFprime" %}
-    {%- if cookiecutter.com_driver_type == "UART" %}
-    inputs.comFprime.baudRate = baud_rate;
-    inputs.comFprime.uartDevice = uart_device;
-    {%- else %}
-    inputs.comFprime.hostname = hostname;
-    inputs.comFprime.port = port_number;
-    {%- endif %}
+{%- if cookiecutter.com_driver_type == "UART" %}
+    inputs.uartDevice = uart_device;
+    inputs.baudRate = baud_rate;
 {%- else %}
-    {%- if cookiecutter.com_driver_type == "UART" %}
-    inputs.comCcsds.baudRate = baud_rate;
-    inputs.comCcsds.uartDevice = uart_device;
-    {%- else %}
-    inputs.comCcsds.hostname = hostname;
-    inputs.comCcsds.port = port_number;
-    {%- endif %}
+    inputs.hostname = hostname;
+    inputs.port = port_number;
 {%- endif %}
 
     // Setup program shutdown via Ctrl-C

@@ -53,15 +53,17 @@ namespace {{cookiecutter.deployment_name}} {
  *
  * The topology autocoder requires an object that carries state with the name `{{cookiecutter.deployment_name}}::TopologyState`. Only the type
  * definition is required by the autocoder and the contents of this object are otherwise opaque to the autocoder. The
- * contents are entirely up to the definition of the project. This deployment uses subtopologies, so the state contains
- * the subtopology state structures which are derived from command line inputs.
+ * contents are entirely up to the definition of the project. This deployment uses subtopologies.
  */
 struct TopologyState {
-    {%- if cookiecutter.communication_type == "ComFprime" %}
-    {{cookiecutter.communication_type}}::SubtopologyState comFprime;  //!< Subtopology state for {{cookiecutter.communication_type}} 
-    {%- else %}
-    {{cookiecutter.communication_type}}::SubtopologyState comCcsds;  //!< Subtopology state for {{cookiecutter.communication_type}} 
-    {%- endif %}
+{%- if cookiecutter.com_driver_type == "UART" %}
+    const char* uartDevice; //!< UART device path for communication
+    U32 baudRate;          //!< Baud rate for UART communication
+{%- else %}
+    const char* hostname;   //!< Hostname for TCP communication
+    U16 port;              //!< Port for TCP communication
+{%- endif %}
+    {{cookiecutter.communication_type}}::SubtopologyState {{cookiecutter.communication_type.lower()}};  //!< Subtopology state for {{cookiecutter.communication_type}} 
 };
 
 namespace PingEntries = ::PingEntries;

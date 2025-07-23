@@ -30,6 +30,7 @@ module {{cookiecutter.deployment_name}} {
     instance rateGroupDriver
     instance systemResources
     instance linuxTimer
+    instance comDriver
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -63,8 +64,8 @@ module {{cookiecutter.deployment_name}} {
       CdhCore.cmdDisp.seqCmdStatus -> {{cookiecutter.communication_type}}.fprimeRouter.cmdResponseIn
       
       # Command Sequencer
-      {{cookiecutter.communication_type}}.cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
-      CdhCore.cmdDisp.seqCmdStatus -> {{cookiecutter.communication_type}}.cmdSeq.cmdResponseIn
+      FileHandling.cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> FileHandling.cmdSeq.cmdResponseIn
     }
 
     connections {{cookiecutter.communication_type}}_FileHandling {
@@ -75,6 +76,21 @@ module {{cookiecutter.deployment_name}} {
       # Router to File Uplink
       {{cookiecutter.communication_type}}.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn
       FileHandling.fileUplink.bufferSendOut -> {{cookiecutter.communication_type}}.fprimeRouter.fileBufferReturnIn
+    }
+
+    connections Communications {
+      # ComDriver buffer allocations
+      comDriver.allocate      -> {{cookiecutter.communication_type}}.commsBufferManager.bufferGetCallee
+      comDriver.deallocate    -> {{cookiecutter.communication_type}}.commsBufferManager.bufferSendIn
+      
+      # ComDriver <-> ComStub (Uplink)
+      comDriver.$recv                     -> {{cookiecutter.communication_type}}.comStub.drvReceiveIn
+      {{cookiecutter.communication_type}}.comStub.drvReceiveReturnOut -> comDriver.recvReturnIn
+      
+      # ComStub <-> ComDriver (Downlink)
+      {{cookiecutter.communication_type}}.comStub.drvSendOut      -> comDriver.$send
+      comDriver.sendReturnOut -> {{cookiecutter.communication_type}}.comStub.drvSendReturnIn
+      comDriver.ready         -> {{cookiecutter.communication_type}}.comStub.drvConnected
     }
 
     connections FileHandling_DataProducts {
@@ -96,7 +112,7 @@ module {{cookiecutter.deployment_name}} {
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> {{cookiecutter.communication_type}}.cmdSeq.schedIn
+      rateGroup2.RateGroupMemberOut[0] -> FileHandling.cmdSeq.schedIn
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
