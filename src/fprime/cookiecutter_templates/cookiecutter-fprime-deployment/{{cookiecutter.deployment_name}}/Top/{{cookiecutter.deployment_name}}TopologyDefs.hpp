@@ -63,7 +63,7 @@ enum { WARN = 3, FATAL = 5 };
 namespace {{cookiecutter.deployment_name}}_cmdSeq {
 enum { WARN = 3, FATAL = 5 };
 }
-namespace {{cookiecutter.deployment_name}}_eventLogger {
+namespace {{cookiecutter.deployment_name}}_eventManager {
 enum { WARN = 3, FATAL = 5 };
 }
 namespace {{cookiecutter.deployment_name}}_fileDownlink {
