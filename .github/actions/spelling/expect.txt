@@ -13,6 +13,8 @@ cls
 comms
 confparse
 ctest
+datahandling
+deframer
 deser
 dinkel
 dirone

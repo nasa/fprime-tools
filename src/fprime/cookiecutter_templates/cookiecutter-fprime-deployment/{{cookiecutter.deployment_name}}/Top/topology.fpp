@@ -23,7 +23,6 @@ module {{cookiecutter.deployment_name}} {
   # ----------------------------------------------------------------------
   # Instances used in the topology
   # ----------------------------------------------------------------------
-
     instance chronoTime
     instance rateGroup1
     instance rateGroup2
@@ -45,7 +44,7 @@ module {{cookiecutter.deployment_name}} {
     time connections instance chronoTime
 
   # ----------------------------------------------------------------------
-  # Telemetry packets
+  # Telemetry packets (only used when TlmPacketizer is used)
   # ----------------------------------------------------------------------
 
     include "{{cookiecutter.deployment_name}}Packets.fppi"
@@ -106,7 +105,6 @@ module {{cookiecutter.deployment_name}} {
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
-
     }
 
     connections {{cookiecutter.deployment_name}} {
