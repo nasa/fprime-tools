@@ -25,7 +25,7 @@ cd {{cookiecutter.deployment_name}}
 fprime-gds
 ```
 
-{%- if cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]}
+{% if cookiecutter.com_driver_type != "UART" %}
 To run the ground system without starting the {{cookiecutter.deployment_name}} app:
 ```
 
@@ -38,8 +38,8 @@ The application binary may then be run independently from the created 'bin' dire
 ```
 cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
 ./{{cookiecutter.deployment_name}} -a 127.0.0.1 -p 50000
-{%- endif %}
 ```
+{% endif %}
 
 ## This deployment uses F' **core subtopologies** for a modular, reusable architecture:
 
