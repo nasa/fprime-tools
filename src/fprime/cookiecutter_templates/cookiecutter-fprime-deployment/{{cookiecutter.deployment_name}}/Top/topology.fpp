@@ -64,15 +64,12 @@ module {{cookiecutter.deployment_name}} {
       ComCcsds.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff
       CdhCore.cmdDisp.seqCmdStatus -> ComCcsds.fprimeRouter.cmdResponseIn
       
-      # Command Sequencer
-      cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
-      CdhCore.cmdDisp.seqCmdStatus -> cmdSeq.cmdResponseIn
     }
 
     connections ComCcsds_FileHandling {
       # File Downlink to Communication Queue
-      FileHandling.fileDownlink.bufferSendOut -> ComCcsds.comQueue.bufferQueueIn[ComCcsds.Ports_ComBufferQueue.FILE_DOWNLINK]
-      ComCcsds.comQueue.bufferReturnOut[ComCcsds.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
+      FileHandling.fileDownlink.bufferSendOut -> ComCcsds.comQueue.bufferQueueIn[ComCcsds.Ports_ComBufferQueue.FILE]
+      ComCcsds.comQueue.bufferReturnOut[ComCcsds.Ports_ComBufferQueue.FILE] -> FileHandling.fileDownlink.bufferReturn
 
       # Router to File Uplink
       ComCcsds.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn
@@ -124,8 +121,14 @@ module {{cookiecutter.deployment_name}} {
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
     }
 
+    connections CdhCore_cmdSeq {
+      # Command Sequencer
+      cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> cmdSeq.cmdResponseIn
+    }
+
     connections {{cookiecutter.deployment_name}} {
-      # Add connections here to user-defined components
+
     }
 
   }

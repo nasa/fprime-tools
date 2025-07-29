@@ -55,20 +55,20 @@ module {{cookiecutter.deployment_name}} {
   # Passive component instances
   # ----------------------------------------------------------------------
 
-  instance chronoTime: Svc.ChronoTime base id 0x10005000
+  instance chronoTime: Svc.ChronoTime base id 0x10010000
 
-  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10006000
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10011000
 
-  instance systemResources: Svc.SystemResources base id 0x10007000
+  instance systemResources: Svc.SystemResources base id 0x10012000
 
-  instance linuxTimer: Svc.LinuxTimer base id 0x10008000
+  instance linuxTimer: Svc.LinuxTimer base id 0x10013000
 
 {%- if cookiecutter.com_driver_type == "TcpClient" %}
-  instance comDriver: Drv.TcpClient base id 0x10009000
+  instance comDriver: Drv.TcpClient base id 0x10014000
 {%- elif cookiecutter.com_driver_type == "TcpServer" %}
-  instance comDriver: Drv.TcpServer base id 0x10009000
+  instance comDriver: Drv.TcpServer base id 0x10014000
 {%- elif cookiecutter.com_driver_type == "UART" %}
-  instance comDriver: Drv.LinuxUartDriver base id 0x10009000
+  instance comDriver: Drv.LinuxUartDriver base id 0x10014000
 {%- endif %}
 
 }
