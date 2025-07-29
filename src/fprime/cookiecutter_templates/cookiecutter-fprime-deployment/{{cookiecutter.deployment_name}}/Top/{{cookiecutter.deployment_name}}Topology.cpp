@@ -37,7 +37,7 @@ enum TopologyConstants {
  * allocating resources, passing-in arguments, etc. This function may be inlined into the topology setup function if
  * desired, but is extracted here for clarity.
  */
-void configureTopology(const TopologyState& state) {
+void configureTopology() {
     // Rate group driver needs a divisor list
     rateGroupDriver.configure(rateGroupDivisorsSet);
 
@@ -48,14 +48,6 @@ void configureTopology(const TopologyState& state) {
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
-
-    // Configure communication driver
-    {%- if (cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]) %}
-    if (state.hostname != nullptr && state.port != 0) {
-        comDriver.configure(state.hostname, state.port);
-    }
-{%- endif %}
-
 }
 
 // Public functions for use in main program are namespaced with deployment name {{cookiecutter.deployment_name}}
@@ -71,8 +63,13 @@ void setupTopology(const TopologyState& state) {
     regCommands();
     // Autocoded configuration. Function provided by autocoder.
     configComponents(state);
+    {%- if (cookiecutter.com_driver_type in ["TcpServer", "TcpClient"]) %}
+    if (state.hostname != nullptr && state.port != 0) {
+        comDriver.configure(state.hostname, state.port);
+    }
+{%- endif %}
     // Project-specific component configuration. Function provided above. May be inlined, if desired.
-    configureTopology(state);
+    configureTopology();
     // Autocoded parameter loading. Function provided by autocoder.
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
