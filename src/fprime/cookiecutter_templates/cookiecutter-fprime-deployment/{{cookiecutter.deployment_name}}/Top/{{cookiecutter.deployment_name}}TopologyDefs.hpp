@@ -8,13 +8,13 @@
 
 // Subtopology PingEntries includes
 #include "Svc/Subtopologies/CdhCore/PingEntries.hpp"
-#include "Svc/Subtopologies/{{cookiecutter.communication_type}}/PingEntries.hpp"
+#include "Svc/Subtopologies/ComCcsds/PingEntries.hpp"
 #include "Svc/Subtopologies/DataProducts/PingEntries.hpp"
 #include "Svc/Subtopologies/FileHandling/PingEntries.hpp"
 
 // SubtopologyTopologyDefs includes
 #include "Svc/Subtopologies/CdhCore/SubtopologyTopologyDefs.hpp"
-#include "Svc/Subtopologies/{{cookiecutter.communication_type}}/SubtopologyTopologyDefs.hpp"
+#include "Svc/Subtopologies/ComCcsds/SubtopologyTopologyDefs.hpp"
 #include "Svc/Subtopologies/DataProducts/SubtopologyTopologyDefs.hpp"
 #include "Svc/Subtopologies/FileHandling/SubtopologyTopologyDefs.hpp"
 
@@ -44,6 +44,7 @@ namespace PingEntries {
     namespace {{cookiecutter.deployment_name}}_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
     namespace {{cookiecutter.deployment_name}}_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
     namespace {{cookiecutter.deployment_name}}_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
+    namespace {{cookiecutter.deployment_name}}_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
 // Definitions are placed within a namespace named after the deployment
@@ -65,7 +66,7 @@ struct TopologyState {
     U16 port;              //!< Port for TCP communication
 {%- endif %}
     CdhCore::SubtopologyState cdhCore;           //!< Subtopology state for CdhCore
-    {{cookiecutter.communication_type}}::SubtopologyState {{cookiecutter.communication_type.lower()}};  //!< Subtopology state for {{cookiecutter.communication_type}} 
+    ComCcsds::SubtopologyState comCcsds;         //!< Subtopology state for ComCcsds 
     DataProducts::SubtopologyState dataProducts; //!< Subtopology state for DataProducts
     FileHandling::SubtopologyState fileHandling; //!< Subtopology state for FileHandling
 };

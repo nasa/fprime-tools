@@ -1,6 +1,19 @@
 module {{cookiecutter.deployment_name}} {
 
   # ----------------------------------------------------------------------
+  # Base ID Convention
+  # ----------------------------------------------------------------------
+  #
+  # All Base IDs follow the 8-digit hex format: 0xDSSCCxxx
+  #
+  # Where:
+  #   D   = Deployment digit (1 for this deployment)
+  #   SS  = Subtopology digits (00 for main topology, 01-05 for subtopologies)
+  #   CC  = Component digits (00, 01, 02, etc.)
+  #   xxx = Reserved for internal component items (events, commands, telemetry)
+  #
+
+  # ----------------------------------------------------------------------
   # Defaults
   # ----------------------------------------------------------------------
 
@@ -13,20 +26,25 @@ module {{cookiecutter.deployment_name}} {
   # Active component instances
   # ----------------------------------------------------------------------
 
-  instance rateGroup1: Svc.ActiveRateGroup base id 0x01010000 \
+  instance rateGroup1: Svc.ActiveRateGroup base id 0x10001000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 120
 
-  instance rateGroup2: Svc.ActiveRateGroup base id 0x01020000 \
+  instance rateGroup2: Svc.ActiveRateGroup base id 0x10002000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 119
 
-  instance rateGroup3: Svc.ActiveRateGroup base id 0x01030000 \
+  instance rateGroup3: Svc.ActiveRateGroup base id 0x10003000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 118
+
+  instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 117
 
   # ----------------------------------------------------------------------
   # Queued component instances
@@ -37,88 +55,20 @@ module {{cookiecutter.deployment_name}} {
   # Passive component instances
   # ----------------------------------------------------------------------
 
-  instance chronoTime: Svc.ChronoTime base id 0x01040000
+  instance chronoTime: Svc.ChronoTime base id 0x10005000
 
-  instance rateGroupDriver: Svc.RateGroupDriver base id 0x01050000
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10006000
 
-  instance systemResources: Svc.SystemResources base id 0x01060000
+  instance systemResources: Svc.SystemResources base id 0x10007000
 
-  instance linuxTimer: Svc.LinuxTimer base id 0x01070000
+  instance linuxTimer: Svc.LinuxTimer base id 0x10008000
+
 {%- if cookiecutter.com_driver_type == "TcpClient" %}
-  instance comDriver: Drv.TcpClient base id 0x01080000 \
-  {
-      phase Fpp.ToCpp.Phases.configComponents """
-      if (state.hostname != nullptr && state.port != 0) {
-          {{cookiecutter.deployment_name}}::comDriver.configure(state.hostname, state.port);
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.startTasks """
-      // Initialize socket client communication if and only if there is a valid specification
-      if (state.hostname != nullptr && state.port != 0) {
-          Os::TaskString name("ReceiveTask");
-          {{cookiecutter.deployment_name}}::comDriver.start(name, 100, Default.STACK_SIZE);
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.stopTasks """
-      {{cookiecutter.deployment_name}}::comDriver.stop();
-      """
-
-      phase Fpp.ToCpp.Phases.freeThreads """
-      (void){{cookiecutter.deployment_name}}::comDriver.join();
-      """
-  }
+  instance comDriver: Drv.TcpClient base id 0x10009000
 {%- elif cookiecutter.com_driver_type == "TcpServer" %}
-  instance comDriver: Drv.TcpServer base id 0x01080000 \
-  {
-      phase Fpp.ToCpp.Phases.configComponents """
-      if (state.port != 0) {
-          {{cookiecutter.deployment_name}}::comDriver.configure(state.port);
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.startTasks """
-      // Initialize socket server communication if and only if there is a valid specification
-      if (state.port != 0) {
-          Os::TaskString name("ReceiveTask");
-          {{cookiecutter.deployment_name}}::comDriver.start(name, 100, Default.STACK_SIZE);
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.stopTasks """
-      {{cookiecutter.deployment_name}}::comDriver.stop();
-      """
-
-      phase Fpp.ToCpp.Phases.freeThreads """
-      (void){{cookiecutter.deployment_name}}::comDriver.join();
-      """
-  }
+  instance comDriver: Drv.TcpServer base id 0x10009000
 {%- elif cookiecutter.com_driver_type == "UART" %}
-  instance comDriver: Drv.LinuxUartDriver base id 0x01080000 \
-  {
-      phase Fpp.ToCpp.Phases.configComponents """
-      if (state.uartDevice != nullptr && state.baudRate != 0) {
-          {{cookiecutter.deployment_name}}::comDriver.configure(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate));
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.startTasks """
-      // Initialize UART communication if and only if there is a valid specification
-      if (state.uartDevice != nullptr && state.baudRate != 0) {
-          Os::TaskString name("ReceiveTask");
-          {{cookiecutter.deployment_name}}::comDriver.start(name, 100, Default.STACK_SIZE);
-      }
-      """
-
-      phase Fpp.ToCpp.Phases.stopTasks """
-      {{cookiecutter.deployment_name}}::comDriver.stop();
-      """
-
-      phase Fpp.ToCpp.Phases.freeThreads """
-      (void){{cookiecutter.deployment_name}}::comDriver.join();
-      """
-  }
+  instance comDriver: Drv.LinuxUartDriver base id 0x10009000
 {%- endif %}
 
 }

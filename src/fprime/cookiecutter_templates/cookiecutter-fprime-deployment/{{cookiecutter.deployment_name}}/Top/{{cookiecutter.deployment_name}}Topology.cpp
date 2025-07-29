@@ -9,16 +9,13 @@
 //#include <{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}PacketsAc.hpp>
 
 // Necessary project-specified types
-#include <Os/Console.hpp>
-
-// Used for 1Hz synthetic cycling
-#include <Os/Mutex.hpp>
+#include <Fw/Types/MallocAllocator.hpp>
 
 // Allows easy reference to objects in FPP/autocoder required namespaces
 using namespace {{cookiecutter.deployment_name}};
 
-// Instantiate a system logger that will handle Fw::Logger::log calls
-Os::Console logger;
+// Instantiate a malloc allocator for cmdSeq buffer allocation
+Fw::MallocAllocator mallocator;
 
 // The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
 {{"Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};"}}
@@ -44,6 +41,24 @@ void configureTopology(const TopologyState& state) {
     rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
     rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
     rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+
+    // Command sequencer needs to allocate memory to hold contents of command sequences
+    cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
+
+    // Configure communication driver
+{%- if cookiecutter.com_driver_type == "TcpClient" %}
+    if (state.hostname != nullptr && state.port != 0) {
+        comDriver.configure(state.hostname, state.port);
+    }
+{%- elif cookiecutter.com_driver_type == "TcpServer" %}
+    if (state.port != 0) {
+        comDriver.configure(state.port);
+    }
+{%- elif cookiecutter.com_driver_type == "UART" %}
+    if (state.uartDevice != nullptr && state.baudRate != 0) {
+        comDriver.configure(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate));
+    }
+{%- endif %}
 }
 
 // Public functions for use in main program are namespaced with deployment name {{cookiecutter.deployment_name}}
@@ -65,6 +80,26 @@ void setupTopology(const TopologyState& state) {
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
+
+    // Start communication driver if configured
+{%- if cookiecutter.com_driver_type in ["TcpClient", "TcpServer"] %}
+    // Initialize socket client communication if and only if there is a valid specification
+    if (state.hostname != nullptr && state.port != 0) {
+        Os::TaskString name("ReceiveTask");
+        comDriver.start(name, 100, Default::STACK_SIZE);
+    }
+{%- elif cookiecutter.com_driver_type == "UART" %}
+    if (state.uartDevice != nullptr) {
+        Os::TaskString name("ReceiveTask");
+        // Uplink is configured for receive so a socket task is started
+        if (comDriver.open(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate), 
+                            Drv::LinuxUartDriver::NO_FLOW, Drv::LinuxUartDriver::PARITY_NONE, 2048)) {
+            comDriver.start(COMM_PRIORITY, Default::STACK_SIZE);
+        } else {
+            printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
+        }
+    }
+{%- endif %}
 }
 
 void startRateGroups(Fw::TimeInterval interval) {
@@ -83,6 +118,18 @@ void teardownTopology(const TopologyState& state) {
     // Autocoded (active component) task clean-up. Functions provided by topology autocoder.
     stopTasks(state);
     freeThreads(state);
+
+    // Other task clean-up.
+{%- if cookiecutter.com_driver_type == "UART" %}
+    comDriver.quitReadThread();
+{%- else %}
+    comDriver.stop();
+{%- endif %}
+    (void)comDriver.join();
+
+    // Resource deallocation
+    cmdSeq.deallocateBuffer(mallocator);
+
     tearDownComponents(state);
 }
 };  // namespace {{cookiecutter.deployment_name}}

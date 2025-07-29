@@ -49,15 +49,14 @@ cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
   - Health monitoring system
   - Fatal error handling
 
-- **{{cookiecutter.communication_type}}**: Communication Subsystem
-  - {{cookiecutter.communication_type}} protocol implementation
+- **ComCcsds**: CCSDS Communication Subsystem
+  - CCSDS protocol implementation
   - Uplink/downlink data handling
   - Frame processing and routing
 
 - **FileHandling**: File Transfer & Command Sequencing
   - File upload and download services
   - Parameter database management
-  - Command sequencing capabilities
   - File system operations
 
 - **DataProducts**: Data Product Management

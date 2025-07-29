@@ -16,7 +16,7 @@ module {{cookiecutter.deployment_name}} {
   # Subtopology imports
   # ----------------------------------------------------------------------
     import CdhCore.Subtopology
-    import {{cookiecutter.communication_type}}.Subtopology
+    import ComCcsds.Subtopology
     import DataProducts.Subtopology
     import FileHandling.Subtopology
     
@@ -31,6 +31,7 @@ module {{cookiecutter.deployment_name}} {
     instance systemResources
     instance linuxTimer
     instance comDriver
+    instance cmdSeq
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -54,43 +55,43 @@ module {{cookiecutter.deployment_name}} {
   # Direct graph specifiers
   # ----------------------------------------------------------------------
 
-    connections {{cookiecutter.communication_type}}_CdhCore {
+    connections ComCcsds_CdhCore {
       # Core events and telemetry to communication queue
-      CdhCore.events.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.EVENTS]
-      CdhCore.tlmSend.PktSend -> {{cookiecutter.communication_type}}.comQueue.comPacketQueueIn[{{cookiecutter.communication_type}}.Ports_ComPacketQueue.TELEMETRY]
+      CdhCore.events.PktSend -> ComCcsds.comQueue.comPacketQueueIn[ComCcsds.Ports_ComPacketQueue.EVENTS]
+      CdhCore.tlmSend.PktSend -> ComCcsds.comQueue.comPacketQueueIn[ComCcsds.Ports_ComPacketQueue.TELEMETRY]
 
       # Router to Command Dispatcher
-      {{cookiecutter.communication_type}}.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff
-      CdhCore.cmdDisp.seqCmdStatus -> {{cookiecutter.communication_type}}.fprimeRouter.cmdResponseIn
+      ComCcsds.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> ComCcsds.fprimeRouter.cmdResponseIn
       
       # Command Sequencer
-      FileHandling.cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
-      CdhCore.cmdDisp.seqCmdStatus -> FileHandling.cmdSeq.cmdResponseIn
+      cmdSeq.comCmdOut -> CdhCore.cmdDisp.seqCmdBuff
+      CdhCore.cmdDisp.seqCmdStatus -> cmdSeq.cmdResponseIn
     }
 
-    connections {{cookiecutter.communication_type}}_FileHandling {
+    connections ComCcsds_FileHandling {
       # File Downlink to Communication Queue
-      FileHandling.fileDownlink.bufferSendOut -> {{cookiecutter.communication_type}}.comQueue.bufferQueueIn[FileHandling.Ports_ComBufferQueue.FILE_DOWNLINK]
-      {{cookiecutter.communication_type}}.comQueue.bufferReturnOut[FileHandling.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
+      FileHandling.fileDownlink.bufferSendOut -> ComCcsds.comQueue.bufferQueueIn[ComCcsds.Ports_ComBufferQueue.FILE_DOWNLINK]
+      ComCcsds.comQueue.bufferReturnOut[ComCcsds.Ports_ComBufferQueue.FILE_DOWNLINK] -> FileHandling.fileDownlink.bufferReturn
 
       # Router to File Uplink
-      {{cookiecutter.communication_type}}.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn
-      FileHandling.fileUplink.bufferSendOut -> {{cookiecutter.communication_type}}.fprimeRouter.fileBufferReturnIn
+      ComCcsds.fprimeRouter.fileOut -> FileHandling.fileUplink.bufferSendIn
+      FileHandling.fileUplink.bufferSendOut -> ComCcsds.fprimeRouter.fileBufferReturnIn
     }
 
     connections Communications {
       # ComDriver buffer allocations
-      comDriver.allocate      -> {{cookiecutter.communication_type}}.commsBufferManager.bufferGetCallee
-      comDriver.deallocate    -> {{cookiecutter.communication_type}}.commsBufferManager.bufferSendIn
+      comDriver.allocate      -> ComCcsds.commsBufferManager.bufferGetCallee
+      comDriver.deallocate    -> ComCcsds.commsBufferManager.bufferSendIn
       
       # ComDriver <-> ComStub (Uplink)
-      comDriver.$recv                     -> {{cookiecutter.communication_type}}.comStub.drvReceiveIn
-      {{cookiecutter.communication_type}}.comStub.drvReceiveReturnOut -> comDriver.recvReturnIn
+      comDriver.$recv                     -> ComCcsds.comStub.drvReceiveIn
+      ComCcsds.comStub.drvReceiveReturnOut -> comDriver.recvReturnIn
       
       # ComStub <-> ComDriver (Downlink)
-      {{cookiecutter.communication_type}}.comStub.drvSendOut      -> comDriver.$send
-      comDriver.sendReturnOut -> {{cookiecutter.communication_type}}.comStub.drvSendReturnIn
-      comDriver.ready         -> {{cookiecutter.communication_type}}.comStub.drvConnected
+      ComCcsds.comStub.drvSendOut      -> comDriver.$send
+      comDriver.sendReturnOut -> ComCcsds.comStub.drvSendReturnIn
+      comDriver.ready         -> ComCcsds.comStub.drvConnected
     }
 
     connections FileHandling_DataProducts {
@@ -108,16 +109,16 @@ module {{cookiecutter.deployment_name}} {
       rateGroup1.RateGroupMemberOut[0] -> CdhCore.tlmSend.Run
       rateGroup1.RateGroupMemberOut[1] -> FileHandling.fileDownlink.Run
       rateGroup1.RateGroupMemberOut[2] -> systemResources.run
-      rateGroup1.RateGroupMemberOut[3] -> {{cookiecutter.communication_type}}.comQueue.run
+      rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> FileHandling.cmdSeq.schedIn
+      rateGroup2.RateGroupMemberOut[0] -> cmdSeq.schedIn
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
       rateGroup3.RateGroupMemberOut[0] -> CdhCore.$health.Run
-      rateGroup3.RateGroupMemberOut[1] -> {{cookiecutter.communication_type}}.commsBufferManager.schedIn
+      rateGroup3.RateGroupMemberOut[1] -> ComCcsds.commsBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn

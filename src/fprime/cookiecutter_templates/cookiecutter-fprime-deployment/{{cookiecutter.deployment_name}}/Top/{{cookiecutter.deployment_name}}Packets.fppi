@@ -9,16 +9,16 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.PacketsSent
     FileHandling.fileManager.CommandsExecuted
 
-    FileHandling.cmdSeq.CS_LoadCommands
-    FileHandling.cmdSeq.CS_CancelCommands
-    FileHandling.cmdSeq.CS_CommandsExecuted
-    FileHandling.cmdSeq.CS_SequencesCompleted
-    {{cookiecutter.communication_type}}.comQueue.comQueueDepth
-    {{cookiecutter.communication_type}}.comQueue.buffQueueDepth
-    {{cookiecutter.communication_type}}.commsBufferManager.TotalBuffs
-    {{cookiecutter.communication_type}}.commsBufferManager.CurrBuffs
-    {{cookiecutter.communication_type}}.commsBufferManager.HiBuffs
-    #{{cookiecutter.communication_type}}.tlmSend.SendLevel
+    {{cookiecutter.deployment_name}}.cmdSeq.CS_LoadCommands
+    {{cookiecutter.deployment_name}}.cmdSeq.CS_CancelCommands
+    {{cookiecutter.deployment_name}}.cmdSeq.CS_CommandsExecuted
+    {{cookiecutter.deployment_name}}.cmdSeq.CS_SequencesCompleted
+    ComCcsds.comQueue.comQueueDepth
+    ComCcsds.comQueue.buffQueueDepth
+    ComCcsds.commsBufferManager.TotalBuffs
+    ComCcsds.commsBufferManager.CurrBuffs
+    ComCcsds.commsBufferManager.HiBuffs
+    #ComCcsds.tlmSend.SendLevel
 
     {{cookiecutter.deployment_name}}.rateGroup1.RgMaxTime
     {{cookiecutter.deployment_name}}.rateGroup2.RgMaxTime
@@ -32,9 +32,9 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.Warnings
     FileHandling.fileManager.Errors
 
-    FileHandling.cmdSeq.CS_Errors
-    {{cookiecutter.communication_type}}.commsBufferManager.NoBuffs
-    {{cookiecutter.communication_type}}.commsBufferManager.EmptyBuffs
+    {{cookiecutter.deployment_name}}.cmdSeq.CS_Errors
+    ComCcsds.commsBufferManager.NoBuffs
+    ComCcsds.commsBufferManager.EmptyBuffs
 
     {{cookiecutter.deployment_name}}.rateGroup1.RgCycleSlips
     {{cookiecutter.deployment_name}}.rateGroup2.RgCycleSlips

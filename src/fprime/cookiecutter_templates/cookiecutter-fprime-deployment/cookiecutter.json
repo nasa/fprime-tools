@@ -1,13 +1,11 @@
 
 {
     "deployment_name": "MyDeployment",
-    "communication_type": ["ComCcsds", "ComFprime"],
     "com_driver_type": ["TcpClient", "TcpServer", "UART"],
     "__include_path_prefix": "",
     "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}",
     "__prompts__": {
         "deployment_name": "Deployment name",
-        "communication_type": "Select communication subtopology type (CCSDS or Fprime packet framing)",
         "com_driver_type": "Select communication driver type"
     }
 }
