@@ -1,6 +1,19 @@
 module {{cookiecutter.deployment_name}} {
 
   # ----------------------------------------------------------------------
+  # Base ID Convention
+  # ----------------------------------------------------------------------
+  #
+  # All Base IDs follow the 8-digit hex format: 0xDSSCCxxx
+  #
+  # Where:
+  #   D   = Deployment digit (1 for this deployment)
+  #   SS  = Subtopology digits (00 for main topology, 01-05 for subtopologies)
+  #   CC  = Component digits (00, 01, 02, etc.)
+  #   xxx = Reserved for internal component items (events, commands, telemetry)
+  #
+
+  # ----------------------------------------------------------------------
   # Defaults
   # ----------------------------------------------------------------------
 
@@ -13,118 +26,49 @@ module {{cookiecutter.deployment_name}} {
   # Active component instances
   # ----------------------------------------------------------------------
 
-  instance rateGroup1: Svc.ActiveRateGroup base id 0x0200 \
+  instance rateGroup1: Svc.ActiveRateGroup base id 0x10001000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 120
 
-  instance rateGroup2: Svc.ActiveRateGroup base id 0x0300 \
+  instance rateGroup2: Svc.ActiveRateGroup base id 0x10002000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 119
 
-  instance rateGroup3: Svc.ActiveRateGroup base id 0x0400 \
+  instance rateGroup3: Svc.ActiveRateGroup base id 0x10003000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 118
 
-  instance cmdDisp: Svc.CommandDispatcher base id 0x0500 \
-    queue size 20 \
-    stack size Default.STACK_SIZE \
-    priority 101
-
-  instance cmdSeq: Svc.CmdSequencer base id 0x0600 \
+  instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
-    priority 100
-
-  instance comQueue: Svc.ComQueue base id 0x0700 \
-      queue size 50 \
-      stack size Default.STACK_SIZE \
-      priority 100 \
-
-  instance fileDownlink: Svc.FileDownlink base id 0x0800 \
-    queue size 30 \
-    stack size Default.STACK_SIZE \
-    priority 100
-
-  instance fileManager: Svc.FileManager base id 0x0900 \
-    queue size 30 \
-    stack size Default.STACK_SIZE \
-    priority 100
-
-  instance fileUplink: Svc.FileUplink base id 0x0A00 \
-    queue size 30 \
-    stack size Default.STACK_SIZE \
-    priority 100
-
-  instance eventManager: Svc.EventManager base id 0x0B00 \
-    queue size Default.QUEUE_SIZE \
-    stack size Default.STACK_SIZE \
-    priority 98
-
-  # comment in Svc.TlmChan or Svc.TlmPacketizer
-  # depending on which form of telemetry downlink
-  # you wish to use
-
-  instance tlmSend: Svc.TlmChan base id 0x0C00 \
-    queue size Default.QUEUE_SIZE \
-    stack size Default.STACK_SIZE \
-    priority 97
-
-  #instance tlmSend: Svc.TlmPacketizer base id 0x0C00 \
-  #    queue size Default.QUEUE_SIZE \
-  #    stack size Default.STACK_SIZE \
-  #    priority 97
-
-  instance prmDb: Svc.PrmDb base id 0x0D00 \
-    queue size Default.QUEUE_SIZE \
-    stack size Default.STACK_SIZE \
-    priority 96
+    priority 117
 
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
 
-  instance $health: Svc.Health base id 0x2000 \
-    queue size 25
 
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------
 
-  @ Communications driver. May be swapped with other com drivers like UART or TCP
-{%- if cookiecutter.com_driver_type == "UART" %}
-  instance comDriver: Drv.LinuxUartDriver base id 0x4000
-{%- else %}
-  instance comDriver: Drv.{{cookiecutter.com_driver_type}} base id 0x4000 
+  instance chronoTime: Svc.ChronoTime base id 0x10010000
+
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10011000
+
+  instance systemResources: Svc.SystemResources base id 0x10012000
+
+  instance linuxTimer: Svc.LinuxTimer base id 0x10013000
+
+{%- if cookiecutter.com_driver_type == "TcpClient" %}
+  instance comDriver: Drv.TcpClient base id 0x10014000
+{%- elif cookiecutter.com_driver_type == "TcpServer" %}
+  instance comDriver: Drv.TcpServer base id 0x10014000
+{%- elif cookiecutter.com_driver_type == "UART" %}
+  instance comDriver: Drv.LinuxUartDriver base id 0x10014000
 {%- endif %}
 
-  instance framer: Svc.FprimeFramer base id 0x4100
-
-  instance fatalAdapter: Svc.AssertFatalAdapter base id 0x4200
-
-  instance fatalHandler: Svc.FatalHandler base id 0x4300
-
-  instance bufferManager: Svc.BufferManager base id 0x4400
-
-  instance chronoTime: Svc.ChronoTime base id 0x4500
-
-  instance rateGroupDriver: Svc.RateGroupDriver base id 0x4600
-
-  instance textLogger: Svc.PassiveTextLogger base id 0x4800
-
-  instance deframer: Svc.FprimeDeframer base id 0x4900
-
-  instance systemResources: Svc.SystemResources base id 0x4A00
-
-  instance comStub: Svc.ComStub base id 0x4B00
-
-  instance frameAccumulator: Svc.FrameAccumulator base id 0x4C00
-
-  instance fprimeRouter: Svc.FprimeRouter base id 0x4D00
-
-  instance version: Svc.Version base id 0x4E00
-
-  instance linuxTimer: Svc.LinuxTimer base id 0x4F00
 }

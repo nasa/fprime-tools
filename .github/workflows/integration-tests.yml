@@ -5,6 +5,10 @@ on:
     branches: [ devel ]
   pull_request:
     branches: [ devel ]
+# Cancel in-progress runs if a newer run is started on a given PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'devel') && !contains(github.ref, 'release/')}}
 
 jobs:
   fprime-integration:
@@ -49,9 +53,10 @@ jobs:
           fprime-util generate --build-cache ./build-ninja
           fprime-util build --build-cache ./build-ninja
           fprime-util hash-to-file 0x72ad3277 --build-cache ./build-ninja
-      - name: Test special generation on Ref
+      # 0xf610caa8 is Svc/BufferManager/test/ut/BufferManagerTestMain.cpp, a file that should be consistent
+      - name: Test special generation on Ref UTs
         working-directory: fprime/Ref
         run: |
           fprime-util generate --make --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
-          fprime-util hash-to-file 0x2ed4bda6 --build-cache ./special-cache
+          fprime-util hash-to-file 0xf610caa8 --build-cache ./special-cache

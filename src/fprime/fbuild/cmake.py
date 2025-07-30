@@ -15,13 +15,10 @@ import functools
 import itertools
 import os
 from pathlib import Path
-import pty
 import re
-import selectors
 import shutil
 import subprocess
 import sys
-import time
 
 from fprime.common.error import FprimeException
 
@@ -556,29 +553,22 @@ class CMakeHandler:
             for key, val in sorted(cm_environ.items(), key=lambda x: x[0]):
                 print(f"[CMAKE]     {key}={val}")
 
-        # In order to get proper console highlighting while still getting access to the output, we need to create a
-        # pseudo-terminal. This will allow the proc to write to one side, and our select below to read from the other
-        # side. Most importantly, pseudo-terminal usage will trick CMake into highlighting for us.
-        pty_err_r, pty_err_w = pty.openpty()
-        pty_out_r, pty_out_w = pty.openpty()
-        proc = subprocess.Popen(
+        # Run CMake and handle output as requested (print to console OR capture and return)
+        result = subprocess.run(
             cargs,
-            stdout=pty_out_w,
-            stderr=pty_err_w,
             cwd=workdir,
             env=cm_environ,
-            close_fds=True,
+            text=True,
+            capture_output=(not print_output),
         )
-        # Close our side of the writing pipes. Subproc will also close when it it finished.
-        os.close(pty_out_w)
-        os.close(pty_err_w)
-        ret, stdout, stderr = self._communicate(
-            proc, open(pty_out_r, mode="rb"), open(pty_err_r, mode="rb"), print_output
-        )
+        ret = result.returncode
+        stdout = result.stdout.splitlines(keepends=True) if result.stdout else []
+        stderr = result.stderr.splitlines(keepends=True) if result.stderr else []
+
         # Raising an exception when the return code is non-zero allows us to handle the exception internally if it is
         # needed. Thus we do not just exit.
         if ret != 0:
-            msg = f"CMake erred with return code {proc.returncode}"
+            msg = f"CMake erred with return code {ret}"
             raise CMakeExecutionException(
                 msg,
                 stderr,
@@ -586,63 +576,6 @@ class CMakeHandler:
                 ret,
             )
         return stdout, stderr
-
-    @staticmethod
-    def _communicate(proc, stdout, stderr, print_output=True):
-        """
-        Communicates with a process while assuring that output is captured and optionally printed. This will buffer
-        lines for the standard out file handle when not none, and will always buffer standard error so that it can be
-        provided when needed. This effectively replaces the .communicate method of the proc itself, while still
-        preventing deadlocks.  The output is returned for each stream as a list of lines.
-
-        :param proc: Popen process constructed with the above pairs to the submitted file handles
-        :param stdout: standard output file handle. Paired with the FH provided to the Popen stdout argument
-        :param stderr: standard error file handle. Paired with the FH provided to the Popen stderr argument
-        :param print_output: print output to the screen. If False, output is masked. Default: True, print to screen.
-        :return return code, stdout as list of lines, stderr as list of lines
-        """
-        stdouts = []
-        stderrs = []
-        # Selection will allow us to read from stdout and stderr whenever either is available. This will allow the
-        # program to capture both, while still printing as soon as is possible. This will keep the user informed, not
-        # merge streams, and capture output.
-        #
-        # Selection blocks on the read of "either" file descriptor, and then passes off the execution to the below code
-        # with a key that represents which descriptor was the one available to read without blocking.
-        selector = selectors.DefaultSelector()
-        selector.register(stdout, selectors.EVENT_READ, data=(stdouts, sys.stdout))
-        selector.register(stderr, selectors.EVENT_READ, data=(stderrs, sys.stderr))
-        while not stdout.closed or not stderr.closed:
-            # This line *BLOCKS* until on of the above registered handles is available to read. Then a set of events is
-            # returned signaling that a given object is available for IO.
-            events = selector.select()
-            for key, _ in events:
-                appendable, stream = key.data
-                try:
-                    line = (
-                        key.fileobj.readline()
-                        .decode(errors="replace")
-                        .replace("\r\n", "\n")
-                    )
-                # Some systems (like running inside Docker) raise an io error instead of returning "" when the device
-                # is ended. Not sure why this is, but the effect is the same, on IOError assume end-of-input
-                except OSError:
-                    line = ""
-                appendable.append(line)
-                # Streams are EOF when the line returned is empty. Once this occurs, we are responsible for closing the
-                # stream and thus closing the select loop. Empty strings need not be printed.
-                if not line:
-                    key.fileobj.close()
-                    continue
-                # Forwards output to screen.  Assuming a PTY is used, then coloring highlights should be automatically
-                # included for output. Raw streams are used to avoid print quirks
-                if print_output:
-                    stream.write(line)
-                    stream.flush()
-        # Spin waiting for the .poll() method to return a non-None result ensuring that the process has finished.
-        while proc.poll() is None:
-            time.sleep(0.0001)
-        return proc.poll(), stdouts, stderrs
 
 
 class CMakeException(FprimeException):

@@ -193,7 +193,10 @@ def test_run_cmake(cmake_handler):
     with temporary_symbolic_link_context("cmake") as outputs:
         with tempfile.TemporaryDirectory() as test_directory:
             stdout, stderr = cmake_handler._run_cmake(
-                arguments=arguments, workdir=test_directory, environment=environment
+                arguments=arguments,
+                workdir=test_directory,
+                environment=environment,
+                print_output=False,  # Capture output for test validation
             )
     # Read only mode
     arguments = ["-N"] + arguments
@@ -237,6 +240,7 @@ def test_run_cmake_editable(cmake_handler):
                 workdir=test_directory,
                 environment=environment,
                 write_override=True,
+                print_output=False,  # Capture output for test validation
             )
     assert_valid_outputs(
         outputs, directory=test_directory, arguments=arguments, environment=environment

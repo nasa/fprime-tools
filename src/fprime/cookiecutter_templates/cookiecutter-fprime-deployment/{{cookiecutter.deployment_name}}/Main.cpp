@@ -38,7 +38,7 @@ void print_usage(const char* app) {
  * @param signum
  */
 static void signalHandler(int signum) {
-    {{cookiecutter.deployment_name}}::stopSimulatedCycle();
+    {{cookiecutter.deployment_name}}::stopRateGroups();
 }
 
 /**
@@ -53,23 +53,24 @@ static void signalHandler(int signum) {
  */
 int main(int argc, char* argv[]) {
     I32 option = 0;
-{%- if cookiecutter.com_driver_type == "UART" %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
     CHAR* uart_device = nullptr;
     U32 baud_rate = 0;
-{%- else %}
+    {%- else %}
     CHAR* hostname = nullptr;
     U16 port_number = 0;
-{%- endif %}
+    {%- endif %}
+
     Os::init();
 
     // Loop while reading the getopt supplied options
-{%- if cookiecutter.com_driver_type == "UART" %}
+    {%- if cookiecutter.com_driver_type == "UART" %}
     while ((option = getopt(argc, argv, "hb:d:")) != -1) {  
-{%- else %}
+    {%- else %}
     while ((option = getopt(argc, argv, "hp:a:")) != -1) {
-{%- endif %}
+    {%- endif %}
         switch (option) {
-{%- if cookiecutter.com_driver_type == "UART" %}
+            {%- if cookiecutter.com_driver_type == "UART" %}
             // Handle the -b baud rate argument
             case 'b':
                 baud_rate = static_cast<U32>(atoi(optarg));
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
             case 'd':
                 uart_device = optarg;
                 break;
-{%- else %}
+            {%- else %}
             // Handle the -a argument for address/hostname
             case 'a':
                 hostname = optarg;
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
             case 'p':
                 port_number = static_cast<U16>(atoi(optarg));
                 break;
-{%- endif %}
+            {%- endif %}
             // Cascade intended: help output
             case 'h':
             // Cascade intended: help output
@@ -98,11 +99,11 @@ int main(int argc, char* argv[]) {
                 return (option == 'h') ? 0 : 1;
         }
     }
-    // Object for communicating state to the reference topology
+    // Object for communicating state to the topology
     {{cookiecutter.deployment_name}}::TopologyState inputs;
 {%- if cookiecutter.com_driver_type == "UART" %}
-    inputs.baudRate = baud_rate;
     inputs.uartDevice = uart_device;
+    inputs.baudRate = baud_rate;
 {%- else %}
     inputs.hostname = hostname;
     inputs.port = port_number;
@@ -115,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Setup, cycle, and teardown topology
     {{cookiecutter.deployment_name}}::setupTopology(inputs);
-    {{cookiecutter.deployment_name}}::startSimulatedCycle(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
+    {{cookiecutter.deployment_name}}::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
     {{cookiecutter.deployment_name}}::teardownTopology(inputs);
     (void)printf("Exiting...\n");
     return 0;
