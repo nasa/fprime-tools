@@ -11,20 +11,4 @@ namespace {{cookiecutter.subtopology_name}} {
     };
 }
 
-namespace GlobalDefs {
-    namespace PingEntries {
-        /* include any ping entries that are needed for the subtopology
-        e.g., rate groups need FAIL and WARN ping enums
-        For example:
-
-        namespace {{cookiecutter.subtopology_name}}_rateGroup {
-            enum {
-                WARN = 3,
-                FATAL = 5
-            };
-        }
-        */
-    }
-}
-
 #endif

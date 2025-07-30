@@ -25,8 +25,10 @@ cd {{cookiecutter.deployment_name}}
 fprime-gds
 ```
 
+{% if cookiecutter.com_driver_type != "UART" %}
 To run the ground system without starting the {{cookiecutter.deployment_name}} app:
 ```
+
 cd {{cookiecutter.deployment_name}}
 fprime-gds --no-app
 ```
@@ -37,3 +39,27 @@ The application binary may then be run independently from the created 'bin' dire
 cd {{cookiecutter.deployment_name}}/build-artifacts/<platform>/bin/
 ./{{cookiecutter.deployment_name}} -a 127.0.0.1 -p 50000
 ```
+{% endif %}
+
+## This deployment uses F' **core subtopologies** for a modular, reusable architecture:
+
+- **CdhCore**: Command & Data Handling
+  - Command dispatching and event management
+  - Event logging and telemetry collection  
+  - Health monitoring system
+  - Fatal error handling
+
+- **ComCcsds**: CCSDS Communication Subsystem
+  - CCSDS protocol implementation
+  - Uplink/downlink data handling
+  - Frame processing and routing
+
+- **FileHandling**: File Transfer & Command Sequencing
+  - File upload and download services
+  - Parameter database management
+  - File system operations
+
+- **DataProducts**: Data Product Management
+  - Data product cataloging
+  - Storage and retrieval capabilities
+  - Product metadata management

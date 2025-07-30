@@ -49,21 +49,39 @@ class Check(EnumeratedAction):
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Execute this target"""
-        cli_args = [self.EXECUTABLE, "--test-dir", str(builder.build_dir)]
+        cli_args = [
+            self.EXECUTABLE,
+            "--test-dir",
+            str(builder.build_dir),
+            "--no-tests=error",
+        ]
         make_args = args[0]
+
+        # Jobs flag
         if "-j" in make_args or "--jobs" in make_args:
             cli_args.extend(
                 ["--parallel", str(make_args.get("--jobs", make_args.get("-j", 1)))]
             )
-
+        # Check for conditions that result in verbose output
+        # 1. Explicitly verbose
+        # 2. Context is not "all" (or .*)
+        if builder.is_verbose() or (
+            context and context != ["all"] and ".*" not in context
+        ):
+            cli_args.append("-V")
+        # When not "all" append a regex to filter tests. .* works as a regex
         if context and context != ["all"]:
             test_regex = f"^({'|'.join(context)})$"
             cli_args.extend(["-R", test_regex])
+        # Extend with "pass through" arguments
+        cli_args.extend(args[1])
+        # When verbose print the commands run
         if builder.is_verbose():
-            cli_args.append("-V")
             joined = "' '".join(cli_args)
             print(f"[INFO] Running CTest: '{joined}'")
-        subprocess.call(cli_args)
+
+        # Check ensures errors result in this process erroring
+        subprocess.run(cli_args, check=True)
 
 
 class CheckTarget(CompositeTarget):
