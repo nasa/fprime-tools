@@ -266,20 +266,22 @@ def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
 def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new subtopology instance using cookiecutter"""
     framework_path = build.settings.get("framework_path", Path("."))
-    
+
     # Define available core subtopologies
     core_subtopology_list = [
         "ComLogTSplit",
         # Add more core subtopologies that support instances here as needed
     ]
-    
+
     # Pre-calculate include paths for template
     extra_context = {"_framework_path_str": str(framework_path)}
-    
+
     # Add include paths for each core subtopology
     for name in core_subtopology_list:
         core_path = framework_path / "Svc" / "Subtopologies" / name
-        extra_context[f"_{name}_include_path"] = f"{core_path}/subtopology-template.fppi"
+        extra_context[f"_{name}_include_path"] = (
+            f"{core_path}/subtopology-template.fppi"
+        )
 
     # Checks if subtopology_instance_cookiecutter is set in settings.ini file, else uses local install template as default
     if (
@@ -293,12 +295,18 @@ def new_subtopology_instance(build: Build, parsed_args: "argparse.Namespace"):
             os.path.dirname(__file__)
             + "/../cookiecutter_templates/cookiecutter-fprime-subtopology-instance"
         )
-        print("[INFO] Cookiecutter: using builtin template for new subtopology instance")
+        print(
+            "[INFO] Cookiecutter: using builtin template for new subtopology instance"
+        )
     try:
         gen_path = Path(
-            cookiecutter(source, overwrite_if_exists=parsed_args.overwrite, extra_context=extra_context)
+            cookiecutter(
+                source,
+                overwrite_if_exists=parsed_args.overwrite,
+                extra_context=extra_context,
+            )
         ).resolve()
-        
+
         # Attempt to register to CMakeLists.txt or project.cmake
         register_with_cmake(
             gen_path,
