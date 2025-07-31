@@ -228,23 +228,12 @@ def run_version_check(
     print(f"Pip version: {pip.__version__}")
 
     print("Pip packages:")
-    # Used to print fprime-fpp-* versions together if they are all the same to de-clutter the output
-    fpp_packages = {}
     for tool in FPRIME_PIP_PACKAGES:
         try:
             version = pkg_resources.get_distribution(tool).version
-            if tool.startswith("fprime-fpp-"):
-                fpp_packages[tool] = version
-            else:
-                print(f"    {tool}=={version}")
+            print(f"    {tool}=={version}")
         except (OSError, VersionException, pkg_resources.DistributionNotFound) as exc:
             print(f"[WARNING] {exc}")
-    if fpp_packages:
-        if len(set(fpp_packages.values())) == 1:
-            print(f"    fprime-fpp-*=={list(fpp_packages.values())[0]}")
-        else:
-            for tool, version in fpp_packages.items():
-                print(f"    {tool}=={version}")
 
     try:
         out = (

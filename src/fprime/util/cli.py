@@ -324,7 +324,8 @@ def parse_args(args):
     common_parser.add_argument(
         "-p",
         "--path",
-        default=os.getcwd(),
+        default=Path.cwd(),
+        type=Path,
         help="F prime directory to operate on. Default: cwd, %(default)s.",
     )
     common_parser.add_argument(

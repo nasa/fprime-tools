@@ -21,8 +21,8 @@ def mock_build(tmp_path):
 
 def test_init():
     """Test FppUtility initialization"""
-    utility = FppUtility("fpp-to-xml")
-    assert utility.utility == "fpp-to-xml"
+    utility = FppUtility("fpp-to-dict")
+    assert utility.utility == "fpp-to-dict"
     assert utility.imports_as_sources is True
 
     utility_no_imports = FppUtility("fpp-check", imports_as_sources=False)
@@ -64,7 +64,7 @@ def test_get_fpp_inputs_missing(mock_build, tmp_path):
 
 
 @patch("subprocess.run")
-@patch("shutil.which", return_value="/path/to/fpp-to-xml")
+@patch("shutil.which", return_value="/path/to/fpp-to-dict")
 def test_execute_imports_as_sources(mock_which, mock_run, mock_build, tmp_path):
     """Test execute with imports as sources"""
     # Setup
@@ -72,14 +72,14 @@ def test_execute_imports_as_sources(mock_which, mock_run, mock_build, tmp_path):
     (tmp_path / "cache" / "fpp-import-list").write_text("A.fpp;B.fpp;")
     (tmp_path / "cache" / "fpp-source-list").write_text("C.fpp;D.fpp;")
 
-    utility = FppUtility("fpp-to-xml", imports_as_sources=True)
+    utility = FppUtility("fpp-to-dict", imports_as_sources=True)
     utility.execute(mock_build, tmp_path, ({}, []))
 
     # Check call
     mock_run.assert_called_once()
     call_args = mock_run.call_args[0][0]
     assert call_args == [
-        "fpp-to-xml",
+        "fpp-to-dict",
         str(tmp_path / "locs.fpp"),
         "A.fpp",
         "B.fpp",

@@ -24,9 +24,6 @@ class CommandsTestCases(unittest.TestCase):
     def test_fpp_check_command(self):
         pass
 
-    def test_fpp_to_xml_command(self):
-        pass
-
     def test_visualize_command(self):
         pass
 
