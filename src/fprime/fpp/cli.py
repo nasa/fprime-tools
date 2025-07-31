@@ -1,4 +1,4 @@
-""" fprime.fpp.cli: FPP command line targets
+"""fprime.fpp.cli: FPP command line targets
 
 Processing and command line functions for FPP tools wrappers in fprime-util.
 
@@ -35,6 +35,7 @@ def run_fpp_check(
         parsed.path,
         args=({}, ["-u", parsed.unconnected] if parsed.unconnected else []),
     )
+
 
 def run_fpp_to_dict(
     build: "Build",

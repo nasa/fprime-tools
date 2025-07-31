@@ -1,9 +1,10 @@
-""" FPP tools to requirements file version check """
+"""FPP tools to requirements file version check"""
 
 import argparse
 import sys
 from pathlib import Path
 import pkg_resources
+
 
 class VersionException(Exception):
     pass
