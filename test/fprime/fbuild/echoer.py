@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Fake CMake script for testing purposes
+"""Fake CMake script for testing purposes
 
 This script can be added to the front of the path to echo what arguments are sent to CMake allowing for tests that are
 slightly closer to integration tests without involving the entirety of F Prime.

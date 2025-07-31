@@ -1,6 +1,7 @@
 """
 Tests for fprime.util.code_formatter
 """
+
 from pathlib import Path
 
 import shutil

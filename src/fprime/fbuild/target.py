@@ -1,4 +1,4 @@
-""" fprime.fbuild.target: build target support
+"""fprime.fbuild.target: build target support
 
 Contains the supporting definitions for build targets. These targets are used to run various parts of the build and may
 contain build system targets (e.g. CMake target invokers), and miscellaneous targets that perform other actions.

@@ -1,6 +1,6 @@
 """
-This file defines the structures for the annotatable elements in the fpp AST. These 
-are separate from the converters itself such that it may be possible to write 
+This file defines the structures for the annotatable elements in the fpp AST. These
+are separate from the converters itself such that it may be possible to write
 converters from other languages to these Python data structures.
 
 If extending this utility, the first step would be to add a new class for the data

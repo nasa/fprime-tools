@@ -4,6 +4,7 @@
 Tests the F prime settings module.
 @author joshuaa
 """
+
 import os
 from pathlib import Path
 

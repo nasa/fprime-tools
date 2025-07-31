@@ -1,4 +1,4 @@
-""" Error and exception definitions for fprime """
+"""Error and exception definitions for fprime"""
 
 
 class FprimeException(Exception):

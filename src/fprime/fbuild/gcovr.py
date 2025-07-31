@@ -1,4 +1,4 @@
-""" fprime.fbuild.gcovr: coverage target implementations """
+"""fprime.fbuild.gcovr: coverage target implementations"""
 
 import itertools
 import shutil

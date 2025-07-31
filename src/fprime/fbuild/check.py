@@ -1,8 +1,9 @@
-""" fprime.fbuild.check: check target implementation
+"""fprime.fbuild.check: check target implementation
 
 The 'check' target is designed to call CTest executable(s) to run tests. It is a composite target used to build and run
 the test targets.
 """
+
 import shutil
 import subprocess
 import sys

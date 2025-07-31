@@ -1,9 +1,10 @@
-""" fprime.fbuild.target_definitions: targets definitions for fprime-util
+"""fprime.fbuild.target_definitions: targets definitions for fprime-util
 
 Defines all the targets for fprime-util. Each target is a singleton that is registered into the list of all targets and
 as such, each target need only be instantiated but need not be assigned to anything.
 
 """
+
 from .gcovr import GcovrTarget
 from .check import CheckTarget
 from fprime.fbuild.check import CheckTarget

@@ -1,4 +1,4 @@
-""" fprime.fbuild.enumerator: build module enumeration strategies
+"""fprime.fbuild.enumerator: build module enumeration strategies
 
 This file contains the necessary enumeration strategies for build system targets. Enumeration is used to determine
 what targets are available in the given contextual path (working directory). The results of the enumeration are then
@@ -7,6 +7,7 @@ passed to the target for execution.
 Note: this file was created with the help of generative AI.
 
 """
+
 from abc import ABC, abstractmethod
 from argparse import Action
 from pathlib import Path

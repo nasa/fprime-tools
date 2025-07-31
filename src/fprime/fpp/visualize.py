@@ -1,4 +1,4 @@
-""" fprime.fpp.visualize: Command line targets for fprime-util visualize
+"""fprime.fpp.visualize: Command line targets for fprime-util visualize
 
 @author thomas-bc
 """

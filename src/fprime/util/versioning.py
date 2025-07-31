@@ -1,4 +1,4 @@
-""" FPP tools to requirements file version check """
+"""FPP tools to requirements file version check"""
 
 import argparse
 import sys

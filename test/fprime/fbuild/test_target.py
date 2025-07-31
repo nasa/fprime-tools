@@ -1,6 +1,7 @@
 """
 Tests for fprime.fbuild.target
 """
+
 from pathlib import Path
 from unittest.mock import MagicMock
 

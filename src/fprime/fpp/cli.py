@@ -1,4 +1,4 @@
-""" fprime.fpp.cli: FPP command line targets
+"""fprime.fpp.cli: FPP command line targets
 
 Processing and command line functions for FPP tools wrappers in fprime-util.
 
