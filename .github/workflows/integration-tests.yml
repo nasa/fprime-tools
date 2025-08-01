@@ -60,3 +60,35 @@ jobs:
           fprime-util generate --make --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
           fprime-util hash-to-file 0xf610caa8 --build-cache ./special-cache
+
+
+  visualizer-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fprime-tools
+        uses: actions/checkout@v4
+      - name: Checkout fprime core (devel)
+        uses: actions/checkout@v4
+        with:
+          repository: nasa/fprime
+          ref: devel
+          path: fprime
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r fprime/requirements.txt
+          pip install -U -e .
+      - name: Check fprime-util visualize
+        run: |
+          cd fprime/Ref/Top
+          fprime-util generate
+
+          timeout 20s fprime-util visualize  > visualizer.log 2>&1
+
+          grep -q "Generated layout TXT file" visualizer.log
+          grep -q "Running on http://" visualizer.log
