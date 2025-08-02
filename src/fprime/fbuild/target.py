@@ -361,6 +361,8 @@ class BuildSystemTarget(Target):
         context: TargetContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
+        # Ensure the cache is refreshed
+        context = ["refresh_cache"] + context
         for build_target in context:
             if builder.is_verbose():
                 print(f"[INFO] Building: {build_target}")
