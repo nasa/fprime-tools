@@ -61,7 +61,7 @@ module {{cookiecutter.deployment_name}} {
 
   instance systemResources: Svc.SystemResources base id 0x10012000
 
-  instance linuxTimer: Svc.LinuxTimer base id 0x10013000
+  instance timer: Svc.LinuxTimer base id 0x10013000
 
 {%- if cookiecutter.com_driver_type == "TcpClient" %}
   instance comDriver: Drv.TcpClient base id 0x10014000

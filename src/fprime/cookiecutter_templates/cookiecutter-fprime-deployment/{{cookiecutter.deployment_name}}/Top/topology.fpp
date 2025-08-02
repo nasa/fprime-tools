@@ -29,7 +29,7 @@ module {{cookiecutter.deployment_name}} {
     instance rateGroup3
     instance rateGroupDriver
     instance systemResources
-    instance linuxTimer
+    instance timer
     instance comDriver
     instance cmdSeq
 
@@ -98,8 +98,8 @@ module {{cookiecutter.deployment_name}} {
     }
 
     connections RateGroups {
-      # LinuxTimer to drive rate group
-      linuxTimer.CycleOut -> rateGroupDriver.CycleIn
+      # timer to drive rate group
+      timer.CycleOut -> rateGroupDriver.CycleIn
 
       # Rate group 1
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup1] -> rateGroup1.CycleIn
