@@ -115,6 +115,9 @@ void teardownTopology(const TopologyState& state) {
     // Other task clean-up.
 {%- if cookiecutter.com_driver_type == "UART" %}
     comDriver.quitReadThread();
+{%- elif cookiecutter.com_driver_type == "TcpServer" %}
+    comDriver.terminate();
+    comDriver.stop();
 {%- else %}
     comDriver.stop();
 {%- endif %}
