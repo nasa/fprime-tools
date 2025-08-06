@@ -49,7 +49,7 @@ module {{cookiecutter.deployment_name}} {
   # Telemetry packets (only used when TlmPacketizer is used)
   # ----------------------------------------------------------------------
 
-    include "{{cookiecutter.deployment_name}}Packets.fppi"
+    # include "{{cookiecutter.deployment_name}}Packets.fppi"
 
   # ----------------------------------------------------------------------
   # Direct graph specifiers
