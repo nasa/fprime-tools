@@ -3,9 +3,6 @@
 Created on May 29, 2020
 @author: jishii
 """
-
-from fprime.util.string_util import format_string_template
-
 from . import serializable_type
 from .type_base import DictionaryType
 from .type_exceptions import (
@@ -69,10 +66,10 @@ class ArrayType(DictionaryType):
         """
         result = []
         for item in self._val:
-            if isinstance(item, (serializable_type.SerializableType, ArrayType)):
+            if hasattr(item, "formatted_val"):
                 result.append(item.formatted_val)
             else:
-                result.append(format_string_template(self.FORMAT, item.val))
+                result.append(self.FORMAT.format(item.val))
         return result
 
     @val.setter

@@ -4,9 +4,6 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
-
-from fprime.util.string_util import format_string_template
-
 from . import array_type
 from .type_base import BaseType, DictionaryType
 from .type_exceptions import (
@@ -117,12 +114,10 @@ class SerializableType(DictionaryType):
         result = {}
         for member_name, _, member_format, _ in self.MEMBER_LIST:
             value_object = self._val[member_name]
-            if isinstance(value_object, (array_type.ArrayType, SerializableType)):
+            if hasattr(value_object, "formatted_val"):
                 result[member_name] = value_object.formatted_val
             else:
-                result[member_name] = format_string_template(
-                    member_format, value_object.val
-                )
+                result[member_name] = member_format.format(value_object.val)
         return result
 
     def serialize(self):
