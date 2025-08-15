@@ -4,7 +4,7 @@ Created on Dec 18, 2014
 @author: tcanham
 
 """
-from . import array_type
+
 from .type_base import BaseType, DictionaryType
 from .type_exceptions import (
     IncorrectMembersException,
