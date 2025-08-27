@@ -119,7 +119,11 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
         # Use current working directory name as default namespace, unless at project root
         extra_context = {}
         if not proj_root.samefile(Path.cwd()):
-            extra_context["component_namespace"] = Path.cwd().name
+            cwd = Path.cwd()
+            # If in default Components directory, use parent directory name, which should be the top level namespace directory
+            extra_context["component_namespace"] = (
+                cwd.parent.name if cwd.name == "Components" else cwd.name
+            )
 
         gen_path = Path(cookiecutter(source, extra_context=extra_context)).resolve()
 
