@@ -121,10 +121,8 @@ class Build:
         # Validate this is a build cache by finding either of two known files
         # One is from F´, other from CMake, for redundancy
         if self.build_dir is not None and (
-            (
-                (self.build_dir / ".fprime-build-dir").exists()
-                or (self.build_dir / "CMakeCache.txt").exists()
-            )
+            (self.build_dir / ".fprime-build-dir").exists()
+            or (self.build_dir / "CMakeCache.txt").exists()
         ):
             return
 
