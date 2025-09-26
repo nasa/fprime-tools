@@ -70,6 +70,16 @@ class Check(EnumeratedAction):
             context and context != ["all"] and ".*" not in context
         ):
             cli_args.append("-V")
+
+        if not context:
+            # This only happens if the provided path does not contain tests
+            # and neither '--all' nor '--recursive' were provided
+            print(
+                "[INFO] No tests were found in the given context.",
+                "Did you mean to use `fprime-util check --recursive` or `--all` ?",
+            )
+            return
+
         # When not "all" append a regex to filter tests. .* works as a regex
         if context and context != ["all"]:
             test_regex = f"^({'|'.join(context)})$"
