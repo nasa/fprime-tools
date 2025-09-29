@@ -9,7 +9,7 @@ import subprocess
 import sys
 from typing import Tuple, Dict, List
 
-from fprime.fbuild.types import NoSuchTargetException
+from fprime.fbuild.types import NoTargetFoundException
 from fprime.fbuild.target import (
     TargetContext,
     TargetScope,
@@ -55,7 +55,7 @@ class Check(EnumeratedAction):
         if not context:
             # This only happens if the provided path does not contain tests
             # and neither '--all' nor '--recursive' were provided
-            raise NoSuchTargetException(
+            raise NoTargetFoundException(
                 "No tests were found in the given context. Did you mean to "
                 "use `fprime-util check --recursive` or `--all` ?"
             )

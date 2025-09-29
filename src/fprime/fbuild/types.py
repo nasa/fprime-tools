@@ -36,6 +36,10 @@ class MissingBuildCachePath(FprimeException):
     """An exception indicating that a path in the build cache is missing"""
 
 
+class NoTargetFoundException(FprimeException):
+    """An exception indicating that no target was found in the given context"""
+
+
 class BuildType(Enum):
     """
     An enumeration used to represent the various build types used to build fprime. These types can support different
