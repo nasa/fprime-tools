@@ -2,6 +2,7 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
 
   packet CDH id 1 group 1 {
     CdhCore.cmdDisp.CommandsDispatched
+    CdhCore.cmdDisp.CommandsDropped
 
     FileHandling.fileUplink.FilesReceived
     FileHandling.fileUplink.PacketsReceived
