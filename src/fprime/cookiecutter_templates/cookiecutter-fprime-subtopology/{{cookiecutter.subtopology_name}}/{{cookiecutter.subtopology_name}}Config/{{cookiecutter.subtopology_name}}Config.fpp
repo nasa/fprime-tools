@@ -17,7 +17,7 @@ module {{cookiecutter.subtopology_name}}Config {
     # Priorities for active components
     module Priorities {
         # Add your component priorities here. For example:
-        # constant myComponent = 100
+        # constant myComponent = 23
     }
 
     # Additional configuration modules can be added here as needed

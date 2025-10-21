@@ -29,22 +29,22 @@ module {{cookiecutter.deployment_name}} {
   instance rateGroup1: Svc.ActiveRateGroup base id 0x10001000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
-    priority 120
+    priority 43
 
   instance rateGroup2: Svc.ActiveRateGroup base id 0x10002000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
-    priority 119
+    priority 42
 
   instance rateGroup3: Svc.ActiveRateGroup base id 0x10003000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
-    priority 118
+    priority 41
 
   instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
-    priority 117
+    priority 40
 
   # ----------------------------------------------------------------------
   # Queued component instances
