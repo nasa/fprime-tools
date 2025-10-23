@@ -50,25 +50,16 @@ module {{cookiecutter.component_namespace}} {
         @ Port for requesting the current time
         time get port timeCaller
 {% if cookiecutter.enable_commands == "yes" %}
-        @ Port for sending command registrations
-        command reg port cmdRegOut
-
-        @ Port for receiving commands
-        command recv port cmdIn
-
-        @ Port for sending command responses
-        command resp port cmdResponseOut
+        @ Enables command handling
+        import Fw.Command
 {% endif -%}
 {% if cookiecutter.enable_events == "yes" %}
-        @ Port for sending textual representation of events
-        text event port logTextOut
-
-        @ Port for sending events to downlink
-        event port logOut
+        @ Enables event handling
+        import Fw.Event
 {% endif -%}
 {% if cookiecutter.enable_telemetry == "yes" %}
-        @ Port for sending telemetry channels to downlink
-        telemetry port tlmOut
+        @ Enables telemetry channels handling
+        import Fw.Tlm
 {% endif -%}
 {% if cookiecutter.enable_parameters == "yes" %}
         @ Port to return the value of a parameter
