@@ -10,10 +10,10 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.PacketsSent
     FileHandling.fileManager.CommandsExecuted
 
-    {{cookiecutter.deployment_name}}.cmdSeq.CS_LoadCommands
-    {{cookiecutter.deployment_name}}.cmdSeq.CS_CancelCommands
-    {{cookiecutter.deployment_name}}.cmdSeq.CS_CommandsExecuted
-    {{cookiecutter.deployment_name}}.cmdSeq.CS_SequencesCompleted
+    {{cookiecutter.deployment_namespace}}.cmdSeq.CS_LoadCommands
+    {{cookiecutter.deployment_namespace}}.cmdSeq.CS_CancelCommands
+    {{cookiecutter.deployment_namespace}}.cmdSeq.CS_CommandsExecuted
+    {{cookiecutter.deployment_namespace}}.cmdSeq.CS_SequencesCompleted
     ComCcsds.comQueue.comQueueDepth
     ComCcsds.comQueue.buffQueueDepth
     ComCcsds.commsBufferManager.TotalBuffs
@@ -21,9 +21,9 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     ComCcsds.commsBufferManager.HiBuffs
     #ComCcsds.tlmSend.SendLevel
 
-    {{cookiecutter.deployment_name}}.rateGroup1.RgMaxTime
-    {{cookiecutter.deployment_name}}.rateGroup2.RgMaxTime
-    {{cookiecutter.deployment_name}}.rateGroup3.RgMaxTime
+    {{cookiecutter.deployment_namespace}}.rateGroup1.RgMaxTime
+    {{cookiecutter.deployment_namespace}}.rateGroup2.RgMaxTime
+    {{cookiecutter.deployment_namespace}}.rateGroup3.RgMaxTime
   }
 
   packet CDHErrors id 2 group 1 {
@@ -33,40 +33,40 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     FileHandling.fileDownlink.Warnings
     FileHandling.fileManager.Errors
 
-    {{cookiecutter.deployment_name}}.cmdSeq.CS_Errors
+    {{cookiecutter.deployment_namespace}}.cmdSeq.CS_Errors
     ComCcsds.commsBufferManager.NoBuffs
     ComCcsds.commsBufferManager.EmptyBuffs
 
-    {{cookiecutter.deployment_name}}.rateGroup1.RgCycleSlips
-    {{cookiecutter.deployment_name}}.rateGroup2.RgCycleSlips
-    {{cookiecutter.deployment_name}}.rateGroup3.RgCycleSlips
+    {{cookiecutter.deployment_namespace}}.rateGroup1.RgCycleSlips
+    {{cookiecutter.deployment_namespace}}.rateGroup2.RgCycleSlips
+    {{cookiecutter.deployment_namespace}}.rateGroup3.RgCycleSlips
   }
 
   packet SystemRes1 id 5 group 2 {
-    {{cookiecutter.deployment_name}}.systemResources.MEMORY_TOTAL
-    {{cookiecutter.deployment_name}}.systemResources.MEMORY_USED
-    {{cookiecutter.deployment_name}}.systemResources.NON_VOLATILE_TOTAL
-    {{cookiecutter.deployment_name}}.systemResources.NON_VOLATILE_FREE
+    {{cookiecutter.deployment_namespace}}.systemResources.MEMORY_TOTAL
+    {{cookiecutter.deployment_namespace}}.systemResources.MEMORY_USED
+    {{cookiecutter.deployment_namespace}}.systemResources.NON_VOLATILE_TOTAL
+    {{cookiecutter.deployment_namespace}}.systemResources.NON_VOLATILE_FREE
   }
 
   packet SystemRes3 id 6 group 2 {
-    {{cookiecutter.deployment_name}}.systemResources.CPU
-    {{cookiecutter.deployment_name}}.systemResources.CPU_00
-    {{cookiecutter.deployment_name}}.systemResources.CPU_01
-    {{cookiecutter.deployment_name}}.systemResources.CPU_02
-    {{cookiecutter.deployment_name}}.systemResources.CPU_03
-    {{cookiecutter.deployment_name}}.systemResources.CPU_04
-    {{cookiecutter.deployment_name}}.systemResources.CPU_05
-    {{cookiecutter.deployment_name}}.systemResources.CPU_06
-    {{cookiecutter.deployment_name}}.systemResources.CPU_07
-    {{cookiecutter.deployment_name}}.systemResources.CPU_08
-    {{cookiecutter.deployment_name}}.systemResources.CPU_09
-    {{cookiecutter.deployment_name}}.systemResources.CPU_10
-    {{cookiecutter.deployment_name}}.systemResources.CPU_11
-    {{cookiecutter.deployment_name}}.systemResources.CPU_12
-    {{cookiecutter.deployment_name}}.systemResources.CPU_13
-    {{cookiecutter.deployment_name}}.systemResources.CPU_14
-    {{cookiecutter.deployment_name}}.systemResources.CPU_15
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_00
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_01
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_02
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_03
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_04
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_05
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_06
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_07
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_08
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_09
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_10
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_11
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_12
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_13
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_14
+    {{cookiecutter.deployment_namespace}}.systemResources.CPU_15
   }
 
   packet DataProducts id 21 group 3 {

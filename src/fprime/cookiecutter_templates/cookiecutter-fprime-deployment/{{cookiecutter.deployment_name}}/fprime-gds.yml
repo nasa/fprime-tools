@@ -1,0 +1,11 @@
+# This is a configuration file for the F´ GDS application.
+
+# Command-line options specified here that will be passed to the GDS when it is launched
+# from the current directory. Entries with no associated values are interpreted as --flags
+# and entries with associated values are given as `--key <value>` pairs to the CLI
+
+command-line-options:
+  disable-custom-data-handlers-app:
+{%- if cookiecutter.com_driver_type == "TcpServer" %}
+  ip-client:
+{%- endif %}

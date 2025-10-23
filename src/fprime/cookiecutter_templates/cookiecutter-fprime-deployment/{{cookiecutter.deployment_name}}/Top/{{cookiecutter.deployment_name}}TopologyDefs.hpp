@@ -45,10 +45,10 @@
  * ```
  */
 namespace PingEntries {
-    namespace {{cookiecutter.deployment_name}}_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
-    namespace {{cookiecutter.deployment_name}}_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
-    namespace {{cookiecutter.deployment_name}}_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
-    namespace {{cookiecutter.deployment_name}}_cmdSeq {enum { WARN = 3, FATAL = 5 };}
+    namespace {{cookiecutter.deployment_namespace}}_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
+    namespace {{cookiecutter.deployment_namespace}}_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
+    namespace {{cookiecutter.deployment_namespace}}_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
+    namespace {{cookiecutter.deployment_namespace}}_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
 // Definitions are placed within a namespace named after the deployment
@@ -77,4 +77,8 @@ struct TopologyState {
 
 namespace PingEntries = ::PingEntries;
 }  // namespace {{cookiecutter.deployment_name}}
+
+// Remove unnecessary {{cookiecutter.deployment_name}}:: qualifications
+using namespace {{cookiecutter.deployment_name}};
+
 #endif

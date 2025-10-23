@@ -1,4 +1,4 @@
-module {{cookiecutter.deployment_name}} {
+module {{cookiecutter.deployment_namespace}} {
 
   # ----------------------------------------------------------------------
   # Symbolic constants for port numbers

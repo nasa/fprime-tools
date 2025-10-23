@@ -185,15 +185,15 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
         )
         print("[INFO] Cookiecutter: using builtin template for new deployment")
 
-    # Determine the include path prefix based on the current directory
+    # Extra contextual information for cookiecutter
     extra_context = {}
     rel_path = get_directory_path_relative_to_root(build)
-
     if rel_path:
         extra_context["__include_path_prefix"] = f"{rel_path}/"
-        print(
-            f"[INFO] Creating a deployment in a subdirectory. Include paths will be prefixed with '{rel_path}/'"
-        )
+    # Use current working directory name as default namespace, unless at project root
+    project_root: Path = build.get_settings("project_root", None)
+    if not project_root.samefile(Path.cwd()):
+        extra_context["deployment_namespace"] = Path.cwd().name
 
     try:
         gen_path = Path(
