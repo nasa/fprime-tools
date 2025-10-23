@@ -9,8 +9,6 @@
 // autocoder, but are also used in this hand-coded topology.
 #include <{{cookiecutter.__include_path_prefix}}{{cookiecutter.deployment_name}}/Top/{{cookiecutter.deployment_name}}TopologyDefs.hpp>
 
-// Remove unnecessary {{cookiecutter.deployment_name}}:: qualifications
-using namespace {{cookiecutter.deployment_name}};
 namespace {{cookiecutter.deployment_name}} {
 /**
  * \brief initialize and run the F´ topology
