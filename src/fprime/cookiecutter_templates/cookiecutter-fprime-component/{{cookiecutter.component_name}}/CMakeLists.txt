@@ -11,8 +11,8 @@
 ####
 
 # Module names are derived from the path from the nearest project/library/framework
-# root when not specifically overridden by the developer. i.e. The module defined by
-# `Ref/SignalGen/CMakeLists.txt` will be named `Ref_SignalGen`.
+# root when not specifically overridden by the developer, i.e. the module defined by
+# `MyProj/Some/Path/CMakeLists.txt` will be named `MyProj_Some_Path`.
 
 register_fprime_library(
     AUTOCODER_INPUTS
