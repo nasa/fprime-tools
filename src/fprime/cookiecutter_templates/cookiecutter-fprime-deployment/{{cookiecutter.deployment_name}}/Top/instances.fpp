@@ -62,13 +62,11 @@ module {{cookiecutter.deployment_namespace}} {
   instance systemResources: Svc.SystemResources base id 0x10012000
 
   instance timer: Svc.LinuxTimer base id 0x10013000
-
-{%- if cookiecutter.com_driver_type == "TcpClient" %}
+{% if cookiecutter.com_driver_type == "TcpClient" %}
   instance comDriver: Drv.TcpClient base id 0x10014000
-{%- elif cookiecutter.com_driver_type == "TcpServer" %}
+{% elif cookiecutter.com_driver_type == "TcpServer" %}
   instance comDriver: Drv.TcpServer base id 0x10014000
-{%- elif cookiecutter.com_driver_type == "UART" %}
+{% elif cookiecutter.com_driver_type == "UART" %}
   instance comDriver: Drv.LinuxUartDriver base id 0x10014000
-{%- endif %}
-
+{% endif %}
 }
