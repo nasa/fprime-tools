@@ -59,7 +59,7 @@ module {{cookiecutter.component_namespace}} {
 {% endif -%}
 {% if cookiecutter.enable_telemetry == "yes" %}
         @ Enables telemetry channels handling
-        import Fw.Tlm
+        import Fw.Channel
 {% endif -%}
 {% if cookiecutter.enable_parameters == "yes" %}
         @ Port to return the value of a parameter
