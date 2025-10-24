@@ -51,13 +51,13 @@ namespace PingEntries {
     namespace {{cookiecutter.deployment_namespace}}_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
-// Definitions are placed within a namespace named after the deployment
-namespace {{cookiecutter.deployment_name}} {
+// Definitions are placed within the same namespace as the FPP module that contains the topology.
+namespace {{cookiecutter.deployment_namespace}} {
 
 /**
  * \brief required type definition to carry state
  *
- * The topology autocoder requires an object that carries state with the name `{{cookiecutter.deployment_name}}::TopologyState`. Only the type
+ * The topology autocoder requires an object that carries state with the name `{{cookiecutter.deployment_namespace}}::TopologyState`. Only the type
  * definition is required by the autocoder and the contents of this object are otherwise opaque to the autocoder. The
  * contents are entirely up to the definition of the project. This deployment uses subtopologies.
  */
@@ -76,9 +76,6 @@ struct TopologyState {
 };
 
 namespace PingEntries = ::PingEntries;
-}  // namespace {{cookiecutter.deployment_name}}
-
-// Remove unnecessary {{cookiecutter.deployment_name}}:: qualifications
-using namespace {{cookiecutter.deployment_name}};
+}  // namespace {{cookiecutter.deployment_namespace}}
 
 #endif

@@ -38,7 +38,7 @@ void print_usage(const char* app) {
  * @param signum
  */
 static void signalHandler(int signum) {
-    {{cookiecutter.deployment_name}}::stopRateGroups();
+    {{cookiecutter.deployment_namespace}}::stopRateGroups();
 }
 
 /**
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         }
     }
     // Object for communicating state to the topology
-    {{cookiecutter.deployment_name}}::TopologyState inputs;
+    {{cookiecutter.deployment_namespace}}::TopologyState inputs;
 {%- if cookiecutter.com_driver_type == "UART" %}
     inputs.uartDevice = uart_device;
     inputs.baudRate = baud_rate;
@@ -115,9 +115,9 @@ int main(int argc, char* argv[]) {
     (void)printf("Hit Ctrl-C to quit\n");
 
     // Setup, cycle, and teardown topology
-    {{cookiecutter.deployment_name}}::setupTopology(inputs);
-    {{cookiecutter.deployment_name}}::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
-    {{cookiecutter.deployment_name}}::teardownTopology(inputs);
+    {{cookiecutter.deployment_namespace}}::setupTopology(inputs);
+    {{cookiecutter.deployment_namespace}}::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
+    {{cookiecutter.deployment_namespace}}::teardownTopology(inputs);
     (void)printf("Exiting...\n");
     return 0;
 }
