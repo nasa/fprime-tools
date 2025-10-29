@@ -13,7 +13,7 @@
 # ```
 
 
-{% if cookiecutter.com_driver_type == "TcpServer" %}
 command-line-options:
+{% if cookiecutter.com_driver_type == "TcpServer" %}
   ip-client:
 {% endif %}
