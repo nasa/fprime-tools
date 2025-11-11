@@ -10,6 +10,7 @@ import struct
 from fprime.constants import DATA_ENCODING
 
 from . import type_base
+from .numerical_types import NumericalType, U16Type
 from .type_exceptions import (
     DeserializeException,
     NotInitializedException,
@@ -26,6 +27,19 @@ class StringType(type_base.DictionaryType):
 
     All string types follow this implementation, but have some specific type-based properties: MAX_LENGTH.
     """
+
+    # Defaults to U16; is overriden with FwSizeStoreType when using DictionaryParser
+    SIZE_STORE_TYPE: type[NumericalType] = U16Type
+
+    @staticmethod
+    def get_size_store_format():
+        """Get the numerical type used to store string size"""
+        return StringType.SIZE_STORE_TYPE.get_serialize_format()
+
+    @staticmethod
+    def get_size_store_width():
+        """Get the width in bytes of the size token"""
+        return StringType.SIZE_STORE_TYPE.getSize()
 
     @classmethod
     def construct_type(cls, name, max_length=None):
@@ -51,22 +65,31 @@ class StringType(type_base.DictionaryType):
         if self.MAX_LENGTH is not None and len(self.val) > self.MAX_LENGTH:
             raise StringSizeException(len(self.val), self.MAX_LENGTH)
         # Pack the string size first then return the encoded data buffer
-        return struct.pack(">H", len(self.val)) + self.val.encode(DATA_ENCODING)
+        return struct.pack(
+            StringType.get_size_store_format(), len(self.val)
+        ) + self.val.encode(DATA_ENCODING)
 
     def deserialize(self, data, offset):
         """
         Deserializes a string from the given data buffer.
         """
         try:
-            val_size = struct.unpack_from(">H", data, offset)[0]
+            val_size = struct.unpack_from(
+                StringType.get_size_store_format(), data, offset
+            )[0]
             # Deal with not enough data left in the buffer
-            if len(data[offset + 2 :]) < val_size:
-                msg = f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + 2:])}"
+            if len(data[offset + StringType.get_size_store_width() :]) < val_size:
+                msg = f"Not enough data to deserialize string data. Needed: {val_size} Left: {len(data[offset + StringType.get_size_store_width():])}"
                 raise DeserializeException(msg)
             # Deal with a string that is larger than max string
             if self.MAX_LENGTH is not None and val_size > self.MAX_LENGTH:
                 raise StringSizeException(val_size, self.MAX_LENGTH)
-            self.val = data[offset + 2 : offset + 2 + val_size].decode(DATA_ENCODING)
+            self.val = data[
+                offset
+                + StringType.get_size_store_width() : offset
+                + StringType.get_size_store_width()
+                + val_size
+            ].decode(DATA_ENCODING)
         except struct.error:
             raise DeserializeException("Not enough bytes to deserialize string length.")
 
@@ -74,9 +97,11 @@ class StringType(type_base.DictionaryType):
         """
         Get the size of this object
         """
-        return struct.calcsize(">H") + len(self.val)
+        return struct.calcsize(StringType.get_size_store_format()) + len(
+            self.val
+        )  # Hardcoded
 
     @classmethod
     def getMaxSize(cls):
         """Get maximum size of the type"""
-        return struct.calcsize(">H") + cls.MAX_LENGTH
+        return struct.calcsize(StringType.get_size_store_format()) + cls.MAX_LENGTH
