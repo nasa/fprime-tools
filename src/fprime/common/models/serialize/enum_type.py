@@ -12,7 +12,14 @@ warnings.warn(
 )
 
 # Import from new location for backward compatibility - may be removed in future versions
-from fprime_gds.common.models.serialize.enum_type import (
-    EnumType,
-    REPRESENTATION_TYPE_MAP,
-)
+try:
+    from fprime_gds.common.models.serialize.enum_type import (
+        EnumType,
+        REPRESENTATION_TYPE_MAP,
+    )
+except ImportError as e:
+    raise ImportError(
+        "EnumType has been moved to the fprime-gds package. "
+        "Please install fprime-gds and update your imports to use "
+        "`from fprime_gds.common.models.serialize.enum_type import EnumType`"
+    ) from e

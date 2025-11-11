@@ -14,8 +14,15 @@ warnings.warn(
     stacklevel=2,
 )
 
-from fprime_gds.common.models.serialize.type_base import (
-    BaseType,
-    ValueType,
-    DictionaryType,
-)
+try:
+    from fprime_gds.common.models.serialize.type_base import (
+        BaseType,
+        ValueType,
+        DictionaryType,
+    )
+except ImportError as e:
+    raise ImportError(
+        "BaseType, ValueType, and DictionaryType have been moved to the fprime-gds package. "
+        "Please install fprime-gds and update your imports to use "
+        "`from fprime_gds.common.models.serialize.type_base import BaseType, ValueType, DictionaryType`"
+    ) from e
