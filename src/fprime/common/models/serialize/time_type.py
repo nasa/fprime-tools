@@ -214,6 +214,7 @@ class TimeType(type_base.BaseType):
         Returns:
             The size of the time type object when serialized
         """
+        # Hardcoded ?
         return (
             U16Type.getSize() + U8Type.getSize() + U32Type.getSize() + U32Type.getSize()
         )
