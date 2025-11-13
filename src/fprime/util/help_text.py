@@ -34,11 +34,11 @@ MNEMONIC_HELP_MAP = {
 
 '{EXECUTABLE}' wraps the fprime build system enabling developers to follow standard patterns when developing fprime
 applications. Specifically it translates between the developer's context (working directory and supplied flags) to the
-build system targets defined for that context. i.e. a developer can change directory into a component directory and run
+build system targets defined for that context. I.e. a developer can change directory into a component directory and run
 commands restricted to that component.
 
 Almost all {EXECUTABLE} commands require a valid build cache to run. Thus users should start by running '{EXECUTABLE}
-generate' in their desired project before running command. Once a build cache has been generated other commands can
+generate' in their desired project before running a command. Once a build cache has been generated other commands can
 be run. The '--ut' flag sets up a testing build cache and enables unit test commands to be run. An explanation of how
 {EXECUTABLE} determines the build cache is included below. More information on creating build caches can be found with:
 '{EXECUTABLE} generate --help'.
@@ -73,7 +73,7 @@ If a different CMake root is desired, the recursive search behavior can be alter
 '--build-cache' may be supplied to force '{EXECUTABLE}' to use the supplied build cache regardless of other conditions.
 
 Once the build cache has been selected, the build target is chosen. {EXECUTABLE} will run the supplied command for
-a chosen directory.  This directory is can be set using the '-p/--path' argument and defaults to the user's current
+a chosen directory.  This directory can be set using the '-p/--path' argument and defaults to the user's current
 working directory. This command and directory are translated into the build target to be executed.
 e.g. 'cd Ref/SignalGen; {EXECUTABLE} impl' will run the build target 'Ref_SignalGen_impl'. Most users need not care
 about the specific build target being run and should think "command run in chosen directory".
@@ -115,7 +115,7 @@ explanation on an individual command, please run '{EXECUTABLE} <command> --help>
 directory contains a component, the component is built. When the current directory contains a deployment, the deployment
 is built and installed into the build artifact directory. The build cache used to perform this build is described in
 '{EXECUTABLE} --help'. Notably supplying the '--ut' flag switches to building the unit tests for components and all
-deployment unit tests for deployments.. Supplying the '--all' flag will switch to building everything defined in the
+deployment unit tests for deployments. Supplying the '--all' flag will switch to building everything defined in the
 build system.
 
 '{EXECUTABLE} build' requires a build cache to have been generated
@@ -211,7 +211,7 @@ Toolchain Example:
   {EXECUTABLE} generate raspberrypi
 
 Other build properties and variables can be specified using flags of the form '-DVARIABLE_NAME=VALUE'. This allows
-developers to switch build options for a specific build generated build. This is often combined with the '--build-cache'
+developers to use different build options for generating a specific build cache. This is often combined with the '--build-cache'
 flag to put the specifically configured build cache at a specifically named location. All commands (build, check, etc.)
 run against that build cache must also specify the same location with the '--build-cache' flag. '-DVARIABLE_NAME=VALUE'
 sets a CMake cache variable of name VARIABLE_NAME to the value VALUE. Most of these variables are described in:
