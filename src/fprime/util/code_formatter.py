@@ -81,10 +81,9 @@ class ClangFormatter(ExecutableAction):
         Args:
             filepath (str): file path to file to be excluded.
         """
-        if not filepath.is_file():
+        if filepath in self._files_to_format:
             if self.verbose:
-                print(f"[INFO] Skipping {filepath} : is not a file.")
-        elif filepath in self._files_to_format:
+                print(f"[INFO] Excluding {filepath} from formatting.")
             self._files_to_format.remove(filepath)
 
     def execute(
