@@ -202,7 +202,7 @@ def run_code_format(
             for file in dir_path.rglob(f"*{allowed_ext}"):
                 clang_formatter.stage_file(file)
     # Remove staged files that are within excluded directories
-    for excluded_dir in parsed.excluded:
+    for excluded_dir in parsed.exclude:
         excluded_path = Path(excluded_dir)
         if not excluded_path.is_dir():
             print(f"[INFO] {excluded_path} is not a directory. Skipping it from excluded directories.")
