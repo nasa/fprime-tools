@@ -256,9 +256,9 @@ def add_special_parsers(
         nargs="+",
         default=[],
         type=Path,
-        help="Exclude directories from formatting"
+        help="Exclude directories from formatting",
     )
-    
+
     return {
         "hash-to-file": run_hash_to_file,
         "info": run_info,
