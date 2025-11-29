@@ -192,20 +192,25 @@ def run_code_format(
     # Stage all files that are passed through --files
     for filename in parsed.files:
         clang_formatter.stage_file(Path(filename))
-    # List all excluded directories
-    excluded_dirs = [Path(directory) for directory in parsed.exclude]
     # Search for files within --dirs and stage them
     for dirname in parsed.dirs:
         dir_path = Path(dirname)
         if not dir_path.is_dir():
             print(f"[INFO] {dir_path} is not a directory. Skipping.")
             continue
-        if dir_path in excluded_dirs:
-            print(f"[INFO] Excluded {dir_path} from formatting.")
-            continue
         for allowed_ext in clang_formatter.allowed_extensions:
             for file in dir_path.rglob(f"*{allowed_ext}"):
                 clang_formatter.stage_file(file)
+    # Remove staged files that are within excluded directories
+    for excluded_dir in parsed.excluded:
+        excluded_path = Path(excluded_dir)
+        if not excluded_path.is_dir():
+            print(f"[INFO] {excluded_path} is not a directory. Skipping it from excluded directories.")
+            continue
+        for allowed_ext in clang_formatter.allowed_extensions:
+            for file in excluded_path.rglob(f"*{allowed_ext}"):
+                clang_formatter.exclude_file(file)
+
     return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
 
 
