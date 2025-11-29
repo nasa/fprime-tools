@@ -79,12 +79,15 @@ class ClangFormatter(ExecutableAction):
         it will be excluded to clang-format when the execute() function is called.
 
         Args:
-            filepath (str): file path to file to be excluded.
+            filepath (str): file path to be excluded.
         """
         if filepath in self._files_to_format:
             if self.verbose:
                 print(f"[INFO] Excluding {filepath} from formatting.")
             self._files_to_format.remove(filepath)
+        else:
+            if self.verbose:
+                print(f"[INFO] {filepath} was not staged for formatting. Skipping.")
 
     def execute(
         self, builder: "Build", context: "Path", args: Tuple[Dict[str, str], List[str]]
