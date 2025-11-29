@@ -86,7 +86,7 @@ class ClangFormatter(ExecutableAction):
                 print(f"[INFO] Excluding {filepath} from formatting.")
             self._files_to_format.remove(filepath)
         elif self.verbose:
-                print(f"[INFO] {filepath} was not staged for formatting. Skipping.")
+            print(f"[INFO] {filepath} was not staged for formatting. Skipping.")
 
     def execute(
         self, builder: "Build", context: "Path", args: Tuple[Dict[str, str], List[str]]
