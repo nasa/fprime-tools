@@ -256,7 +256,7 @@ def add_special_parsers(
         nargs="+",
         default=[],
         type=Path,
-        help="Exclude directories from formatting",
+        help="Exclude paths from formatting, taking precedence over all input mechanisms",
     )
 
     return {
