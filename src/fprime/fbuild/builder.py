@@ -295,11 +295,14 @@ class Build:
                 if os.path.exists(toolchain_path)
             }
         )
+
         if not toolchains:
-            msg = f"Could not find toolchain file for {self.platform} at any of: {' '.join(toolchains_paths)}"
+            searched_toolchain_paths = "\n\n" + '\n'.join(toolchains_paths)
+            msg = f"Could not find any toolchain file called {self.platform} at any of the following locations: {searched_toolchain_paths}"
             raise NoSuchToolchainException(msg)
         if len(toolchains) > 1:
-            msg = f"Found conflicting toolchain files for {self.platform} at: {' '.join(toolchains)}"
+            conflicting_toolchain_paths = "\n\n" + '\n'.join(toolchains)
+            msg = f"Found conflicting toolchain files for {self.platform} at: {conflicting_toolchain_paths}"
             raise AmbiguousToolchainException(msg)
         return toolchains[0]
 
