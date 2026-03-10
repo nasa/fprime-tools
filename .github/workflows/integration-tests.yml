@@ -23,7 +23,7 @@ jobs:
         - python-version: 3.13
           fprime-version: v3.4.3
         - python-version: 3.13
-          fprime-version: v3.5.1          
+          fprime-version: v3.5.1   
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -32,7 +32,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install System dependencies
         run: |
-          python -m pip install --upgrade pip urllib3 setuptools_scm
+          python -m pip install --upgrade pip urllib3 setuptools setuptools_scm
           sudo apt-get install ninja-build
       - name: Clone fprime and install requirements.txt
         run: |
