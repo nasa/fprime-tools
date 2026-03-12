@@ -298,7 +298,7 @@ class Build:
 
         if not toolchains:
             searched_toolchain_paths = '\n\n' + '\n'.join(path.removesuffix(f"{self.platform}.cmake") for path in toolchains_paths)
-            msg = f"Could not find any toolchain file called {self.platform} after attempting to search for the file at the following locations: {searched_toolchain_paths}"
+            msg = f"Could not find any toolchain file called {self.platform}.cmake after attempting to search for the file at the following locations: {searched_toolchain_paths}"
             raise NoSuchToolchainException(msg)
         if len(toolchains) > 1:
             conflicting_toolchain_paths = '\n\n' + '\n'.join(toolchains)
