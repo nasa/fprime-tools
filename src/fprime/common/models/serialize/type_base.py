@@ -7,7 +7,6 @@ Replaced type base class with decorators
 
 import warnings
 
-
 warnings.warn(
     "TypeBase is defined in fprime_gds.common.models.serialize.type_base. Change your imports accordingly.",
     DeprecationWarning,
