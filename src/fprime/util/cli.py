@@ -160,6 +160,13 @@ def add_special_parsers(
         action="store_true",
         help="Override warning about creating new deployment or component within a deployment or component",
     )
+    new_parser.add_argument(
+        "--phased",
+        default=False,
+        action="store_true",
+        dest="phased",
+        help="Generate a new phased deployment. Only works with --deployment",
+    )
     new_exclusive = new_parser.add_argument_group(
         "'new' targets"
     ).add_mutually_exclusive_group()
@@ -296,6 +303,8 @@ def validate(parsed, unknown):
         parsed.settings = None  # Force to load from cache if possible
         if parsed.jobs is not None and parsed.jobs >= 1:
             make_args["--jobs"] = parsed.jobs
+    elif parsed.command == "new" and not parsed.new_deployment and parsed.phased:
+        raise ArgValidationException("--phased option only works with --deployment")
     # Check if any arguments are still unknown
     if unknown:
         runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"

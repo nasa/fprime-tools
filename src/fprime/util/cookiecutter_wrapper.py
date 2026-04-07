@@ -178,6 +178,12 @@ def new_deployment(build: Build, parsed_args: "argparse.Namespace"):
     ):
         source = build.get_settings("deployment_cookiecutter", None)
         print(f"[INFO] Cookiecutter source: {source}")
+    elif parsed_args.phased:
+        source = (
+            os.path.dirname(__file__)
+            + "/../cookiecutter_templates/cookiecutter-fprime-deployment-phased"
+        )
+        print("[INFO] Cookiecutter: using builtin phased template for new deployment")
     else:
         source = (
             os.path.dirname(__file__)
