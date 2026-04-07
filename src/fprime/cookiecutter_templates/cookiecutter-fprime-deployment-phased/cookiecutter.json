@@ -1,0 +1,10 @@
+{
+    "deployment_name": "MyDeployment",
+    "deployment_namespace": "{{cookiecutter.deployment_name}}",
+    "__include_path_prefix": "",
+    "__deployment_name_upper": "{{cookiecutter.deployment_name.upper()}}",
+    "__prompts__": {
+        "deployment_name": "Deployment name",
+        "deployment_namespace": "Deployment namespace"
+    }
+}
