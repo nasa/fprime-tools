@@ -12,6 +12,7 @@ ci
 cls
 comms
 confparse
+constexpr
 ctest
 Cxxx
 datahandling
