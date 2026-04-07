@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from contextlib import contextmanager
 from pathlib import Path
 
-from cookiecutter.exceptions import OutputDirExistsException
+from cookiecutter.exceptions import OutputDirExistsException, UnknownRepoType
 from cookiecutter.main import cookiecutter
 
 from fprime.common.utils import confirm, check_path_is_within_fprime_module
@@ -268,13 +268,14 @@ def new_subtopology(build: Build, parsed_args: "argparse.Namespace"):
     return 0
 
 
-def new_module(build: Build, parsed_args: "argparse.Namespace"):
+def new_module(build: Build, parsed_args: "argparse.Namespace", source=None):
     """Creates a new F' project"""
 
-    source = (
-        os.path.dirname(__file__)
-        + "/../cookiecutter_templates/cookiecutter-fprime-module"
-    )
+    if source is None:
+        source = (
+            os.path.dirname(__file__)
+            + "/../cookiecutter_templates/cookiecutter-fprime-module"
+        )
     try:
         gen_path = Path(
             cookiecutter(
@@ -298,6 +299,12 @@ def new_module(build: Build, parsed_args: "argparse.Namespace"):
     except FileNotFoundError as e:
         print(
             f"{e}. Permission denied to write to the directory.",
+            file=sys.stderr,
+        )
+        return 1
+    except UnknownRepoType:
+        print(
+            f"[ERROR] {source} is not a valid cookiecutter template. Please check the source and try again.",
             file=sys.stderr,
         )
         return 1

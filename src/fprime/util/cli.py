@@ -191,6 +191,13 @@ def add_special_parsers(
         dest="new_subtopology",
         help="Generate a new subtopology",
     )
+    new_exclusive.add_argument(
+        "--from-source",
+        default=None,
+        type=str,
+        dest="from_source",
+        help="Generate a new module a cookiecutter source path/URL. WARNING: this may execute arbitrary code from the URL.",
+    )
 
     # Code formatting with clang-format
     format_parser = subparsers.add_parser(
