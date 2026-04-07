@@ -135,8 +135,10 @@ def run_new(
         __: unused make arguments
         ___: unused pass through arguments
     """
-    if hasattr(parsed, "from_source"):
+    # if from_source is provided, generate a new module with it
+    if hasattr(parsed, "from_source") and parsed.from_source is not None:
         return new_module(build, parsed, parsed.from_source)
+    # Otherwise, determine what to generate based on the command
     if parsed.new_component:
         return new_component(build, parsed)
     if parsed.new_deployment:
