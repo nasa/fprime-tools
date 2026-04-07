@@ -3,6 +3,7 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
   packet CDH id 1 group 1 {
     CdhCore.cmdDisp.CommandsDispatched
     CdhCore.cmdDisp.CommandsDropped
+    #CdhCore.tlmSend.SendLevel # uncomment when using TlmPacketizer
 
     FileHandling.fileUplink.FilesReceived
     FileHandling.fileUplink.PacketsReceived
@@ -19,7 +20,6 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
     ComCcsds.commsBufferManager.TotalBuffs
     ComCcsds.commsBufferManager.CurrBuffs
     ComCcsds.commsBufferManager.HiBuffs
-    #ComCcsds.tlmSend.SendLevel
 
     {{cookiecutter.deployment_namespace}}.rateGroup1.RgMaxTime
     {{cookiecutter.deployment_namespace}}.rateGroup2.RgMaxTime
