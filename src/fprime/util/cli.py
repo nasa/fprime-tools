@@ -10,7 +10,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from fprime.fbuild.builder import GenerateException, UnableToDetectProjectException
 from fprime.fbuild.cli import add_fbuild_parsers
@@ -282,7 +282,7 @@ def add_special_parsers(
     }
 
 
-def validate(parsed, unknown: List[str]):
+def validate(parsed, unknown):
     """
     Validate rules to ensure that the args are properly consistent. This will also generate a set of validated arguments
     to pass to CMake. This allows these values to be created, defaulted, and validated in one place
@@ -292,8 +292,8 @@ def validate(parsed, unknown: List[str]):
     """
     # regex pattern to detect -D<CMAKE_ARGUMENT>[:<TYPE>]=<VALUE> arguments for CMake
     CMAKE_REG = re.compile(r"-D([a-zA-Z0-9_]+(?::[A-Z]+)?)=(.*)")
-    cmake_args: Dict[str, str] = {}
-    make_args: Dict[str, str] = {}
+    cmake_args = {}
+    make_args = {}
     # Check platforms for existing toolchain, unless the default is specified.
     if not hasattr(parsed, "command") or parsed.command is None:
         raise ArgValidationException("'fprime-util' not supplied sub-command argument")
@@ -306,14 +306,12 @@ def validate(parsed, unknown: List[str]):
         cmake_args.update(d_args)
         unknown = [arg for arg in unknown if not CMAKE_REG.match(arg)]
     # Build type only for generate, jobs only for non-generate
-    else:
-        all_targets = {target.mnemonic for target in Target.get_all_targets()}
-        if parsed.command in all_targets:
-            parsed.settings = None  # Force to load from cache if possible
-            if parsed.jobs is not None and parsed.jobs >= 1:
-                make_args["--jobs"] = parsed.jobs
-        elif parsed.command == "new" and not parsed.new_deployment and parsed.phased:
-            raise ArgValidationException("--phased option only works with --deployment")
+    elif parsed.command in [target.mnemonic for target in Target.get_all_targets()]:
+        parsed.settings = None  # Force to load from cache if possible
+        if parsed.jobs is not None and parsed.jobs >= 1:
+            make_args["--jobs"] = parsed.jobs
+    elif parsed.command == "new" and not parsed.new_deployment and parsed.phased:
+        raise ArgValidationException("--phased option only works with --deployment")
     # Check if any arguments are still unknown
     if unknown:
         runnable = f"{os.path.basename(sys.argv[0])} {parsed.command}"
