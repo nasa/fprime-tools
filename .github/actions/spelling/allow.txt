@@ -28,6 +28,7 @@ calcsize
 changelog
 chdir
 classmethod
+deinit
 elts
 Endian
 endian
@@ -46,6 +47,7 @@ postannot
 postannotations
 Prm
 prm
+pythonpath
 Serializables
 serializables
 timezone
