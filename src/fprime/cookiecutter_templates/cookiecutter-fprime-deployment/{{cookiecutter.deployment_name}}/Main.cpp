@@ -11,9 +11,10 @@
 #include <signal.h>
 // Used for command line argument processing
 #include <getopt.h>
-// Used for printf functions
+// Used for atoi
 #include <cstdlib>
-#include <cstdio>
+// Used for logging to the console
+#include <Fw/Logger/Logger.hpp>
 
 /**
  * \brief print command line help message
@@ -24,9 +25,9 @@
  */
 void print_usage(const char* app) {
 {%- if cookiecutter.com_driver_type == "UART" %}
-    (void)printf("Usage: ./%s [options]\n-b\tBaud rate\n-d\tUART Device\n", app);
+    Fw::Logger::log("Usage: ./%s [options]\n-b\tBaud rate\n-d\tUART Device\n", app);
 {%- else %}
-    (void)printf("Usage: ./%s [options]\n-a\thostname/IP address\n-p\tport_number\n", app);
+    Fw::Logger::log("Usage: ./%s [options]\n-a\thostname/IP address\n-p\tport_number\n", app);
 {%- endif %}
 }
 
@@ -113,12 +114,12 @@ int main(int argc, char* argv[]) {
     // Setup program shutdown via Ctrl-C
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
-    (void)printf("Hit Ctrl-C to quit\n");
+    Fw::Logger::log("Hit Ctrl-C to quit\n");
 
     // Setup, cycle, and teardown topology
     {{cookiecutter.deployment_namespace}}::setupTopology(inputs);
     {{cookiecutter.deployment_namespace}}::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
     {{cookiecutter.deployment_namespace}}::teardownTopology(inputs);
-    (void)printf("Exiting...\n");
+    Fw::Logger::log("Exiting...\n");
     return 0;
 }
