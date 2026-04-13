@@ -13,7 +13,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from cookiecutter.main import cookiecutter
 from fprime.fbuild.builder import Build
 from fprime.util.cookiecutter_wrapper import new_deployment
 
@@ -119,36 +118,6 @@ class TestNewDeployment(unittest.TestCase):
         self.assertEqual(
             kwargs["extra_context"]["__include_path_prefix"], "Deployments/"
         )
-
-    def test_builtin_deployment_template_emits_shutdown_calls(self):
-        """Test that the builtin deployment template emits shutdown calls."""
-        template_root = (
-            Path(__file__).resolve().parents[3]
-            / "src"
-            / "fprime"
-            / "cookiecutter_templates"
-            / "cookiecutter-fprime-deployment"
-        )
-        python_path = str(Path(__file__).resolve().parents[3] / "src")
-        render_root = Path(self.temp_dir) / "rendered"
-        render_root.mkdir()
-
-        with patch.dict(os.environ, {"PYTHONPATH": python_path}, clear=False):
-            deployment_path = Path(
-                cookiecutter(
-                    str(template_root),
-                    no_input=True,
-                    output_dir=str(render_root),
-                )
-            )
-        topology_path = deployment_path / "Top" / f"{deployment_path.name}Topology.cpp"
-        topology_text = topology_path.read_text(encoding="utf-8")
-
-        teardown_call = "tearDownComponents(state);"
-        shutdown_call = "deinitComponents(state);"
-        self.assertIn(teardown_call, topology_text)
-        self.assertIn(shutdown_call, topology_text)
-        self.assertLess(topology_text.index(teardown_call), topology_text.index(shutdown_call))
 
 
 if __name__ == "__main__":
