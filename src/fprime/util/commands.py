@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Dict, List
 import subprocess
 import platform
-from importlib.metadata import version, PackageNotFoundError
+import importlib.metadata
 
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
@@ -241,14 +241,14 @@ def run_version_check(
         .split()[2]
     )
     print(f"CMake version: {cmake_version}")
-    print(f"Pip version: {version('pip')}")
+    print(f"Pip version: {importlib.metadata.version('pip')}")
 
     print("Pip packages:")
     for tool in FPRIME_PIP_PACKAGES:
         try:
-            ver = version(tool)
+            ver = importlib.metadata.version(tool)
             print(f"    {tool}=={ver}")
-        except PackageNotFoundError as exc:
+        except importlib.metadata.PackageNotFoundError as exc:
             print(f"[WARNING] {exc}")
 
     try:
