@@ -317,6 +317,36 @@ def new_module(build: Build, parsed_args: "argparse.Namespace", source=None):
     return 0
 
 
+def new_rule_based_testing(build: Build, parsed_args: "argparse.Namespace"):
+    """Creates a new rules based testing scaffold using cookiecutter"""
+
+    source = (
+        os.path.dirname(__file__)
+        + "/../cookiecutter_templates/cookiecutter-fprime-rules-test"
+    )
+    # Extra contextual information for cookiecutter
+    extra_context = {}
+    rel_path = get_directory_path_relative_to_root(build)
+    if rel_path:
+        extra_context["__include_path_prefix"] = f"{rel_path}/"
+    try:
+        gen_path = Path(
+            cookiecutter(
+                source,
+                overwrite_if_exists=parsed_args.overwrite,
+                output_dir=parsed_args.path,
+                extra_context=extra_context,
+            )
+        ).resolve()
+    except OutputDirExistsException as out_directory_error:
+        print(
+            f"{out_directory_error}. Use --overwrite to overwrite (will not delete non-generated files).",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
 def register_with_cmake(gen_path: Path, proj_root: Path, cmake_root: Path):
     cmake_file = find_nearest_cmake_file(gen_path, cmake_root, proj_root)
     if cmake_file is None or not add_to_cmake(

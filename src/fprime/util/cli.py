@@ -199,6 +199,13 @@ def add_special_parsers(
         help="Generate a new subtopology",
     )
     new_exclusive.add_argument(
+        "--rule-based-testing",
+        default=False,
+        action="store_true",
+        dest="new_rule_based_testing",
+        help="Generate a new rules-based testing module",
+    )
+    new_exclusive.add_argument(
         "--from-source",
         default=None,
         type=str,

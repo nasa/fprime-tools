@@ -1,0 +1,8 @@
+{
+    "component_name": "MyComponent",
+    "rule_group": "TestGroup1",
+    "__prompts__": {
+        "component_name": "Component name",
+        "rule_group": "Rule group name"
+    }
+}

@@ -29,6 +29,7 @@ from fprime.util.cookiecutter_wrapper import (
     new_deployment,
     new_module,
     new_subtopology,
+    new_rule_based_testing,
 )
 
 
@@ -147,6 +148,8 @@ def run_new(
         return new_module(build, parsed)
     if parsed.new_subtopology:
         return new_subtopology(build, parsed)
+    if parsed.new_rule_based_testing:
+        return new_rule_based_testing(build, parsed)
     raise NotImplementedError(
         "`fprime-util new` target is missing or not implemented. See usage (--help)."
     )
