@@ -24,6 +24,8 @@ jobs:
             fprime-version: v3.4.3
           - python-version: 3.14
             fprime-version: v3.5.1
+          - python-version: 3.14
+            fprime-version: v3.6.0
           - python-version: 3.13
             fprime-version: v3.4.3
           - python-version: 3.13
