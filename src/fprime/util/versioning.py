@@ -3,7 +3,6 @@
 import argparse
 import sys
 from pathlib import Path
-import pkg_resources
 
 
 class VersionException(Exception):

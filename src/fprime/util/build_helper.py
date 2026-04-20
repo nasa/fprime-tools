@@ -22,11 +22,7 @@ from fprime.fbuild.target import NoSuchTargetException
 
 from .versioning import VersionException, get_version, FPRIME_PIP_PACKAGES
 
-# Attempt to get pkg_resources from "setuptools"
-try:
-    import pkg_resources
-except ImportError:
-    pkg_resources = None
+import importlib.metadata
 
 
 def package_version_check(package: str, requirement_path: Path):
@@ -35,12 +31,12 @@ def package_version_check(package: str, requirement_path: Path):
         "v"
     )  # Python version
     try:
-        version = pkg_resources.get_distribution(package).version
-        if version != expected_version:
+        ver = importlib.metadata.version(package)
+        if ver != expected_version:
             print(
-                f"[WARNING] {package} has unexpected version. Expected: {expected_version} found {version}"
+                f"[WARNING] {package} has unexpected version. Expected: {expected_version} found {ver}"
             )
-    except pkg_resources.DistributionNotFound:
+    except importlib.metadata.PackageNotFoundError:
         print(f"[WARNING] {package} is not installed")
 
 
@@ -63,11 +59,6 @@ def validate_tools_from_requirements(build: Build):
             f"[WARNING] Could not find 'requirements.txt' in: {possibilities}. Will not check tool versions."
         )
         return
-    # Pre-roll import errors from pkg_resources
-    if pkg_resources is None:
-        print("[WARNING] Cannot import 'pkg_resources'. Will not check tool versions.")
-        return
-
     # Now check each required tool for fprime
     for tool in FPRIME_PIP_PACKAGES:
         for possible in possibilities:

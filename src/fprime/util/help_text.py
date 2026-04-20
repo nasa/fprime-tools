@@ -19,12 +19,11 @@ long paragraph description
 import os
 import sys
 
-# Attempt to get pkg_resources from "setuptools"
 try:
-    import pkg_resources
+    import importlib.metadata
 
-    VERSION = pkg_resources.get_distribution("fprime-tools").version
-except ImportError:
+    VERSION = importlib.metadata.version("fprime-tools")
+except importlib.metadata.PackageNotFoundError:
     VERSION = "(unknown version)"
 
 
