@@ -2,7 +2,7 @@ name: Build and Publish Package
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   Release-PyPI-Package:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - name: Upgrade Python Build Tools
         run: pip install -U build twine
       - name: Build distributions

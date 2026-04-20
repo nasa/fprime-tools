@@ -1,11 +1,11 @@
 name: Format Python
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 jobs:
   format:
-      name: Format
-      runs-on: ubuntu-latest
-      steps:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
