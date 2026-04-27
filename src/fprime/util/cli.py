@@ -203,7 +203,7 @@ def add_special_parsers(
         default=False,
         action="store_true",
         dest="new_rule_based_testing",
-        help="Generate a new rule-based testing scaffold",
+        help="Generate a new Rule-Based Testing (RBT) scaffold",
     )
     new_exclusive.add_argument(
         "--from-source",
