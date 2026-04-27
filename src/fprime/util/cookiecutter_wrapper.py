@@ -320,6 +320,14 @@ def new_module(build: Build, parsed_args: "argparse.Namespace", source=None):
 def new_rule_based_testing(build: Build, parsed_args: "argparse.Namespace"):
     """Creates a new rules based testing scaffold using cookiecutter"""
 
+    cwd = Path.cwd()
+    if cwd.name == "ut" and cwd.parent.name == "test":
+        print(
+            "[ERROR] Wrong location. Cannot be run from the test/ut directory."
+            " Please navigate to the component directory and try again."
+        )
+        return 1
+
     source = (
         os.path.dirname(__file__)
         + "/../cookiecutter_templates/cookiecutter-fprime-rules-test"
@@ -327,15 +335,21 @@ def new_rule_based_testing(build: Build, parsed_args: "argparse.Namespace"):
     # Extra contextual information for cookiecutter
     extra_context = {}
     rel_path = get_directory_path_relative_to_root(build)
-    if rel_path:
-        extra_context["__include_path_prefix"] = f"{rel_path}/"
+    extra_context["__include_path_prefix"] = f"{rel_path}" if rel_path else ""
+    cwd = Path.cwd()
+
+    extra_context["_component_name"] = cwd.name
+    extra_context["_component_namespace"] = (
+        cwd.parent.parent.name if cwd.parent.name == "Components" else cwd.name
+    )
     try:
+        print(extra_context)
         gen_path = Path(
             cookiecutter(
                 source,
-                overwrite_if_exists=parsed_args.overwrite,
-                output_dir=parsed_args.path,
                 extra_context=extra_context,
+                overwrite_if_exists=True,  # needed to add to existing test/ut directory
+                skip_if_file_exists=True,  # safety
             )
         ).resolve()
     except OutputDirExistsException as out_directory_error:
