@@ -2,6 +2,7 @@
     "rule_group": "TestGroup1",
     "_component_name": "MyComponent",
     "_output_dir": "{{cookiecutter._component_name}}",
+    "_component_namespace": "{{cookiecutter._component_name}}",
     "__include_path_prefix": "",
     "__prompts__": {
         "rule_group": "Rule group name"

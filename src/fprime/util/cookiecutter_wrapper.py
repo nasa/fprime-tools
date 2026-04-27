@@ -358,6 +358,10 @@ def new_rule_based_testing(build: Build, parsed_args: "argparse.Namespace"):
             file=sys.stderr,
         )
         return 1
+    print(
+        f"[INFO] Rule-based test scaffold successfully created in {gen_path}/test/ut/ \n"
+        "[INFO] For next steps, refer to the F Prime How-To Guide on Rule-Based Testing"
+    )
     return 0
 
 
