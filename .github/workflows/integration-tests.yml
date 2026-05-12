@@ -94,7 +94,7 @@ jobs:
           pip install -U -e .
       - name: Check fprime-util visualize
         run: |
-          cd fprime/Ref/Top
+          cd fprime/TestDeploymentsProject/Ref/Top
           fprime-util generate
 
           timeout 20s fprime-util visualize  > visualizer.log 2>&1 || true
