@@ -16,7 +16,7 @@ from typing import Dict, List, Set, Tuple
 from .enumerator import BuildTargetEnumerator
 from .types import BuildType, NoSuchTargetException
 
-TargetContext = List[str]
+TargetContext = Tuple[List[str], Path]
 
 
 class TargetScope(Enum):
@@ -113,7 +113,7 @@ class EnumeratedAction(ExecutableAction):
         enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
             builder, context_path
         )
-        return self.any_supported(builder, enumerated_targets)
+        return self.any_supported(builder, enumerated_targets[0])
 
     def execute(
         self,
@@ -131,7 +131,7 @@ class EnumeratedAction(ExecutableAction):
     def execute_all(
         self,
         builder: "Build",
-        context: TargetContext,
+        context_with_path: TargetContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes all targets supplied via the context list
@@ -358,10 +358,11 @@ class BuildSystemTarget(Target):
     def execute_all(
         self,
         builder: "Build",
-        context: TargetContext,
+        context_with_path: TargetContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         # Ensure the cache is refreshed
+        context, context_path = context_with_path
         context = ["refresh_cache"] + context
         for build_target in context:
             if builder.is_verbose():

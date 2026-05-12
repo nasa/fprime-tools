@@ -97,7 +97,7 @@ def test_enumerated_action_execution(mock_builder):
 def test_enumerated_action_is_supported(mock_builder):
     """Test that EnumeratedAction.is_supported calls the enumerator and any_supported"""
     mock_enumerator = MagicMock(spec=BuildTargetEnumerator)
-    enumerated_results = ["target1", "target2"]
+    enumerated_results = ["target1", "target2"], Path("/path/to/context")
     mock_enumerator.enumerate.return_value = enumerated_results
 
     class ConcreteEnumeratedAction(EnumeratedAction):
@@ -115,7 +115,7 @@ def test_enumerated_action_is_supported(mock_builder):
 
     assert result is True
     mock_enumerator.enumerate.assert_called_once_with(mock_builder, context_path)
-    action.any_supported.assert_called_once_with(mock_builder, enumerated_results)
+    action.any_supported.assert_called_once_with(mock_builder, enumerated_results[0])
 
 
 @pytest.mark.parametrize(

@@ -25,7 +25,7 @@ def test_basic_enumeration():
     # Test without suffix
     enumerator = BasicBuildTargetEnumerator()
     context_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
-    assert enumerator.enumerate(builder_mock, context_path) == ["TestModule"]
+    assert enumerator.enumerate(builder_mock, context_path)[0] == ["TestModule"]
     builder_mock.cmake.get_cmake_module.assert_called_once_with(
         context_path, builder_mock.build_dir
     )
@@ -39,9 +39,7 @@ def test_basic_enumeration_with_suffix():
     # Test with suffix
     enumerator_suffix = BasicBuildTargetEnumerator(target_suffix="test")
     context_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
-    assert enumerator_suffix.enumerate(builder_mock, context_path) == [
-        "TestModule_test"
-    ]
+    assert enumerator_suffix.enumerate(builder_mock, context_path)[0] == ["TestModule_test"]
     builder_mock.cmake.get_cmake_module.assert_called_once_with(
         context_path, builder_mock.build_dir
     )
@@ -56,7 +54,7 @@ def test_multi_build_target_enumerator_default():
     # Test with default build-targets.fprime-util
     enumerator = MultiBuildTargetEnumerator()
     expected_targets = ["targetA", "targetB", "targetC"]
-    assert enumerator.enumerate(builder_mock, data_path) == expected_targets
+    assert enumerator.enumerate(builder_mock, data_path)[0] == expected_targets
 
 
 def test_multi_build_target_enumerator_tests_file():
@@ -70,7 +68,7 @@ def test_multi_build_target_enumerator_tests_file():
         build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
     )
     expected_test_targets = ["testTargetX", "testTargetY"]
-    assert test_enumerator.enumerate(builder_mock, data_path) == expected_test_targets
+    assert test_enumerator.enumerate(builder_mock, data_path)[0] == expected_test_targets
 
 
 def test_multi_build_target_enumerator_fallback():
@@ -80,11 +78,11 @@ def test_multi_build_target_enumerator_fallback():
     builder_mock = MagicMock()
     builder_mock.get_build_cache_path.return_value = fallback_path
     fail_safe_mock = MagicMock()
-    fail_safe_mock.enumerate.return_value = ["fallback_target"]
+    fail_safe_mock.enumerate.return_value = ["fallback_target"], fallback_path
     fallback_enumerator = MultiBuildTargetEnumerator(
         fail_safe_enumerator=fail_safe_mock
     )
-    assert fallback_enumerator.enumerate(builder_mock, fallback_path) == [
+    assert fallback_enumerator.enumerate(builder_mock, fallback_path)[0] == [
         "fallback_target"
     ]
     fail_safe_mock.enumerate.assert_called_once_with(builder_mock, fallback_path)
@@ -97,12 +95,12 @@ def test_multi_build_target_enumerator_fallback_exception():
     builder_mock.get_build_cache_path.side_effect = MissingBuildCachePath(context_path)
 
     fail_safe_mock = MagicMock()
-    fail_safe_mock.enumerate.return_value = ["fallback_target"]
+    fail_safe_mock.enumerate.return_value = ["fallback_target"], context_path
     fallback_enumerator = MultiBuildTargetEnumerator(
         fail_safe_enumerator=fail_safe_mock
     )
 
-    assert fallback_enumerator.enumerate(builder_mock, context_path) == [
+    assert fallback_enumerator.enumerate(builder_mock, context_path)[0] == [
         "fallback_target"
     ]
     fail_safe_mock.enumerate.assert_called_once_with(builder_mock, context_path)
@@ -127,7 +125,7 @@ def test_recursive_multi_build_target_enumerator():
         "sub2_1_target1",
     }
     # Using set for order-independent comparison
-    assert set(found_targets) == expected_targets
+    assert set(found_targets[0]) == expected_targets
 
 
 def test_recursive_multi_build_target_enumerator_custom_file():
@@ -154,7 +152,7 @@ def test_recursive_multi_build_target_enumerator_custom_file():
         "sub2_test1",
         "sub2_test2",
     }
-    assert set(found_targets) == expected_targets
+    assert set(found_targets[0]) == expected_targets
 
 
 def test_recursive_enumerator_fallback_on_file_not_found():
@@ -169,7 +167,7 @@ def test_recursive_enumerator_fallback_on_file_not_found():
 
     enumerator = RecursiveMultiBuildTargetEnumerator()
     # Since enumerate_helper returns [], the fallback enumerator should be called
-    assert enumerator.enumerate(builder_mock, path) == ["fallback_target"]
+    assert enumerator.enumerate(builder_mock, path)[0] == ["fallback_target"]
     # Verify that the fallback was indeed triggered
     builder_mock.cmake.get_cmake_module.assert_called_once_with(
         path, builder_mock.build_dir
@@ -181,7 +179,7 @@ def test_specific_build_target_enumerator_constructor():
     targets = ["specific_target1", "specific_target2"]
     enumerator = SpecificBuildTargetEnumerator(build_targets=targets)
     # The builder and context path are not used by this enumerator
-    assert enumerator.enumerate(None, None) == targets
+    assert enumerator.enumerate(None, None)[0] == targets
 
 
 def test_specific_build_target_enumerator_setter():
@@ -190,10 +188,10 @@ def test_specific_build_target_enumerator_setter():
     override_targets = ["override1", "override2"]
 
     enumerator = SpecificBuildTargetEnumerator(build_targets=initial_targets)
-    assert enumerator.enumerate(None, None) == initial_targets
+    assert enumerator.enumerate(None, None)[0] == initial_targets
 
     enumerator.set_build_targets(override_targets)
-    assert enumerator.enumerate(None, None) == override_targets
+    assert enumerator.enumerate(None, None)[0] == override_targets
 
 
 def test_cli_build_target_enumerator():
@@ -217,4 +215,4 @@ def test_cli_build_target_enumerator():
     # Verify that the namespace is updated as expected
     assert namespace.target is True
     # Verify that a subsequent call to enumerate returns the values set by the action
-    assert cli_enumerator.enumerate(None, None) == values
+    assert cli_enumerator.enumerate(None, None)[0] == values
