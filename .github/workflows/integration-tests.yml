@@ -52,20 +52,20 @@ jobs:
         run: pip install -U .
       # 0x72ad3277 is Fw/Types/Assert.cpp, a file that should be consistent across releases
       - name: Test generation and building on Ref
-        working-directory: fprime/Ref
+        working-directory: fprime/TestDeploymentsProject/Ref
         run: |
           fprime-util generate --make
           fprime-util build
           fprime-util hash-to-file 0x72ad3277
       - name: Test generation and building on Ref with Ninja
-        working-directory: fprime/Ref
+        working-directory: fprime/TestDeploymentsProject/Ref
         run: |
           fprime-util generate --build-cache ./build-ninja
           fprime-util build --build-cache ./build-ninja
           fprime-util hash-to-file 0x72ad3277 --build-cache ./build-ninja
       # 0xf610caa8 is Svc/BufferManager/test/ut/BufferManagerTestMain.cpp, a file that should be consistent
       - name: Test special generation on Ref UTs
-        working-directory: fprime/Ref
+        working-directory: fprime/TestDeploymentsProject/Ref
         run: |
           fprime-util generate --make --build-cache ./special-cache --ut -DFPRIME_ENABLE_AUTOCODER_UTS=OFF
           fprime-util build --build-cache ./special-cache
