@@ -52,7 +52,11 @@ class Check(EnumeratedAction):
     ):
         """Execute this target"""
         context, context_path = context
-        test_directory = builder.get_build_cache_path(context_path) if context_path else builder.build_dir
+        test_directory = (
+            builder.get_build_cache_path(context_path)
+            if context_path
+            else builder.build_dir
+        )
 
         if not context:
             # This only happens if the provided path does not contain tests

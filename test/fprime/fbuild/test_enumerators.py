@@ -39,7 +39,9 @@ def test_basic_enumeration_with_suffix():
     # Test with suffix
     enumerator_suffix = BasicBuildTargetEnumerator(target_suffix="test")
     context_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
-    assert enumerator_suffix.enumerate(builder_mock, context_path)[0] == ["TestModule_test"]
+    assert enumerator_suffix.enumerate(builder_mock, context_path)[0] == [
+        "TestModule_test"
+    ]
     builder_mock.cmake.get_cmake_module.assert_called_once_with(
         context_path, builder_mock.build_dir
     )
@@ -68,7 +70,9 @@ def test_multi_build_target_enumerator_tests_file():
         build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
     )
     expected_test_targets = ["testTargetX", "testTargetY"]
-    assert test_enumerator.enumerate(builder_mock, data_path)[0] == expected_test_targets
+    assert (
+        test_enumerator.enumerate(builder_mock, data_path)[0] == expected_test_targets
+    )
 
 
 def test_multi_build_target_enumerator_fallback():

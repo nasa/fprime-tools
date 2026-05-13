@@ -4,6 +4,7 @@
 This script can be added to the front of the path to echo what arguments are sent to CMake allowing for tests that are
 slightly closer to integration tests without involving the entirety of F Prime.
 """
+
 import sys
 import os
 from pathlib import Path
