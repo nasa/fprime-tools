@@ -180,8 +180,32 @@ class Gcovr(ExecutableAction):
         if builder.cmake.verbose:
             joined_args = "' '".join(cli_args)
             print(f"[INFO] Running \"'{ joined_args }'\"")
-        # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
-        subprocess.call(cli_args, env=combined_env)
+
+        result = subprocess.run(cli_args, env=combined_env)
+        # check the returned code from gcovr:
+        # 0 = success, 1 = internal error, 2 = coverage threshold not met.
+        # Report all non-zero exits since it represents a coverage failure        
+        if result.returncode != 0:
+            if result.returncode == 2:
+                print(
+                    "[ERROR] gcovr coverage is below the required threshold "
+                    "(--fail-under-line / --fail-under-branch).",
+                    file=sys.stderr,
+                )
+
+            elif result.returncode == 1:
+                print(
+                   f"[ERROR] gcovr returned an internal error {result.returncode}. "
+                   "Check the output above for details.",
+                   file=sys.stderr,
+                )                
+            else:
+                print(
+                    f"[ERROR] gcovr exited with unexpected code {result.returncode}. "
+                    "Check the output above for details.",
+                    file=sys.stderr
+                )
+            raise subprocess.CalledProcessError(result.returncode, cli_args)
 
     def option_args(self):
         """Option arguments"""

@@ -6,7 +6,6 @@ as such, each target need only be instantiated but need not be assigned to anyth
 """
 
 from .gcovr import GcovrTarget
-from .check import CheckTarget
 from fprime.fbuild.check import CheckTarget
 from .enumerator import (
     BasicBuildTargetEnumerator,
