@@ -80,7 +80,7 @@ def test_enumerated_action_execution(mock_builder):
         def execute_all(self, builder, context, args):
             pass  # This will be mocked
 
-        def any_supported(self, builder, context):
+        def any_supported(self, builder, context_with_path):
             return True
 
     action = ConcreteEnumeratedAction(TargetScope.LOCAL, mock_enumerator)
@@ -104,7 +104,7 @@ def test_enumerated_action_is_supported(mock_builder):
         def execute_all(self, builder, context, args):
             pass
 
-        def any_supported(self, builder, context):
+        def any_supported(self, builder, context_with_path):
             return True  # This will be mocked
 
     action = ConcreteEnumeratedAction(TargetScope.LOCAL, mock_enumerator)
@@ -115,7 +115,7 @@ def test_enumerated_action_is_supported(mock_builder):
 
     assert result is True
     mock_enumerator.enumerate.assert_called_once_with(mock_builder, context_path)
-    action.any_supported.assert_called_once_with(mock_builder, enumerated_results[0])
+    action.any_supported.assert_called_once_with(mock_builder, enumerated_results)
 
 
 @pytest.mark.parametrize(

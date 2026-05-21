@@ -16,6 +16,10 @@ from typing import List, Tuple
 from .types import MissingBuildCachePath
 
 
+EnumeratedContext = Tuple[List[str], Path]
+""" Context for enumeration calls (execute_all, any_supported) """
+
+
 class DesignateTargetAction(Action):
     """This class, when used as the argparse action will set the target of all DesignatedBuildSystemTarget
 
@@ -45,7 +49,7 @@ class BuildTargetEnumerator(ABC):
     """Abstract base class for target enumeration strategies."""
 
     @abstractmethod
-    def enumerate(self, builder: "Build", context_path: Path) -> Tuple[List[str], Path]:
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Enumerates build targets available in the given context path."""
         raise NotImplementedError()
 
@@ -65,7 +69,7 @@ class BasicBuildTargetEnumerator(BuildTargetEnumerator):
             return [module]
         return [self.target_suffix]
 
-    def enumerate(self, builder: "Build", context_path: Path) -> Tuple[List[str], Path]:
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Enumerate through conversion to cmake module name directly"""
         return self.enumerate_helper(builder, context_path), context_path
 
@@ -97,7 +101,7 @@ class MultiBuildTargetEnumerator(BuildTargetEnumerator):
             enumerated_targets = [line.strip() for line in file_handle.readlines()]
         return enumerated_targets
 
-    def enumerate(self, builder: "Build", context_path: Path) -> Tuple[List[str], Path]:
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Enumerates build targets, falling back to the context if not found."""
         try:
             return self.enumerate_helper(builder, context_path), context_path
@@ -147,7 +151,7 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
             pass
         return enumerated_targets
 
-    def enumerate(self, builder: "Build", context_path: Path) -> Tuple[List[str], Path]:
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Recursively enumerates build targets."""
         enumerated_targets = self.enumerate_helper(builder, context_path)
         enumerated_targets = (
@@ -169,7 +173,7 @@ class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
         """Set the build targets"""
         self.build_targets = build_targets
 
-    def enumerate(self, builder: "Build", context_path: Path) -> Tuple[List[str], Path]:
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Enumerates exactly a build target"""
         return self.build_targets, context_path
 

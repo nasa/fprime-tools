@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from .enumerator import BuildTargetEnumerator
+from .enumerator import BuildTargetEnumerator, EnumeratedContext
 from .check import CheckTarget
-from .target import CompositeTarget, ExecutableAction, Target, TargetScope
+from .target import CompositeTarget, ExecutableAction, ExecuteContext, TargetScope
 
 
 def _get_project_path(builder: "Build", module: Union[str, Path]) -> Path:
@@ -49,14 +49,14 @@ class Gcovr(ExecutableAction):
 
     EXECUTABLE = "gcovr"
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context_path: ExecuteContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
             builder: builder to check if this action is supported
-            context: contextual path to check
+            context_path: contextual path to check
 
         Return:
             True if supported false otherwise
@@ -66,7 +66,7 @@ class Gcovr(ExecutableAction):
     def execute(
         self,
         builder: "Build",
-        context: Path,
+        context: ExecuteContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the gcovr target"""

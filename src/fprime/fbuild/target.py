@@ -13,10 +13,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
-from .enumerator import BuildTargetEnumerator
+from .enumerator import BuildTargetEnumerator, EnumeratedContext
 from .types import BuildType, NoSuchTargetException
 
-TargetContext = Tuple[List[str], Path]
+
+ExecuteContext = Path
+""" Context for execute calls (execute, is_supported) which represents the path where the target is being executed """
+
 
 
 class TargetScope(Enum):
@@ -47,7 +50,7 @@ class ExecutableAction(ABC):
         self.scope = scope
 
     @abstractmethod
-    def is_supported(self, builder: "Build", context_path: Path):
+    def is_supported(self, builder: "Build", context_path: ExecuteContext) -> bool:
         """Is this target supported via the given contextual path"""
         pass
 
@@ -55,7 +58,7 @@ class ExecutableAction(ABC):
     def execute(
         self,
         builder: "Build",
-        context: Path,
+        context_path: ExecuteContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the given targe with the given contextual path"""
@@ -98,40 +101,40 @@ class EnumeratedAction(ExecutableAction):
         super().__init__(scope)
         self.build_target_enumerator = build_target_enumerator
 
-    def is_supported(self, builder: "Build", context_path: Path):
+    def is_supported(self, builder: "Build", context_path: ExecuteContext):
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
             builder: builder to check if this action is supported
-            context: contextual path to check
+            context_path: contextual path to check
 
         Return:
             True if supported false otherwise
         """
-        enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
+        enumerated_target_context = self.build_target_enumerator.enumerate(
             builder, context_path
         )
-        return self.any_supported(builder, enumerated_targets[0])
+        return self.any_supported(builder, enumerated_target_context)
 
     def execute(
         self,
         builder: "Build",
-        context: Path,
+        context_path: ExecuteContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes the given target"""
-        self.original_context = context
-        enumerated_targets: TargetContext = self.build_target_enumerator.enumerate(
-            builder, context
+        self.original_context = context_path
+        enumerated_target_context = self.build_target_enumerator.enumerate(
+            builder, context_path
         )
-        return self.execute_all(builder, enumerated_targets, args)
+        return self.execute_all(builder, enumerated_target_context, args)
 
     def execute_all(
         self,
         builder: "Build",
-        context_with_path: TargetContext,
+        context_with_path: EnumeratedContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         """Executes all targets supplied via the context list
@@ -149,7 +152,7 @@ class EnumeratedAction(ExecutableAction):
         """
         pass
 
-    def any_supported(self, builder: "Build", context: TargetContext) -> bool:
+    def any_supported(self, builder: "Build", context_with_path: EnumeratedContext) -> bool:
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
@@ -161,6 +164,7 @@ class EnumeratedAction(ExecutableAction):
         Return:
             True if supported false otherwise
         """
+        context, _ = context_with_path
         return len(context) > 0
 
 
@@ -298,21 +302,21 @@ class CompositeTarget(Target):
         """So we can see what it delegated to"""
         return f"{self.__class__.__name__}[{', '.join([target.__repr__() for target in self.targets])}]"
 
-    def is_supported(self, builder: "Build", context: Path):
+    def is_supported(self, builder: "Build", context_path: Path):
         """Any of the targets supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
 
         Args:
             builder: builder to check if this action is supported
-            context: contextual path to check
+            context_path: contextual path to check
 
         Return:
             True if supported false otherwise
         """
         # Supported only if all steps supported
         return functools.reduce(
-            lambda sum, target: sum and target.is_supported(builder, context),
+            lambda sum, target: sum and target.is_supported(builder, context_path),
             self.targets,
             True,
         )
@@ -358,11 +362,11 @@ class BuildSystemTarget(Target):
     def execute_all(
         self,
         builder: "Build",
-        context_with_path: TargetContext,
+        context_with_path: EnumeratedContext,
         args: Tuple[Dict[str, str], List[str], Dict[str, bool]],
     ):
         # Ensure the cache is refreshed
-        context, context_path = context_with_path
+        context, _ = context_with_path
         context = ["refresh_cache"] + context
         for build_target in context:
             if builder.is_verbose():
