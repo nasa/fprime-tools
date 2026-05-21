@@ -352,18 +352,21 @@ class Build:
 
         If the file does not exist, falls back to the build cache root and build cache/F-Prime.
         If the file exists but contains no valid (existing) paths, raises
-        InvalidBuildCacheException indicating a corrupt build cache.
+        InvalidBuildCacheException indicating a corrupt build cache. Also raises if any
+        resolved path falls outside the build cache directory (security check).
 
         Returns:
             List of resolved Path objects to iterate when searching the build cache.
 
         Raises:
-            InvalidBuildCacheException: if the locations file exists but yields no valid paths
+            InvalidBuildCacheException: if the locations file exists but yields no valid paths,
+                or if any path resolves outside the build cache directory
         """
         locations_file = self.build_dir / "fprime-locations.fprime-util"
         if not locations_file.exists():
             return [(self.build_dir / "F-Prime").resolve(), self.build_dir.resolve()]
 
+        build_dir_resolved = self.build_dir.resolve()
         locations = []
         with open(locations_file, "r") as fh:
             for line in fh:
@@ -376,10 +379,13 @@ class Build:
                     if path.is_absolute()
                     else (self.build_dir / path).resolve()
                 )
+                if not path.is_relative_to(build_dir_resolved):
+                    msg = f"'{path}' in '{locations_file}' resolves outside the build cache '{build_dir_resolved}'. This may indicate a malicious build cache."
+                    raise InvalidBuildCacheException(msg, str(self.build_dir))
                 locations.append(path)
         locations = [loc for loc in locations if loc.exists()]
         if not locations:
-            msg = f"'{locations_file}' exists but contains no valid locations. Regenerate the build cache with 'fprime-util generate'."
+            msg = f"'{locations_file}' exists but contains no valid locations. Regenerate the build cache with 'fprime-util generate -f'."
             raise InvalidBuildCacheException(msg, str(self.build_dir))
         return locations
 

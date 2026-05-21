@@ -249,14 +249,35 @@ def test_get_build_cache_locations_empty_file(tmp_path):
 
 
 def test_get_build_cache_locations_no_valid_paths(tmp_path):
-    """A file with only non-existent paths should raise."""
+    """A file listing only non-existent (but in-cache) relative paths should raise."""
     with pytest.raises(fprime.fbuild.types.InvalidBuildCacheException):
-        _make_build(
-            tmp_path, locations_content="/nonexistent/path/that/does/not/exist\n"
-        )
+        _make_build(tmp_path, locations_content="does-not-exist\n")
 
 
 def test_get_build_cache_locations_comments_only(tmp_path):
     """A file with only comments and blank lines should raise."""
     with pytest.raises(fprime.fbuild.types.InvalidBuildCacheException):
         _make_build(tmp_path, locations_content="# just a comment\n\n  \n")
+
+
+def test_get_build_cache_locations_stripped_spaces(tmp_path):
+    """Lines with leading/trailing whitespace should be stripped correctly."""
+    d = tmp_path / "spaced-lib"
+    d.mkdir()
+    build = _make_build(tmp_path, locations_content="  spaced-lib  \n")
+    assert build.get_build_cache_locations() == [d.resolve()]
+
+
+def test_get_build_cache_locations_mixed_valid_invalid(tmp_path):
+    """Valid paths are kept; non-existent paths are silently filtered out."""
+    valid = tmp_path / "exists"
+    valid.mkdir()
+    content = "exists\nmissing-dir\n"
+    build = _make_build(tmp_path, locations_content=content)
+    assert build.get_build_cache_locations() == [valid.resolve()]
+
+
+def test_get_build_cache_locations_outside_build_dir(tmp_path):
+    """A path resolving outside the build cache should raise (security)."""
+    with pytest.raises(fprime.fbuild.types.InvalidBuildCacheException, match="outside"):
+        _make_build(tmp_path, locations_content="../escape\n")
