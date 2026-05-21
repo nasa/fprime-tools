@@ -95,7 +95,6 @@ class Build:
             InvalidBuildCacheException: a build cache already exists as it should not
         """
         self.__setup_default(platform, build_dir)
-        self._build_cache_locations = self._load_build_cache_locations()
         if self.build_dir.exists():
             msg = f"{self.build_dir} already exists."
             if not force:
@@ -352,9 +351,14 @@ class Build:
         with '#' are ignored.
 
         If the file does not exist, falls back to the build cache root and build cache/F-Prime.
+        If the file exists but contains no valid (existing) paths, raises
+        InvalidBuildCacheException indicating a corrupt build cache.
 
         Returns:
             List of resolved Path objects to iterate when searching the build cache.
+
+        Raises:
+            InvalidBuildCacheException: if the locations file exists but yields no valid paths
         """
         locations_file = self.build_dir / "fprime-locations.fprime-util"
         if not locations_file.exists():
@@ -367,13 +371,16 @@ class Build:
                 if not line or line.startswith("#"):
                     continue
                 path = Path(line)
-                if not path.is_absolute():
-                    path = (self.build_dir / path).resolve()
-                else:
-                    path = path.resolve()
+                path = (
+                    path.resolve()
+                    if path.is_absolute()
+                    else (self.build_dir / path).resolve()
+                )
                 locations.append(path)
+        locations = [loc for loc in locations if loc.exists()]
         if not locations:
-            return [(self.build_dir / "F-Prime").resolve(), self.build_dir.resolve()]
+            msg = f"'{locations_file}' exists but contains no valid locations. Regenerate the build cache with 'fprime-util generate'."
+            raise InvalidBuildCacheException(msg, str(self.build_dir))
         return locations
 
     def get_build_cache_locations(self) -> List[Path]:
