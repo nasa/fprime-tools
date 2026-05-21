@@ -99,8 +99,7 @@ def fpp_generate_implementation(
         build.get_settings("framework_path", ""),
         *build.get_settings("library_locations", []),
         build.get_settings("project_root", ""),
-        build.build_dir / "F-Prime",
-        build.build_dir,
+        *build.get_build_cache_locations(),
     ]
 
     # Holds the list of generated files to be passed to clang-format
