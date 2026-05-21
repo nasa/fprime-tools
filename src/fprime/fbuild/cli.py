@@ -86,7 +86,7 @@ def run_fbuild_cli(
         }
         target.execute(
             build,
-            context=Path(parsed.path),
+            Path(parsed.path),
             args=(make_args, pass_through, option_args),
         )
 

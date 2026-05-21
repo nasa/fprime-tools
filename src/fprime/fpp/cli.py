@@ -96,7 +96,10 @@ def add_fpp_parsers(
     fpp_to_dict_group.add_argument("-d", "--directory", help="Output directory")
     fpp_to_dict_group.add_argument("-s", "--size", help="Default string size")
 
-    return {"fpp-check": run_fpp_check, "fpp-to-dict": run_fpp_to_dict,}, {
+    return {
+        "fpp-check": run_fpp_check,
+        "fpp-to-dict": run_fpp_to_dict,
+    }, {
         "fpp-check": check_parser,
         "fpp-to-dict": fpp_to_dict_parser,
     }
