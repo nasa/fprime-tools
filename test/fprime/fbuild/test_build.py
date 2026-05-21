@@ -236,7 +236,7 @@ def test_get_build_cache_locations_with_file(tmp_path):
     abs_dir = tmp_path / "abs-lib"
     abs_dir.mkdir()
 
-    content = f"# comment line\nmy-lib\n\n{abs_dir}\n"
+    content = f"# comment line\n my-lib\n\n{abs_dir}\n"
     build = _make_build(tmp_path, locations_content=content)
     locations = build.get_build_cache_locations()
     assert locations == [rel_dir.resolve(), abs_dir.resolve()]
