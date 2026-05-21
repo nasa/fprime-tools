@@ -67,6 +67,7 @@ class Build:
         self.settings = None
         self.platform = None
         self.build_dir = None
+        self._build_cache_locations = None
         self.cmake = CMakeHandler()
         self.cmake.set_verbose(verbose)
 
@@ -94,6 +95,7 @@ class Build:
             InvalidBuildCacheException: a build cache already exists as it should not
         """
         self.__setup_default(platform, build_dir)
+        self._build_cache_locations = self._load_build_cache_locations()
         if self.build_dir.exists():
             msg = f"{self.build_dir} already exists."
             if not force:
@@ -115,6 +117,7 @@ class Build:
             InvalidBuildCacheException: the build cache does not exist as it must
         """
         self.__setup_default(platform, build_dir)
+        self._build_cache_locations = self._load_build_cache_locations()
 
         if skip_validation:
             return
@@ -340,8 +343,8 @@ class Build:
         """Gets name of module from path"""
         return self.cmake.get_cmake_module(path, self.build_dir)
 
-    def get_build_cache_locations(self) -> List[Path]:
-        """Load the list of locations to search within the build cache.
+    def _load_build_cache_locations(self) -> List[Path]:
+        """Parse the locations file once and return the result.
 
         Reads from `fprime-locations.fprime-util` at the root of the build cache. Each line in
         the file is a path (relative or absolute). Relative paths are resolved with respect to
@@ -372,6 +375,14 @@ class Build:
         if not locations:
             return [(self.build_dir / "F-Prime").resolve(), self.build_dir.resolve()]
         return locations
+
+    def get_build_cache_locations(self) -> List[Path]:
+        """Return the cached list of build cache locations.
+
+        Returns:
+            List of resolved Path objects to iterate when searching the build cache.
+        """
+        return self._build_cache_locations
 
     def get_build_cache_path(self, context: Path) -> Path:
         """Get the path within the build cache associated with the given context
