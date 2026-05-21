@@ -340,6 +340,39 @@ class Build:
         """Gets name of module from path"""
         return self.cmake.get_cmake_module(path, self.build_dir)
 
+    def get_build_cache_locations(self) -> List[Path]:
+        """Load the list of locations to search within the build cache.
+
+        Reads from `fprime-locations.fprime-util` at the root of the build cache. Each line in
+        the file is a path (relative or absolute). Relative paths are resolved with respect to
+        the build cache directory (the location of the file). Blank lines and lines starting
+        with '#' are ignored.
+
+        If the file does not exist, falls back to the build cache root and build cache/F-Prime.
+
+        Returns:
+            List of resolved Path objects to iterate when searching the build cache.
+        """
+        locations_file = self.build_dir / "fprime-locations.fprime-util"
+        if not locations_file.exists():
+            return [self.build_dir.resolve(), (self.build_dir / "F-Prime").resolve()]
+
+        locations = []
+        with open(locations_file, "r") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                path = Path(line)
+                if not path.is_absolute():
+                    path = (self.build_dir / path).resolve()
+                else:
+                    path = path.resolve()
+                locations.append(path)
+        if not locations:
+            return [self.build_dir.resolve(), (self.build_dir / "F-Prime").resolve()]
+        return locations
+
     def get_build_cache_path(self, context: Path) -> Path:
         """Get the path within the build cache associated with the given context
 
@@ -352,8 +385,8 @@ class Build:
         if not isinstance(context, Path):
             raise ValueError("Context must be a Path")
         project_relative_path = self.get_relative_path(context)
-        for possible in [".", "F-Prime"]:
-            possible_path = self.build_dir / possible / project_relative_path
+        for possible in self.get_build_cache_locations():
+            possible_path = possible / project_relative_path
             if possible_path.exists():
                 return possible_path
         component_name = os.path.basename(context)
