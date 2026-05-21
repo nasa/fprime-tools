@@ -355,7 +355,7 @@ class Build:
         """
         locations_file = self.build_dir / "fprime-locations.fprime-util"
         if not locations_file.exists():
-            return [self.build_dir.resolve(), (self.build_dir / "F-Prime").resolve()]
+            return [(self.build_dir / "F-Prime").resolve(), self.build_dir.resolve()]
 
         locations = []
         with open(locations_file, "r") as fh:
@@ -370,7 +370,7 @@ class Build:
                     path = path.resolve()
                 locations.append(path)
         if not locations:
-            return [self.build_dir.resolve(), (self.build_dir / "F-Prime").resolve()]
+            return [(self.build_dir / "F-Prime").resolve(), self.build_dir.resolve()]
         return locations
 
     def get_build_cache_path(self, context: Path) -> Path:
