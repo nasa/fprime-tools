@@ -21,7 +21,6 @@ ExecuteContext = Path
 """ Context for execute calls (execute, is_supported) which represents the path where the target is being executed """
 
 
-
 class TargetScope(Enum):
     """Scoping for target execution: GLOBAL, LOCAL
 
@@ -152,7 +151,9 @@ class EnumeratedAction(ExecutableAction):
         """
         pass
 
-    def any_supported(self, builder: "Build", context_with_path: EnumeratedContext) -> bool:
+    def any_supported(
+        self, builder: "Build", context_with_path: EnumeratedContext
+    ) -> bool:
         """Is supported by the list of build target names
 
         Checks if the build target names supplied will support this target. Is overridden by subclasses.
