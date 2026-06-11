@@ -107,7 +107,7 @@ module {{cookiecutter.deployment_namespace}} {
       rateGroup1.RateGroupMemberOut[2] -> systemResources.run
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
-      rateGroup1Comp.RateGroupMemberOut[5] -> CdhCore.cmdDisp.run
+      rateGroup1.RateGroupMemberOut[5] -> CdhCore.cmdDisp.run
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
