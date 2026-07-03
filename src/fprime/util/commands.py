@@ -20,7 +20,10 @@ import platform
 import importlib.metadata
 
 
+from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
+from fprime.fbuild.settings import IniSettings
+from fprime.fbuild.types import UnableToDetectProjectException
 from fprime.util.code_formatter import ClangFormatter
 from .versioning import VersionException, FPRIME_PIP_PACKAGES
 from fprime.util.cookiecutter_wrapper import (
@@ -154,6 +157,51 @@ def run_new(
     )
 
 
+def locate_clang_format_file(parsed: argparse.Namespace) -> Path:
+    """Locate the .clang-format style file to use for formatting.
+
+    The `format` command must work both inside an F´ project (which declares a
+    `framework_path` in settings.ini) and inside a standalone F´ library (which
+    has neither a settings.ini nor a project root). Discovery proceeds as:
+
+    1. If a parent F´ project can be detected, use the `.clang-format` at the
+       root of the framework it points to (the historical behavior).
+    2. Otherwise, walk up the directory tree from the working path looking for
+       a `.clang-format` file. This mirrors clang-format's own discovery rules
+       and lets libraries supply their own style file.
+
+    Args:
+        parsed: parsed input arguments
+
+    Returns:
+        Path to the .clang-format file to use (may not exist; the caller
+        reports a clear error in that case).
+    """
+    # Try to resolve the framework's .clang-format via project settings
+    try:
+        cmake_root = (
+            Path(parsed.root)
+            if parsed.root is not None
+            else Build.find_nearest_parent_project(Path.cwd())
+        )
+        settings = IniSettings.load(cmake_root / "settings.ini")
+        framework_path = settings.get("framework_path")
+        if framework_path is not None:
+            return Path(framework_path) / ".clang-format"
+    except (UnableToDetectProjectException, FprimeException):
+        pass  # Not in a project (e.g. a standalone library); fall back to search
+
+    # Library fallback: walk up from the working path searching for a .clang-format
+    start = parsed.path if parsed.path is not None else Path.cwd()
+    for directory in [Path(start).resolve(), *Path(start).resolve().parents]:
+        candidate = directory / ".clang-format"
+        if candidate.is_file():
+            return candidate
+    # Nothing found: return the working-directory candidate so the error message
+    # points at a sensible location
+    return Path(start).resolve() / ".clang-format"
+
+
 def run_code_format(
     build: Build,
     parsed: argparse.Namespace,
@@ -164,7 +212,7 @@ def run_code_format(
     """Runs code formatting using clang-format
 
     Args:
-        build: used to retrieve .clang-format file
+        build: unused; format runs without a build cache (may be None)
         parsed: parsed input arguments
         __: unused cmake_args
         ___: unused make_args
@@ -179,7 +227,7 @@ def run_code_format(
     }
     clang_formatter = ClangFormatter(
         "clang-format",
-        build.settings.get("framework_path", Path(".")) / ".clang-format",
+        locate_clang_format_file(parsed),
         options,
     )
     if not clang_formatter.is_supported():

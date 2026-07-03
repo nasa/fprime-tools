@@ -2,6 +2,7 @@
 Tests for fprime.util.code_formatter
 """
 
+import argparse
 from pathlib import Path
 
 import shutil
@@ -9,6 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fprime.util.code_formatter import ClangFormatter
+from fprime.util.commands import locate_clang_format_file, run_code_format
 
 
 def test_init():
@@ -143,3 +145,85 @@ def test_execute_check_pass(tmp_path, mock_build, style_file):
 
     result = formatter.execute(mock_build, tmp_path, ({}, []))
     assert result == 0
+
+
+def test_execute_no_build(tmp_path, style_file):
+    """Test that execute works when no build object is provided (library case)"""
+    malformed_src = DATA_DIR / "malformed.cpp"
+    malformed_dst = tmp_path / "malformed.cpp"
+    shutil.copy(malformed_src, malformed_dst)
+
+    options = {"backup": False, "verbose": False, "quiet": True, "check": False}
+    formatter = ClangFormatter("clang-format", style_file, options)
+    formatter.stage_file(malformed_dst)
+
+    # build=None must not raise (libraries run format without a build cache)
+    result = formatter.execute(None, tmp_path, ({}, []))
+    assert result == 0
+
+
+def test_locate_clang_format_file_in_library(tmp_path, monkeypatch):
+    """A library's own .clang-format is found by walking up from the working path"""
+    library_root = tmp_path / "fprime-zephyr"
+    sub_dir = library_root / "Svc"
+    sub_dir.mkdir(parents=True)
+    style = library_root / ".clang-format"
+    style.write_text("BasedOnStyle: LLVM\n")
+
+    # Run from inside the library, with no project/settings.ini in any parent
+    monkeypatch.chdir(sub_dir)
+    parsed = argparse.Namespace(root=None, path=Path.cwd())
+
+    located = locate_clang_format_file(parsed)
+    assert located == style
+
+
+def test_locate_clang_format_file_missing(tmp_path, monkeypatch):
+    """When no .clang-format exists, a candidate path under the working dir is returned"""
+    work_dir = tmp_path / "lib-no-style"
+    work_dir.mkdir()
+    monkeypatch.chdir(work_dir)
+    parsed = argparse.Namespace(root=None, path=Path.cwd())
+
+    located = locate_clang_format_file(parsed)
+    # The returned path does not exist, so the caller surfaces a clear error
+    assert not located.is_file()
+    assert located.name == ".clang-format"
+
+
+def test_run_code_format_in_library(tmp_path, monkeypatch):
+    """End-to-end: format a library directory with no settings.ini, using its own style file"""
+    if shutil.which("clang-format") is None:
+        pytest.skip("clang-format executable not available")
+
+    library_root = tmp_path / "fprime-zephyr"
+    svc_dir = library_root / "Svc"
+    svc_dir.mkdir(parents=True)
+    (library_root / ".clang-format").write_text("BasedOnStyle: LLVM\n")
+
+    malformed = svc_dir / "Component.cpp"
+    shutil.copy(DATA_DIR / "malformed.cpp", malformed)
+
+    monkeypatch.chdir(library_root)
+    parsed = argparse.Namespace(
+        root=None,
+        path=Path.cwd(),
+        quiet=True,
+        verbose=False,
+        backup=False,
+        force=False,
+        check=False,
+        allow_extension=[],
+        stdin=False,
+        files=[],
+        dirs=[Path("./Svc")],
+        exclude=[],
+        pass_through=[],
+    )
+
+    # build is None: libraries run format without a build cache
+    result = run_code_format(None, parsed, {}, {}, [])
+    assert result == 0
+
+    well_formed_content = (DATA_DIR / "well-formed.cpp").read_text()
+    assert malformed.read_text() == well_formed_content

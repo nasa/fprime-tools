@@ -99,7 +99,8 @@ class ClangFormatter(ExecutableAction):
             args (Tuple[Dict[str, str], List[str]]): extra arguments to supply to the utility
         """
         combined_env = os.environ.copy()
-        combined_env.update(builder.settings.get("environment", {}))
+        if builder is not None:
+            combined_env.update(builder.settings.get("environment", {}))
 
         if len(self._files_to_format) == 0:
             print("[INFO] No files were formatted.")
