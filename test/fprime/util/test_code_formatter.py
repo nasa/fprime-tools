@@ -163,32 +163,19 @@ def test_execute_no_build(tmp_path, style_file):
 
 
 def test_locate_clang_format_file_in_library(tmp_path, monkeypatch):
-    """A library's own .clang-format is found by walking up from the working path"""
+    """Outside a project, locate returns None so clang-format handles discovery"""
     library_root = tmp_path / "fprime-zephyr"
     sub_dir = library_root / "Svc"
     sub_dir.mkdir(parents=True)
-    style = library_root / ".clang-format"
-    style.write_text("BasedOnStyle: LLVM\n")
+    (library_root / ".clang-format").write_text("BasedOnStyle: LLVM\n")
 
     # Run from inside the library, with no project/settings.ini in any parent
     monkeypatch.chdir(sub_dir)
     parsed = argparse.Namespace(root=None, path=Path.cwd())
 
-    located = locate_clang_format_file(parsed)
-    assert located == style
-
-
-def test_locate_clang_format_file_missing(tmp_path, monkeypatch):
-    """When no .clang-format exists, a candidate path under the working dir is returned"""
-    work_dir = tmp_path / "lib-no-style"
-    work_dir.mkdir()
-    monkeypatch.chdir(work_dir)
-    parsed = argparse.Namespace(root=None, path=Path.cwd())
-
-    located = locate_clang_format_file(parsed)
-    # The returned path does not exist, so the caller surfaces a clear error
-    assert not located.is_file()
-    assert located.name == ".clang-format"
+    # No framework file to resolve: clang-format (invoked with --style=file)
+    # discovers the library's own .clang-format at format time.
+    assert locate_clang_format_file(parsed) is None
 
 
 def test_run_code_format_in_library(tmp_path, monkeypatch):

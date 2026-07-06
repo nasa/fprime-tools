@@ -10,7 +10,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from fprime.fbuild.target import ExecutableAction, TargetScope
 
@@ -32,7 +32,7 @@ ALLOWED_EXTENSIONS = [
 class ClangFormatter(ExecutableAction):
     """Class encapsulating the clang-format logic for fprime-util"""
 
-    def __init__(self, executable: str, style_file: "Path", options: Dict):
+    def __init__(self, executable: str, style_file: "Optional[Path]", options: Dict):
         super().__init__(TargetScope.LOCAL)
         self.executable = executable
         self.style_file = style_file
@@ -105,7 +105,7 @@ class ClangFormatter(ExecutableAction):
         if len(self._files_to_format) == 0:
             print("[INFO] No files were formatted.")
             return 0
-        if not self.style_file.is_file():
+        if self.style_file is not None and not self.style_file.is_file():
             print(
                 f"[ERROR] No .clang-format file found in {self.style_file.parent}. "
                 "Override location with --pass-through --style=file:<path>."
@@ -130,7 +130,13 @@ class ClangFormatter(ExecutableAction):
             print(f"[INFO]    {self.executable}")
             print("[INFO] Clang format arguments:")
             print(f"[INFO]    {clang_args[1:]}")
-            print("[INFO] Clang format style file:")
-            print(f"[INFO]    {self.style_file}")
+            if self.style_file is not None:
+                print("[INFO] Clang format style file:")
+                print(f"[INFO]    {self.style_file}")
+            else:
+                print(
+                    "[INFO] Clang format style file: discovered by clang-format "
+                    "(--style=file)"
+                )
         status = subprocess.run(clang_args, env=combined_env)
         return status.returncode
