@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fprime.util.code_formatter import ClangFormatter
-from fprime.util.commands import locate_clang_format_file, run_code_format
+from fprime.util.commands import run_code_format
 
 
 def test_init():
@@ -160,22 +160,6 @@ def test_execute_no_build(tmp_path, style_file):
     # build=None must not raise (libraries run format without a build cache)
     result = formatter.execute(None, tmp_path, ({}, []))
     assert result == 0
-
-
-def test_locate_clang_format_file_in_library(tmp_path, monkeypatch):
-    """Outside a project, locate returns None so clang-format handles discovery"""
-    library_root = tmp_path / "fprime-zephyr"
-    sub_dir = library_root / "Svc"
-    sub_dir.mkdir(parents=True)
-    (library_root / ".clang-format").write_text("BasedOnStyle: LLVM\n")
-
-    # Run from inside the library, with no project/settings.ini in any parent
-    monkeypatch.chdir(sub_dir)
-    parsed = argparse.Namespace(root=None, path=Path.cwd())
-
-    # No framework file to resolve: clang-format (invoked with --style=file)
-    # discovers the library's own .clang-format at format time.
-    assert locate_clang_format_file(parsed) is None
 
 
 def test_run_code_format_in_library(tmp_path, monkeypatch):

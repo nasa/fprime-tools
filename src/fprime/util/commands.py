@@ -14,16 +14,13 @@ Current commands include:
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 import subprocess
 import platform
 import importlib.metadata
 
 
-from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.fbuild.settings import IniSettings
-from fprime.fbuild.types import UnableToDetectProjectException
 from fprime.util.code_formatter import ClangFormatter
 from .versioning import VersionException, FPRIME_PIP_PACKAGES
 from fprime.util.cookiecutter_wrapper import (
@@ -157,38 +154,6 @@ def run_new(
     )
 
 
-def locate_clang_format_file(parsed: argparse.Namespace) -> Optional[Path]:
-    """Locate an explicit .clang-format style file, if the project declares one.
-
-    Inside an F´ project (which declares a `framework_path` in settings.ini) the
-    framework's `.clang-format` is used, preserving the historical behavior.
-    Inside a standalone F´ library there is no settings.ini, so this returns None
-    and lets clang-format discover the nearest `.clang-format` itself: format is
-    run with `--style=file`, which already searches each input file's parent
-    directories.
-
-    Args:
-        parsed: parsed input arguments
-
-    Returns:
-        Path to the framework's .clang-format when a project is detected, or None
-        to defer discovery to clang-format (standalone library).
-    """
-    try:
-        cmake_root = (
-            Path(parsed.root)
-            if parsed.root is not None
-            else Build.find_nearest_parent_project(Path.cwd())
-        )
-        settings = IniSettings.load(cmake_root / "settings.ini")
-        framework_path = settings.get("framework_path")
-        if framework_path is not None:
-            return Path(framework_path) / ".clang-format"
-    except (UnableToDetectProjectException, FprimeException):
-        pass  # Standalone library: let clang-format find the .clang-format itself
-    return None
-
-
 def run_code_format(
     build: Build,
     parsed: argparse.Namespace,
@@ -212,9 +177,12 @@ def run_code_format(
         "validate_extensions": not parsed.force,
         "check": parsed.check,
     }
+    # No explicit style file: clang-format is invoked with --style=file, which
+    # discovers the nearest .clang-format from each input file's directory
+    # (projects and libraries provide their own).
     clang_formatter = ClangFormatter(
         "clang-format",
-        locate_clang_format_file(parsed),
+        None,
         options,
     )
     if not clang_formatter.is_supported():
