@@ -30,6 +30,7 @@ from fprime.util.cookiecutter_wrapper import (
     new_subtopology,
     new_rule_based_testing,
 )
+from fprime.util.cosmos_plugin import run_export_cosmos
 
 
 def run_info(
