@@ -63,6 +63,8 @@ def skip_build_loading(parsed):
     """
     if parsed.command == "version-check":
         return True
+    if parsed.command in ("wcet", "export"):
+        return True
     return False
 
 
@@ -74,6 +76,8 @@ def skip_build_cache_validation(parsed):
         "purge",
         "info",
         "format",
+        "wcet",
+        "export",
     ]:
         return True
     if parsed.command == "new" and parsed.new_deployment:
@@ -280,12 +284,65 @@ def add_special_parsers(
         help="Exclude paths from formatting, taking precedence over all input mechanisms",
     )
 
+    wcet_parser = subparsers.add_parser(
+        "wcet",
+        description="Report execution-time annotations from fpp-to-json AST files",
+        help="Report WCET/deadline annotations from FPP AST JSON",
+        parents=[common],
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    wcet_parser.add_argument(
+        "--json",
+        nargs="*",
+        default=[],
+        type=Path,
+        help="One or more fpp-to-json AST files to scan",
+    )
+    wcet_parser.add_argument(
+        "--json-dir",
+        default=None,
+        type=Path,
+        help="Recursively scan directory for *.json AST files",
+    )
+
+    export_parser = subparsers.add_parser(
+        "export",
+        description="Export project artifacts for external ground systems",
+        help="Export artifacts (e.g. OpenC3 COSMOS plugin)",
+        parents=[common],
+        add_help=False,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    export_sub = export_parser.add_subparsers(dest="export_target", required=True)
+    cosmos_parser = export_sub.add_parser(
+        "cosmos",
+        help="Generate an OpenC3 COSMOS plugin scaffold from a dictionary JSON file",
+    )
+    cosmos_parser.add_argument(
+        "dictionary",
+        type=Path,
+        help="Path to F Prime dictionary JSON (from fpp-to-dict)",
+    )
+    cosmos_parser.add_argument(
+        "output",
+        type=Path,
+        help="Output directory for the generated plugin tree",
+    )
+    cosmos_parser.add_argument(
+        "--target-name",
+        default="FPRIME",
+        help="COSMOS target name (default: FPRIME)",
+    )
+
     return {
         "hash-to-file": run_hash_to_file,
         "info": run_info,
         "version-check": run_version_check,
         "new": run_new,
         "format": run_code_format,
+        "wcet": run_wcet_report,
+        "export": run_export_cosmos,
     }
 
 
