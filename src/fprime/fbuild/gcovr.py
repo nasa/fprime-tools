@@ -201,7 +201,12 @@ class Gcovr(ExecutableAction):
             joined_args = "' '".join(cli_args)
             print(f"[INFO] Running \"'{ joined_args }'\"")
         # gcovr must run in the ac_temporary_path or html details cannot find the Ac files
-        subprocess.call(cli_args, env=combined_env)
+        return_code = subprocess.call(cli_args, env=combined_env)
+        if return_code != 0:
+            print(
+                f"[ERROR] gcovr exited with code {return_code}. Coverage results may be incomplete or missing.",
+                file=sys.stderr,
+            )
 
     def option_args(self):
         """Option arguments"""
