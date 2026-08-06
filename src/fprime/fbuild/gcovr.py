@@ -91,6 +91,7 @@ class Gcovr(ExecutableAction):
         include_port_ac = include_all or options["--port-ac"]
         include_type_ac = include_all or options["--type-ac"]
         include_test_ac = include_all or options["--test-ac"]
+        include_sm_ac = include_all or options["--sm-ac"]
         include_test = include_all or options["--test-sources"]
         build_cache_exclusion_filter_bases = [
             None if include_comp_ac else ".*ComponentAc.[ch]pp",
@@ -101,7 +102,7 @@ class Gcovr(ExecutableAction):
             None if include_test_ac else ".*/.*GTestBase.[ch]pp",
             None if include_test_ac else ".*/.*TesterBase.[ch]pp",
             None if include_test_ac else ".*/.*TesterHelpers.[ch]pp",
-            None if include_test_ac else ".*/.*StateMachineAc.[ch]pp",
+            None if include_sm_ac else ".*/.*StateMachineAc.[ch]pp",
         ]
         raw_source_exclusion_filter_bases = [
             None if include_test else ".*/test/.*",
@@ -211,6 +212,7 @@ class Gcovr(ExecutableAction):
             ("--port-ac", "[coverage only] Include port autocode in coverage"),
             ("--type-ac", "[coverage only] Include data type autocode in coverage"),
             ("--test-ac", "[coverage only] Include data test autocode in coverage"),
+            ("--sm-ac", "[coverage only] Include state machine autocode in coverage"),
             ("--test-sources", "[coverage only] Include unit test sources in coverage"),
             (
                 "--enable-fw-assert-branch-coverage",
