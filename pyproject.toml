@@ -40,6 +40,7 @@ dependencies = [
     "gcovr>=6.0",
     "urllib3>=2.5.0",
     "requests>=2.31.0",
+    "fprime-fpp-format",
 ]
 
 [project.optional-dependencies]

@@ -217,13 +217,14 @@ Usage:
   -- New Subtopology --
   Generate a new F' subtopology. This command prompts for the name of the subtopology, and outputs a folder containing the structure for one. The user can then add the subtopology to their own project depending on where the subtopology is generated.
 """,
-    "format": f"""Format C/C++ files using clang-format
+    "format": f"""Format C/C++ files using clang-format and FPP files using fpp-format
 
-'{EXECUTABLE} format' uses 'clang-format' to format C/C++ files. It uses the style specified in the .clang-format file found at the root of the F' framework used by the project (i.e. the 'framework_path' specified in settings.ini).
+'{EXECUTABLE} format' formats source files, routing each file to the appropriate formatter by extension: C/C++ files ('cpp', 'c++', 'cxx', 'cc', 'c', and their 'h' equivalents) are formatted with 'clang-format', and FPP files ('.fpp') are formatted with 'fpp-format'. clang-format uses the style specified in the .clang-format file found at the root of the F' framework used by the project (i.e. the 'framework_path' specified in settings.ini).
 Files are specified through stdin or by using the '--files [<path/to/file>]*' flag. When reading from stdin, file paths should be separated by whitespace characters.
-Because clang-format will try to format any text file it is fed, '{EXECUTABLE} format' restricts by default the files that are processed to commonly used C/C++ file extensions (cpp, c++, cxx, cc, c, and their 'h' equivalents). Backup copies of the formatted files are also created by default.
+Because clang-format will try to format any text file it is fed, '{EXECUTABLE} format' restricts by default the files that are processed to commonly used C/C++ file extensions. Backup copies of the formatted files are also created by default.
+When '.fpp' files are staged, fpp-format is run with '--recursive-includes' so that '.fppi' include fragments reachable from those files are also formatted with the correct entrypoint rule. Bare '.fppi' fragments are not staged directly, as they carry no context to infer their grammar rule from.
 
-Note: '{EXECUTABLE} format' requires that the 'clang-format' utility is installed and in the PATH.
+Note: '{EXECUTABLE} format' requires that the 'clang-format' utility is installed and in the PATH to format C/C++ files, and the 'fpp-format' utility (from the 'fprime-fpp-format' package) to format FPP files. Each is only required when files of the corresponding type are staged.
 More information at https://clang.llvm.org/docs/ClangFormat.html
 
 Examples:
@@ -233,8 +234,11 @@ Examples:
   {EXECUTABLE} format -f Imu/*
   {EXECUTABLE} format -f *.hpp --pass-through --dry-run
 
-  -- Format all files in a given directory --
+  -- Format all C/C++ and FPP files in a given directory --
   {EXECUTABLE} format --dirs Svc Fw Drv
+
+  -- Check formatting without writing (non-zero exit if unformatted) --
+  {EXECUTABLE} format --check --dirs Svc Fw Drv
 
   -- From stdin using Git | format all changed files --
   git diff --name-only --relative | {EXECUTABLE} format --stdin

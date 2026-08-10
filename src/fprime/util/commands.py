@@ -21,7 +21,7 @@ import importlib.metadata
 
 
 from fprime.fbuild.builder import Build, InvalidBuildCacheException
-from fprime.util.code_formatter import ClangFormatter
+from fprime.util.code_formatter import ClangFormatter, FppFormatter
 from .versioning import VersionException, FPRIME_PIP_PACKAGES
 from fprime.util.cookiecutter_wrapper import (
     new_component,
@@ -161,7 +161,11 @@ def run_code_format(
     __: Dict[str, str],
     ___: List[str],
 ):
-    """Runs code formatting using clang-format
+    """Runs code formatting using clang-format (C/C++) and fpp-format (FPP)
+
+    Files are routed to the appropriate formatter by extension: C/C++ files go
+    to clang-format, `.fpp` files go to fpp-format. A formatter is only required
+    to be installed when at least one of its files is staged.
 
     Args:
         build: used to retrieve .clang-format file
@@ -182,45 +186,72 @@ def run_code_format(
         build.settings.get("framework_path", Path(".")) / ".clang-format",
         options,
     )
-    if not clang_formatter.is_supported():
-        print(
-            f"[ERROR] Cannot find executable: {clang_formatter.executable}. Unable to run formatting.",
-            file=sys.stderr,
-        )
-        return 1
-    # Allow requested file extensions
+    fpp_formatter = FppFormatter("fpp-format", options)
+    formatters = [clang_formatter, fpp_formatter]
+
+    # Allow requested file extensions (clang-format only; fpp-format has a fixed
+    # extension set driven by its include-following behavior)
     for file_ext in parsed.allow_extension:
         clang_formatter.allow_extension(file_ext)
-    # Stage all files that are passed through stdin, if requested
+
+    # Gather explicitly listed files (from --files and, if requested, stdin) and
+    # stage each into every formatter. Each formatter's stage_file() filters by
+    # its own allowed extensions, so files route themselves to the right tool.
+    explicit_files = list(parsed.files)
     if parsed.stdin:
-        for filename in sys.stdin.read().split():
-            clang_formatter.stage_file(Path(filename))
-    # Stage all files that are passed through --files
-    for filename in parsed.files:
-        clang_formatter.stage_file(Path(filename))
-    # Search for files within --dirs and stage them
+        explicit_files.extend(Path(name) for name in sys.stdin.read().split())
+    for filename in explicit_files:
+        for formatter in formatters:
+            formatter.stage_file(Path(filename))
+    # Search for files within --dirs and stage them into each formatter
     for dirname in parsed.dirs:
         dir_path = Path(dirname)
         if not dir_path.is_dir():
             print(f"[INFO] {dir_path} is not a directory. Skipping.")
             continue
-        for allowed_ext in clang_formatter.allowed_extensions:
-            for file in dir_path.rglob(f"*{allowed_ext}"):
-                clang_formatter.stage_file(file)
+        for formatter in formatters:
+            for allowed_ext in formatter.allowed_extensions:
+                for file in dir_path.rglob(f"*{allowed_ext}"):
+                    formatter.stage_file(file)
     # Remove staged files that are within excluded paths
     for excluded in parsed.exclude:
         excluded_path = Path(excluded)
         if excluded_path.is_file():
-            clang_formatter.exclude_file(excluded_path)
+            for formatter in formatters:
+                formatter.exclude_file(excluded_path)
         elif excluded_path.is_dir():
-            for allowed_ext in clang_formatter.allowed_extensions:
-                for file in excluded_path.rglob(f"*{allowed_ext}"):
-                    clang_formatter.exclude_file(file)
+            for formatter in formatters:
+                for allowed_ext in formatter.allowed_extensions:
+                    for file in excluded_path.rglob(f"*{allowed_ext}"):
+                        formatter.exclude_file(file)
         else:
             print(f"[INFO] {excluded_path} is not a valid path. Skipping.")
             continue
 
-    return clang_formatter.execute(build, parsed.path, ({}, parsed.pass_through))
+    # Run each formatter that has files staged. --pass-through is forwarded only
+    # to clang-format (its historical target); fpp-format receives no extra args.
+    returncode = 0
+    if clang_formatter._files_to_format:
+        if not clang_formatter.is_supported():
+            print(
+                f"[ERROR] Cannot find executable: {clang_formatter.executable}. Unable to run formatting.",
+                file=sys.stderr,
+            )
+            return 1
+        returncode |= clang_formatter.execute(
+            build, parsed.path, ({}, parsed.pass_through)
+        )
+    if fpp_formatter._files_to_format:
+        if not fpp_formatter.is_supported():
+            print(
+                f"[ERROR] Cannot find executable: {fpp_formatter.executable}. "
+                "Install the 'fprime-fpp-format' package to format FPP files.",
+                file=sys.stderr,
+            )
+            return 1
+        returncode |= fpp_formatter.execute(build, parsed.path, ({}, []))
+
+    return returncode
 
 
 def run_version_check(
