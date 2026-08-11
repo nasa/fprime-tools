@@ -201,8 +201,12 @@ def run_code_format(
     if parsed.stdin:
         explicit_files.extend(Path(name) for name in sys.stdin.read().split())
     for filename in explicit_files:
-        for formatter in formatters:
-            formatter.stage_file(Path(filename))
+        path = Path(filename)
+        # Route by extension even under --force so files never cross formatters
+        if path.suffix in FPP_ALLOWED_EXTENSIONS:
+            fpp_formatter.stage_file(path)
+        else:
+            clang_formatter.stage_file(path)
     # Search for files within --dirs and stage them into each formatter
     for dirname in parsed.dirs:
         dir_path = Path(dirname)
