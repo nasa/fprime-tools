@@ -10,7 +10,7 @@ module {{cookiecutter.deployment_namespace}} {
     rateGroup_0_25Hz
   }
 
-  topology {{cookiecutter.deployment_name}} {
+  deployment topology {{cookiecutter.deployment_name}} {
 
   # ----------------------------------------------------------------------
   # Subtopology imports
