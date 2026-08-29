@@ -25,6 +25,7 @@ from fprime.util.commands import (
     run_version_check,
 )
 from fprime.util.help_text import HelpText
+from fprime.util.sloc import add_sloc_parsers
 from fprime.fpp.visualize import add_fpp_viz_parsers
 from fprime.fpp.impl import add_fpp_impl_parsers
 
@@ -74,6 +75,7 @@ def skip_build_cache_validation(parsed):
         "purge",
         "info",
         "format",
+        "sloc",
     ]:
         return True
     if parsed.command == "new" and parsed.new_deployment:
@@ -401,14 +403,17 @@ def parse_args(args):
     fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
     viz_runners, viz_parsers = add_fpp_viz_parsers(subparsers, common_parser)
     impl_runners, impl_parsers = add_fpp_impl_parsers(subparsers, common_parser)
+    sloc_runners, sloc_parsers = add_sloc_parsers(subparsers, common_parser, HelpText)
     parsers.update(fbuild_parsers)
     parsers.update(fpp_parsers)
     parsers.update(viz_parsers)
     parsers.update(impl_parsers)
+    parsers.update(sloc_parsers)
     runners.update(fbuild_runners)
     runners.update(fpp_runners)
     runners.update(viz_runners)
     runners.update(impl_runners)
+    runners.update(sloc_runners)
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run
