@@ -164,7 +164,7 @@ def run_code_format(
     """Runs code formatting using clang-format
 
     Args:
-        build: used to retrieve .clang-format file
+        build: unused; format runs without a build cache (may be None)
         parsed: parsed input arguments
         __: unused cmake_args
         ___: unused make_args
@@ -177,9 +177,12 @@ def run_code_format(
         "validate_extensions": not parsed.force,
         "check": parsed.check,
     }
+    # No explicit style file: clang-format is invoked with --style=file, which
+    # discovers the nearest .clang-format from each input file's directory
+    # (projects and libraries provide their own).
     clang_formatter = ClangFormatter(
         "clang-format",
-        build.settings.get("framework_path", Path(".")) / ".clang-format",
+        None,
         options,
     )
     if not clang_formatter.is_supported():

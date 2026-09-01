@@ -61,7 +61,7 @@ def skip_build_loading(parsed):
     """Determines if the build load step should be skipped. Commands that do not require a build object
     should manually be added here by the developer.
     """
-    if parsed.command == "version-check":
+    if parsed.command in ["version-check", "format"]:
         return True
     return False
 
@@ -73,7 +73,6 @@ def skip_build_cache_validation(parsed):
     if parsed.command in [
         "purge",
         "info",
-        "format",
     ]:
         return True
     if parsed.command == "new" and parsed.new_deployment:
