@@ -2,6 +2,7 @@
 
 import glob
 import os
+import re
 import sys
 
 from typing import TYPE_CHECKING
@@ -360,21 +361,61 @@ def new_rule_based_testing(build: Build, parsed_args: "argparse.Namespace"):
     return 0
 
 
+# Cookiecutter names become FPP identifiers: letters, digits, and underscores, not
+# starting with a digit.
+_FPP_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+# Characters that can terminate or inject into a CMake quoted argument (backslash,
+# double quote, dollar) or a CMake list (semicolon), plus control characters. Anything
+# else, including spaces and non-ASCII, is a legal path segment inside a quoted argument.
+_UNSAFE_CMAKE_CHARS = re.compile(r'[\\"$;\x00-\x1f\x7f]')
+
+
 def register_with_cmake(gen_path: Path, proj_root: Path, cmake_root: Path):
     cmake_file = find_nearest_cmake_file(gen_path, cmake_root, proj_root)
-    if cmake_file is None or not add_to_cmake(
-        cmake_file,
-        gen_path.relative_to(cmake_file.parent),
-        proj_root,
-    ):
+    registered = False
+    if cmake_file is not None:
+        try:
+            rel_path = gen_path.relative_to(cmake_file.parent)
+        except ValueError as exc:
+            print(f"[ERROR] {exc}")
+        else:
+            registered = add_to_cmake(cmake_file, rel_path, proj_root)
+    if not registered:
         print(
             f"[INFO] Could not register {gen_path} with build system. Please add it manually."
         )
 
 
+def _safe_cmake_relpath(comp_path: Path) -> str:
+    """Return a relative POSIX path safe to interpolate into a CMake quoted string.
+
+    Rejects absolute paths, ``.`` / ``..`` parts, and characters that can close or
+    inject into ``add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/.../")``.
+    Parent directories are otherwise taken as-is: they already exist on disk and the
+    new leaf directory name is validated separately by ``is_valid_name``.
+    """
+    posix = Path(comp_path).as_posix()
+    if Path(comp_path).is_absolute() or posix.startswith("/"):
+        raise ValueError(f"Refusing to register absolute path: {comp_path}")
+    parts = Path(posix).parts
+    if not parts or any(part in (".", "..") for part in parts):
+        raise ValueError(f"Refusing to register path: {comp_path}")
+    if _UNSAFE_CMAKE_CHARS.search(posix):
+        raise ValueError(
+            f"Refusing to register path with unsafe characters: {comp_path}"
+        )
+    return posix
+
+
 def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
     """Adds comp_path directory to CMakeLists.txt. If project_root is supplied,
     the logged path will be relative to the project root instead of absolute"""
+    try:
+        rel = _safe_cmake_relpath(comp_path)
+    except ValueError as exc:
+        print(f"[ERROR] {exc}")
+        return False
+
     short_display_path = (
         list_file
         if project_root is None
@@ -384,10 +425,13 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
     with open(list_file, "r") as f:
         lines = f.readlines()
 
-    addition = (
+    addition = f'add_fprime_subdirectory("${{CMAKE_CURRENT_LIST_DIR}}/{rel}/")\n'
+    # Older releases wrote str(comp_path), which uses backslashes on Windows. Treat such a
+    # line as already registered rather than appending a duplicate.
+    legacy_addition = (
         'add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/' + str(comp_path) + '/")\n'
     )
-    if addition in lines:
+    if addition in lines or legacy_addition in lines:
         print("Already added to CMakeLists.txt")
         return True
 
@@ -405,34 +449,24 @@ def add_to_cmake(list_file: Path, comp_path: Path, project_root: Path = None):
 
 
 def is_valid_name(word: str):
-    invalid_characters = [
-        "#",
-        "%",
-        "&",
-        "{",
-        "}",
-        "/",
-        "\\",
-        "<",
-        ">",
-        "*",
-        "?",
-        " ",
-        "$",
-        "!",
-        "'",
-        '"',
-        ":",
-        "@",
-        "+",
-        "`",
-        "|",
-        "=",
-        "-",
-    ]
-    for char in invalid_characters:
-        if isinstance(word, str) and char in word:
+    """Check that a cookiecutter name is a valid FPP identifier.
+
+    Names must consist of letters, digits, and underscores and must not start with a
+    digit. This keeps them valid FPP/C++ identifiers and prevents CMake injection.
+
+    Returns:
+        "valid" if the name is acceptable, otherwise the first offending character
+        (or the empty string for an empty name).
+    """
+    if not isinstance(word, str):
+        raise ValueError("Incorrect usage of is_valid_name")
+    if _FPP_IDENT.fullmatch(word):
+        return "valid"
+    if not word:
+        return ""
+    if word[0].isdigit():
+        return word[0]
+    for char in word:
+        if not re.fullmatch(r"[A-Za-z0-9_]", char):
             return char
-        if not isinstance(word, str):
-            raise ValueError("Incorrect usage of is_valid_name")
-    return "valid"
+    return word

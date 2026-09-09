@@ -222,6 +222,10 @@ Usage:
     
   -- New Subtopology --
   Generate a new F' subtopology. This command prompts for the name of the subtopology, and outputs a folder containing the structure for one. The user can then add the subtopology to their own project depending on where the subtopology is generated.
+
+Naming rules:
+  Component, deployment, module, and subtopology names are used directly as FPP and C++ identifiers, so they must consist of letters, digits, and underscores only and must not start with a digit (e.g. 'GpsManager', 'Bus1553', '_Internal'). Names such as '1553Bus', 'Gps.v2', or 'My-Component' are rejected. Earlier releases only rejected a fixed list of special characters; the stricter rule ensures every generated name is a valid FPP identifier and keeps the build system registration safe.
+  Existing parent directories are not subject to this rule. A new component created under a directory such as 'Flight Software/GNC' registers with the build system normally.
 """,
     "format": f"""Format C/C++ files using clang-format
 

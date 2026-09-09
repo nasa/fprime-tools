@@ -1,6 +1,6 @@
 {
     "module_name": "MyModule",
     "__prompts__": {
-        "module_name": "Module name"
+        "module_name": "Module name (letters, digits, underscores; must not start with a digit)"
       }
 }
