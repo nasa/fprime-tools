@@ -4,5 +4,5 @@ name = "{{ cookiecutter.subtopology_name }}"
 
 if is_valid_name(name) != "valid":
     raise ValueError(
-        f"Unacceptable subtopology name: {name}. Do not use spaces or special characters"
+        f"Unacceptable subtopology name: {name}. Use only letters, digits, and underscores, and do not start with a digit"
     )

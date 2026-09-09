@@ -4,5 +4,5 @@ name = "{{ cookiecutter.deployment_name }}"
 
 if is_valid_name(name) != "valid":
     raise ValueError(
-        f"Unacceptable deployment name: {name}. Do not use spaces or special characters"
+        f"Unacceptable deployment name: {name}. Use only letters, digits, and underscores, and do not start with a digit"
     )
