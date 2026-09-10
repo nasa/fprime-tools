@@ -27,6 +27,7 @@ from fprime.util.commands import (
 from fprime.util.help_text import HelpText
 from fprime.fpp.visualize import add_fpp_viz_parsers
 from fprime.fpp.impl import add_fpp_impl_parsers
+from fprime.fpp.topology_check import add_topology_check_parsers
 
 
 def utility_entry(args):
@@ -400,14 +401,19 @@ def parse_args(args):
     fpp_runners, fpp_parsers = add_fpp_parsers(subparsers, common_parser)
     viz_runners, viz_parsers = add_fpp_viz_parsers(subparsers, common_parser)
     impl_runners, impl_parsers = add_fpp_impl_parsers(subparsers, common_parser)
+    check_runners, check_parsers = add_topology_check_parsers(
+        subparsers, common_parser, HelpText
+    )
     parsers.update(fbuild_parsers)
     parsers.update(fpp_parsers)
     parsers.update(viz_parsers)
     parsers.update(impl_parsers)
+    parsers.update(check_parsers)
     runners.update(fbuild_runners)
     runners.update(fpp_runners)
     runners.update(viz_runners)
     runners.update(impl_runners)
+    runners.update(check_runners)
     runners.update(add_special_parsers(subparsers, common_parser, HelpText))
 
     # Parse and prepare to run

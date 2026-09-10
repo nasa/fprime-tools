@@ -258,6 +258,25 @@ Examples:
 
 
 """,
+    "topology-check": f"""Check a deployment topology for capacity limits that would assert at run time
+
+Reads the generated topology, topology dictionary, and configuration headers from the build cache of a deployment, along with the FPP sources indexed by locs.fpp, and checks limits that are otherwise only reported by an FW_ASSERT when the flight software starts:
+
+  1. Every Svc.Health instance has a queue at least as deep as its number of ping targets. Health drains its queue only on Run, so every ping reply of a cycle must fit. (error)
+  2. The command dispatcher opcode table (CMD_DISPATCHER_DISPATCH_TABLE_SIZE) holds every command in the dictionary. (error)
+  3. Every queued component instance has a queue at least as deep as the number of connections into its async input ports that assert on overflow (ports marked 'drop' or 'hook' are ignored). This is a heuristic. (warning)
+
+Run this command from a deployment directory after '{EXECUTABLE} generate' or '{EXECUTABLE} build'. The exit code is non-zero when an error is found, or when a warning is found and --warnings-as-errors is set.
+
+Examples:
+
+  -- Check the deployment in the current directory --
+  cd Ref
+  {EXECUTABLE} topology-check
+
+  -- Fail on heuristic warnings too, for use in CI --
+  {EXECUTABLE} topology-check --warnings-as-errors
+""",
 }
 
 
