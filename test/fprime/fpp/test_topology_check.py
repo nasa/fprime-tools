@@ -36,7 +36,8 @@ from fprime.fpp.topology_check import (
     run_topology_check,
 )
 
-TOPOLOGY_HPP = textwrap.dedent("""
+TOPOLOGY_HPP = textwrap.dedent(
+    """
     namespace CdhCore {
       //! health
       extern Svc::Health health;
@@ -68,9 +69,11 @@ TOPOLOGY_HPP = textwrap.dedent("""
         };
       }
     }
-    """)
+    """
+)
 
-TOPOLOGY_CPP = textwrap.dedent("""
+TOPOLOGY_CPP = textwrap.dedent(
+    """
     void setupTopology() {
       CdhCore::health.setPingEntries(
           ConfigObjects::CdhCore_health::pingEntries,
@@ -97,9 +100,11 @@ TOPOLOGY_CPP = textwrap.dedent("""
       Deploy::Nested::rateGroup5Hz.set_RateGroupMemberOut_OutputPort(2, Deploy::bufferer.get_bufferIn_InputPort(2));
       Deploy::Nested::rateGroup5Hz.set_RateGroupMemberOut_OutputPort(3, Deploy::bufferer.get_dropped_InputPort(0));
     }
-    """)
+    """
+)
 
-HEALTH_FPP = textwrap.dedent("""
+HEALTH_FPP = textwrap.dedent(
+    """
     module Svc {
       @ Health component
       queued component Health {
@@ -110,9 +115,11 @@ HEALTH_FPP = textwrap.dedent("""
         sync input port Run: Svc.Sched
       }
     }
-    """)
+    """
+)
 
-BUFFERER_FPP = textwrap.dedent("""
+BUFFERER_FPP = textwrap.dedent(
+    """
     module Deploy {
       queued component Bufferer {
         async input port bufferIn: [3] Fw.BufferSend
@@ -125,18 +132,22 @@ BUFFERER_FPP = textwrap.dedent("""
         sync input port in: Svc.Sched
       }
     }
-    """)
+    """
+)
 
-RATE_GROUP_FPP = textwrap.dedent("""
+RATE_GROUP_FPP = textwrap.dedent(
+    """
     module Svc {
       active component ActiveRateGroup {
         async input port CycleIn: Svc.Cycle drop
         async input port PingIn: Ping drop # trailing comment with drop
       }
     }
-    """)
+    """
+)
 
-CDHCORE_FPP = textwrap.dedent("""
+CDHCORE_FPP = textwrap.dedent(
+    """
     module CdhCore {
         instance $health: Svc.Health base id CdhCoreConfig.BASE_ID + 0x002000 \\
             queue size CdhCoreConfig.QueueSizes.$health \\
@@ -147,9 +158,11 @@ CDHCORE_FPP = textwrap.dedent("""
         }
         instance cmdDisp: Svc.CommandDispatcher base id CdhCoreConfig.BASE_ID + 0x000000
     }
-    """)
+    """
+)
 
-DEPLOY_INSTANCES_FPP = textwrap.dedent("""
+DEPLOY_INSTANCES_FPP = textwrap.dedent(
+    """
     module Deploy {
       module Nested {
         instance rateGroup5Hz: Svc.ActiveRateGroup base id 0x20000000 \\
@@ -160,9 +173,11 @@ DEPLOY_INSTANCES_FPP = textwrap.dedent("""
       instance bufferer: Bufferer base id 0x20001000 queue size 2
       instance version: Svc.Version base id 0x20002000
     }
-    """)
+    """
+)
 
-LOCS_FPP = textwrap.dedent("""
+LOCS_FPP = textwrap.dedent(
+    """
     locate component Svc.Health at "src/Health.fpp"
     locate component Deploy.Bufferer at "src/Bufferer.fpp"
     locate component Svc.ActiveRateGroup at "src/ActiveRateGroup.fpp"
@@ -172,14 +187,17 @@ LOCS_FPP = textwrap.dedent("""
     locate instance Deploy.bufferer at "src/instances.fpp"
     locate instance Deploy.version at "src/instances.fpp"
     locate topology Deploy.Deploy at "src/topology.fpp"
-    """)
+    """
+)
 
-DISPATCHER_CFG = textwrap.dedent("""
+DISPATCHER_CFG = textwrap.dedent(
+    """
     enum {
         CMD_DISPATCHER_DISPATCH_TABLE_SIZE = 150,  // !< The size of the table holding opcodes to dispatch
         CMD_DISPATCHER_SEQUENCER_TABLE_SIZE = 25,  // !< The size of the table holding commands in progress
     };
-    """)
+    """
+)
 
 
 def make_dictionary(command_count: int) -> str:
