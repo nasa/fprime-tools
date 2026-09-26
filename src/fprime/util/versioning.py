@@ -1,6 +1,7 @@
 """FPP tools to requirements file version check"""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -21,15 +22,21 @@ def get_version(package: str, requirements: Path):
 
     This will read all requirements from the requirements file and attempt to print the version of the package that is
     listed within. This can handle multiple styles of requirements. Firm requirements designated by a "==" and developer
-    requirements designated with an "@".
+    requirements designated with an "@". Comments and requirements for other package names are ignored.
 
     Args:
         package: name of package to look for
         requirements: path to requirements file to parse
     """
+    # Match the requirement's package name, not mentions in comments, URLs,
+    # or other package names that happen to contain it.
+    package_pattern = re.compile(rf"^{re.escape(package)}(?=\s|\[|[<>=!~@;]|$)")
     with open(requirements, "r") as file_handle:
+        uncommented_lines = (
+            re.split(r"\s+#", line, maxsplit=1)[0].strip() for line in file_handle
+        )
         matching_lines = [
-            line.strip() for line in file_handle.readlines() if package in line
+            line for line in uncommented_lines if package_pattern.match(line)
         ]
     if not matching_lines:
         msg = f"Could not find {package} in requirements file"
@@ -40,7 +47,9 @@ def get_version(package: str, requirements: Path):
         raise VersionException(msg)
 
     # Collapse versions that match
-    versions = list({line.split("==")[-1].split("@")[-1] for line in valid_lines})
+    versions = list(
+        {line.split("==")[-1].split("@")[-1].strip() for line in valid_lines}
+    )
     if len(versions) != 1:
         msg = f"Conflicting versions specified for {package}: {versions}"
         raise VersionException(msg)
