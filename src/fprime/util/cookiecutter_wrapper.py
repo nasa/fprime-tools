@@ -108,6 +108,8 @@ def new_component(build: Build, parsed_args: "argparse.Namespace"):
             and build.get_settings("component_cookiecutter", None) != "default"
         ):
             source = build.get_settings("component_cookiecutter", None)
+            if not os.path.isabs(source):
+                source = os.path.join(proj_root, source)
             print(f"[INFO] Cookiecutter source: {source}")
         else:
             source = (
