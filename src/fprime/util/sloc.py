@@ -180,8 +180,8 @@ class ModuleSloc:
     is_deployment: bool = False
     categories: Dict[str, Counts] = field(default_factory=dict)
     ac_status: AcStatus = AcStatus.NOT_ATTEMPTED
-    # directory module names (and the unit-test path check) are relative to
-    root: Optional[Path] = None
+    # the directory module names and the unit-test path check are relative to (section root)
+    name_root: Optional[Path] = None
 
     def add(self, category: str, counts: Counts):
         """Accumulate counts into a category"""
@@ -354,7 +354,7 @@ def discover_modules(
     modules: Dict[Path, ModuleSloc] = {}
     file_owners: Dict[Path, ModuleSloc] = {}
     other = ModuleSloc(
-        name=OTHER_MODULE_NAME, path=root, section=section, root=name_root
+        name=OTHER_MODULE_NAME, path=root, section=section, name_root=name_root
     )
 
     def walk(directory: Path, owner: Optional[ModuleSloc]):
@@ -374,7 +374,7 @@ def discover_modules(
                         path=directory,
                         section=section,
                         is_deployment=is_deployment,
-                        root=name_root,
+                        name_root=name_root,
                     ),
                 )
         for entry in sorted(directory.iterdir()):
@@ -493,7 +493,7 @@ def count_files(
 ) -> None:
     """Count all files, accumulating into their owning modules and the language rollup"""
     for path, module in file_owners.items():
-        root = module.root if module.root is not None else module.path
+        root = module.name_root if module.name_root is not None else module.path
         count_file(path, module, languages, is_ut=is_ut_file(path, root), is_ac=False)
 
 
