@@ -472,6 +472,17 @@ def test_autocode_states(tmp_path):
         by_name["MyModule"].ac_status is AcStatus.NOT_BUILT
     )  # has model.fpp, no autocode
     assert "MyModule" in report.ac_missing() and "fprime-util build" in report.ac_note()
+    # the fpp autocoder's record decides when present: nothing expected -> counted (AC = 0)
+    fpp_cache = module_cache / "fpp-cache"
+    fpp_cache.mkdir()
+    (fpp_cache / "generated.txt").write_text("")
+    count_autocoded(build, report.modules, report.languages)
+    assert by_name["MyModule"].ac_status is AcStatus.COUNTED
+    (fpp_cache / "generated.txt").write_text(
+        "CompComponentAc.cpp\nCompComponentAc.hpp\n"
+    )
+    count_autocoded(build, report.modules, report.languages)
+    assert by_name["MyModule"].ac_status is AcStatus.NOT_BUILT
     (module_cache / "CompComponentAc.cpp").write_text(CPP_SOURCE)
     count_autocoded(build, report.modules, report.languages)
     assert by_name["MyModule"].ac_status is AcStatus.COUNTED

@@ -485,6 +485,19 @@ def cache_available(build: Build) -> bool:
     return build.build_dir is not None and (build.build_dir / "CMakeCache.txt").exists()
 
 
+def expected_autocode(cache_path: Path) -> Optional[List[str]]:
+    """Autocoded files the fpp autocoder recorded for a module at generate time (fpp-cache/
+    generated.txt), None when the module has no such record"""
+    generated = cache_path / "fpp-cache" / "generated.txt"
+    if not generated.is_file():
+        return None
+    return [
+        line.strip()
+        for line in generated.read_text(errors="replace").splitlines()
+        if line.strip()
+    ]
+
+
 def count_autocoded(
     build: Build, modules: List[ModuleSloc], languages: Dict[str, Counts]
 ) -> None:
@@ -492,7 +505,8 @@ def count_autocoded(
 
     Records availability per module in ModuleSloc.ac_status so that modules without a build
     cache directory are reported as unknown rather than zero. Must run after count_files(): the
-    not-built check reads the module's FPP file count.
+    not-built check falls back to the module's FPP file count when fpp-cache/generated.txt is
+    absent.
     """
     if not cache_available(build):
         return
@@ -516,10 +530,13 @@ def count_autocoded(
             is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
             count_file(path, module, languages, is_ut=is_ut, is_ac=True)
             counted += 1
-        # a module with FPP models but no autocode in its cache was generated, not built
+        # autocode expected (per the fpp autocoder's record, or FPP models when there is no
+        # record) but absent from the cache: the module was generated, not built
+        expected = expected_autocode(cache_path)
         has_models = module.category(CATEGORY_FPP).files > 0
+        awaits_build = bool(expected) if expected is not None else has_models
         module.ac_status = (
-            AcStatus.NOT_BUILT if counted == 0 and has_models else AcStatus.COUNTED
+            AcStatus.NOT_BUILT if counted == 0 and awaits_build else AcStatus.COUNTED
         )
 
 

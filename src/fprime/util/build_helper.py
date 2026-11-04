@@ -83,7 +83,7 @@ def parse_gitmodules(gitmodules_path: Path):
     """
     if not gitmodules_path.is_file():
         return []
-    content = gitmodules_path.read_text()
+    content = gitmodules_path.read_text(errors="replace")
     return [
         match.strip()
         for match in re.findall(r"^\s*path\s*=\s*(.+)", content, re.MULTILINE)
