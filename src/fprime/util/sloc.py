@@ -335,6 +335,35 @@ def find_section_name(path: Path, sections: List[Tuple[str, Path, List[Path]]]) 
     return best[0] if best else "project"
 
 
+def ninja_link_tokens(ninja_file: Path, executable: str) -> set:
+    """Extract library names linked into an executable from a build.ninja file
+
+    Walks the ninja build graph from the build statement(s) producing the executable, following
+    dependencies transitively, and collects the lib<name> tokens seen along the way.
+    """
+    text = ninja_file.read_text(errors="replace").replace("$\n", " ")
+    edges: Dict[str, List[str]] = {}
+    for line in text.splitlines():
+        if not line.startswith("build ") or ":" not in line:
+            continue
+        outputs, _, remainder = line[len("build ") :].partition(":")
+        dependencies = remainder.replace("|", " ").split()[1:]  # drop the rule name
+        for output in outputs.replace("|", " ").split():
+            edges.setdefault(output, []).extend(dependencies)
+    starts = [output for output in edges if Path(output).name == executable]
+    tokens = set()
+    visited = set()
+    queue = list(starts)
+    while queue:
+        node = queue.pop()
+        if node in visited:
+            continue
+        visited.add(node)
+        tokens.update(LIBRARY_TOKEN_PATTERN.findall(node))
+        queue.extend(edges.get(node, []))
+    return tokens
+
+
 def deployment_module_paths(
     build: Build, deployment: Path, modules: List[ModuleSloc]
 ) -> List[ModuleSloc]:
@@ -354,9 +383,7 @@ def deployment_module_paths(
         pass
     ninja_file = build.build_dir / "build.ninja" if build.build_dir else None
     if not tokens and ninja_file is not None and ninja_file.exists():
-        tokens.update(
-            LIBRARY_TOKEN_PATTERN.findall(ninja_file.read_text(errors="replace"))
-        )
+        tokens.update(ninja_link_tokens(ninja_file, deployment.name))
     if not tokens:
         raise SlocException(
             f"Could not determine dependencies for deployment '{deployment.name}' from the "
