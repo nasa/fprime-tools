@@ -225,13 +225,13 @@ Usage:
 """,
     "sloc": f"""(Experimental) Count source lines of code (SLOC) for F' modules
 
-'{EXECUTABLE} sloc' segments the project into modules (any directory whose CMakeLists.txt calls register_fprime_*, add_library, or add_executable) and counts SLOC per module using pygount. FPP and FPPI files are supported through a bundled pygments lexer plugin. Results roll up per section (project, framework, each library from 'library_locations' in settings.ini) and for the whole repository. Counts are classified as FPP (model files), CMake, C/C++ (with separate autocode and unit-test splits and a C/C++ total), and per-language 'other' buckets with an 'other' total. Hand-written unit test code is identified by a test/, tests/, or ut/ directory inside the module; autocoded unit test support (TesterBase, GTestBase, TesterHelpers) is reported in the C/C++ AC UT column.
+'{EXECUTABLE} sloc' segments the project into modules (any directory whose CMakeLists.txt calls register_fprime_*, add_library, or add_executable) and counts SLOC per module using pygount. FPP and FPPI files are supported through a bundled pygments lexer plugin. Results roll up per section (project, framework, each library from 'library_locations' in settings.ini) and for the whole repository. Counts are classified as FPP (model files), CMake, C/C++ (with separate autocode and unit-test splits and a C/C++ total), and per-language 'other' buckets with an 'other' total. Hand-written unit test code is identified by a test/, tests/, or ut/ directory inside the module; autocoded unit test support (TesterBase, GTestBase, TesterHelpers) is reported in the C/C++ AC UT column. FPP annotations ('@', '@<') count as comments, not code. Autocode (AC) columns reflect the autocode present in the build cache, so run '{EXECUTABLE} build' before counting it.
 
 The command is context aware:
   - In a component/module directory: counts just that module
   - In a deployment directory: counts the deployment and its linked dependencies (requires a build cache)
   - At the project root: counts everything, segmented by project/framework/libraries
-  - With '--recursive': counts all modules under the current directory (requires a build cache)
+  - With '--recursive': counts all modules under the current directory
 
 When a build cache is available, autocoded (AC) files generated into the build cache are counted in a separate column. Without a build cache, build directories are ignored and AC counts are omitted. Git submodules (e.g. googletest) are excluded unless '--include-submodules' is supplied.
 

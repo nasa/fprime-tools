@@ -9,7 +9,7 @@ The command is context aware:
     - In a component/module directory: counts just that module
     - In a deployment directory: counts the deployment and its dependencies (needs build cache)
     - At the project root: counts everything, segmented by project/framework/libraries
-    - With --recursive: counts all modules under the current directory (needs build cache)
+    - With --recursive: counts all modules under the current directory
 
 FPP files are supported through the FPP pygments lexer plugin (fprime.fpp.lexer) which pygount
 picks up automatically.
@@ -29,19 +29,23 @@ from typing import TYPE_CHECKING, Callable, Dict, List, NamedTuple, Optional, Tu
 
 from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build
+from fprime.fbuild.cmake import CMakeOrphanException
 from fprime.fbuild.types import MissingBuildCachePath
+from fprime.util.build_helper import parse_gitmodules
 
 if (
     TYPE_CHECKING
 ):  # pygount is imported lazily (see analyze_file): it pulls in GitPython
     from pygount import SourceAnalysis
 
+# Target-defining CMake calls: register_fprime_project/target/build_autocoder define no module
 MODULE_PATTERN = re.compile(
-    r"^\s*(register_fprime_\w+|add_library|add_executable)\s*\(", re.MULTILINE
+    r"^\s*(register_fprime_(?:module|library|executable|deployment|ut|config|implementation)"
+    r"|add_library|add_executable)\s*\(",
+    re.MULTILINE,
 )
 DEPLOYMENT_PATTERN = re.compile(r"^\s*register_fprime_deployment\s*\(", re.MULTILINE)
 LIBRARY_TOKEN_PATTERN = re.compile(r"lib([A-Za-z0-9_\-]+)\.(?:a|so|dylib)")
-SUBMODULE_PATH_PATTERN = re.compile(r"^\s*path\s*=\s*(.+)$", re.MULTILINE)
 
 SKIP_DIRECTORY_NAMES = {"__pycache__", "node_modules", "build-artifacts"}
 NON_CODE_LANGUAGES = {
@@ -55,7 +59,7 @@ NON_CODE_LANGUAGES = {
 }
 UT_PATH_NAMES = {"test", "tests", "ut"}
 OTHER_MODULE_NAME = "(non-module files)"
-AC_SUFFIXES = {".hpp", ".cpp", ".h", ".c", ".fppi", ".py"}
+AC_SUFFIXES = {".hpp", ".cpp", ".h", ".c"}
 
 # Language classification: FPP model files, CMake, C/C++ (with UT and autocode splits), other
 CPP_LANGUAGES = {"C++", "C"}
@@ -96,11 +100,14 @@ class ModuleContext(NamedTuple):
 
 
 class Section(NamedTuple):
-    """A report section: its name, root directory, and directories excluded from it"""
+    """A report section: its name, root directory, directories excluded from it, and the
+    directory module names are made relative to (the owning section root when scoped down)
+    """
 
     name: str
     root: Path
     excludes: List[Path]
+    name_root: Optional[Path] = None
 
 
 @dataclass
@@ -157,6 +164,7 @@ class AcStatus(Enum):
 
     NOT_ATTEMPTED = "not-attempted"  # no build cache, autocode counting was not run
     MISSING = "missing"  # build cache present, but no cache directory for this module
+    NOT_BUILT = "not-built"  # module has FPP models but its cache holds no autocode yet
     COUNTED = "counted"  # autocoded files counted from the module's cache directory
 
 
@@ -240,11 +248,11 @@ class SlocReport:
         return any(module.ac_status is AcStatus.COUNTED for module in self.modules)
 
     def ac_missing(self) -> List[str]:
-        """Names of modules whose autocode could not be counted (no build cache directory)"""
+        """Names of modules whose autocode could not be counted (no cache directory or not built)"""
         return [
             module.name
             for module in self.modules
-            if module.ac_status is AcStatus.MISSING
+            if module.ac_status in (AcStatus.MISSING, AcStatus.NOT_BUILT)
         ]
 
     def ac_note(self) -> Optional[str]:
@@ -258,8 +266,9 @@ class SlocReport:
             )
         shown = ", ".join(missing[:5]) + (", ..." if len(missing) > 5 else "")
         return (
-            f"Autocoded (AC) counts are partial: no build cache directory for {len(missing)} "
-            f"module(s) ({shown}); their AC columns show '-' and are excluded from totals."
+            f"Autocoded (AC) counts are partial: no autocode in the build cache for {len(missing)} "
+            f"module(s) ({shown}); their AC columns show '-' and are excluded from totals. "
+            "Run 'fprime-util build' to generate autocode before counting."
         )
 
     def section_totals(self, section: str) -> ModuleSloc:
@@ -305,11 +314,7 @@ def should_skip_directory(path: Path) -> bool:
 
 def read_submodule_paths(root: Path) -> List[Path]:
     """Read git submodule paths under a root, if any"""
-    gitmodules = root / ".gitmodules"
-    if not gitmodules.is_file():
-        return []
-    matches = SUBMODULE_PATH_PATTERN.findall(gitmodules.read_text(errors="replace"))
-    return [(root / match.strip()).resolve() for match in matches]
+    return [(root / path).resolve() for path in parse_gitmodules(root / ".gitmodules")]
 
 
 def registers_module(cmake_lists: Path) -> ModuleKind:
@@ -325,13 +330,16 @@ def registers_module(cmake_lists: Path) -> ModuleKind:
 
 
 def discover_modules(
-    root: Path, section: str, excludes: List[Path]
+    root: Path, section: str, excludes: List[Path], name_root: Optional[Path] = None
 ) -> Tuple[List[ModuleSloc], Dict[Path, ModuleSloc]]:
     """Discover modules under a root and attribute every source file to one
 
-    Files not under any module directory are attributed to a per-section pseudo-module. Returns
-    the module list and a mapping of file path to owning module.
+    Module names are the directory path relative to name_root (default: root) with '/' replaced by
+    '_', matching F Prime's CMake target names. Files not under any module directory are
+    attributed to a per-section pseudo-module. Returns the module list and a mapping of file path
+    to owning module.
     """
+    name_root = name_root if name_root is not None else root
     modules: Dict[Path, ModuleSloc] = {}
     file_owners: Dict[Path, ModuleSloc] = {}
     other = ModuleSloc(name=OTHER_MODULE_NAME, path=root, section=section)
@@ -342,9 +350,9 @@ def discover_modules(
             is_module, is_deployment = registers_module(cmake_lists)
             if is_module:
                 name = (
-                    str(directory.relative_to(root)).replace("/", "_")
-                    if directory != root
-                    else root.name
+                    str(directory.relative_to(name_root)).replace("/", "_")
+                    if directory != name_root
+                    else name_root.name
                 )
                 owner = modules.setdefault(
                     directory,
@@ -379,7 +387,9 @@ def discover_all(
     all_modules: List[ModuleSloc] = []
     all_owners: Dict[Path, ModuleSloc] = {}
     for section in sections:
-        modules, owners = discover_modules(section.root, section.name, section.excludes)
+        modules, owners = discover_modules(
+            section.root, section.name, section.excludes, section.name_root
+        )
         all_modules.extend(modules)
         all_owners.update(owners)
     return all_modules, all_owners
@@ -424,10 +434,13 @@ def analyze_file(path: Path) -> Optional["SourceAnalysis"]:
                     "sloc",
                     fallback_encoding="utf-8",
                     file_handle=handle,
+                    generated_regexes=[],
                 )
         else:
+            # generated_regexes=[] disables pygount's "autogenerated"-comment heuristic: autocode
+            # is identified by its build-cache location, and hand-written files must never be dropped
             analysis = SourceAnalysis.from_file(
-                str(path), "sloc", fallback_encoding="utf-8"
+                str(path), "sloc", fallback_encoding="utf-8", generated_regexes=[]
             )
     except (OSError, UnicodeError, LookupError):
         # unreadable file or undecodable/unknown encoding: not countable, skip it
@@ -487,16 +500,25 @@ def count_autocoded(
             continue  # loose files outside any module have no autocode
         try:
             cache_path = build.get_build_cache_path(module.path)
-        except MissingBuildCachePath:
+        except (MissingBuildCachePath, CMakeOrphanException):
             module.ac_status = AcStatus.MISSING
             continue
         module.ac_status = AcStatus.COUNTED
+        counted = 0
         # Generated files land directly in the module's mirrored cache directory;
         # do not recurse as subdirectories belong to other modules or CMake internals
         for path in sorted(cache_path.iterdir()):
-            if path.is_file() and path.suffix in AC_SUFFIXES:
-                is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
-                count_file(path, module, languages, is_ut=is_ut, is_ac=True)
+            if not path.is_file() or path.suffix not in AC_SUFFIXES:
+                continue
+            if (module.path / path.name).is_file():
+                continue  # a copy of a hand-written source (register_fprime_config), not autocode
+            is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
+            count_file(path, module, languages, is_ut=is_ut, is_ac=True)
+            counted += 1
+        if counted == 0 and module.category(CATEGORY_FPP).files > 0:
+            module.ac_status = (
+                AcStatus.NOT_BUILT
+            )  # generated but not built: autocode unknown
 
 
 def build_report(
@@ -552,14 +574,14 @@ def get_sections(build: Build, include_submodules: bool) -> List[Section]:
     return results
 
 
-def find_section_name(path: Path, sections: List[Section]) -> str:
-    """Find the section name owning a path, preferring the deepest matching root"""
+def find_section(path: Path, sections: List[Section]) -> Optional[Section]:
+    """Find the section owning a path, preferring the deepest matching root"""
     best = None
     for section in sections:
         if path.is_relative_to(section.root):
             if best is None or len(section.root.parts) > len(best.root.parts):
                 best = section
-    return best.name if best else "project"
+    return best
 
 
 def ninja_link_tokens(ninja_file: Path, executable: str) -> set:
@@ -608,7 +630,7 @@ def deployment_modules(
     tokens = set()
     try:
         link_files = list(build.get_build_cache_path(deployment).rglob("link.txt"))
-    except MissingBuildCachePath:
+    except (MissingBuildCachePath, CMakeOrphanException):
         link_files = (
             []
         )  # no mirrored cache directory for the deployment; try build.ninja
@@ -624,10 +646,20 @@ def deployment_modules(
             f"Could not determine dependencies for deployment '{deployment.name}' from the "
             "build cache. Ensure the deployment has been generated and built."
         )
+
+    def configured(module: ModuleSloc) -> bool:
+        """Only modules CMake configured into this cache can be linked by name"""
+        try:
+            build.get_build_cache_path(module.path)
+        except (MissingBuildCachePath, CMakeOrphanException):
+            return False
+        return True
+
     return [
         module
         for module in modules
-        if module.path.is_relative_to(deployment) or module.name in tokens
+        if module.path.is_relative_to(deployment)
+        or (module.name in tokens and configured(module))
     ]
 
 
@@ -748,10 +780,15 @@ def render_csv(report: SlocReport, path: Path):
         writer = csv.writer(handle)
         writer.writerow(["Section"] + report_columns(report))
         writer.writerows(
-            [section] + cells
+            [section, csv_text(cells[0])] + cells[1:]
             for kind, section, cells in report_rows(report)
             if kind != ROW_SECTION
         )
+
+
+def csv_text(text: str) -> str:
+    """Neutralize spreadsheet formula injection: names starting with = + - @ get a quote prefix"""
+    return f"'{text}" if text and text[0] in "=+-@" else text
 
 
 def categories_dict(module: ModuleSloc) -> dict:
@@ -816,27 +853,24 @@ def run_sloc(
     sections = get_sections(build, parsed.include_submodules)
     has_cache = cache_available(build)
 
-    def scoped(name: str, scope: Path) -> Section:
-        """A section for a scope directory, with the excludes that fall under it"""
+    def scoped(scope: Path) -> Section:
+        """The owning section narrowed to a scope directory: its name, its excludes under the
+        scope, and module names still relative to the section root"""
+        owner = find_section(scope, sections)
         return Section(
-            name,
+            owner.name if owner else "project",
             scope,
             [
                 exclude
-                for section in sections
-                for exclude in section.excludes
+                for exclude in (owner.excludes if owner else [])
                 if exclude.is_relative_to(scope)
             ],
+            owner.root if owner else None,
         )
 
     if parsed.recursive:
-        if not has_cache:
-            raise SlocException(
-                "--recursive requires a build cache. Run 'fprime-util generate' first."
-            )
-        name = find_section_name(path, sections)
-        modules, file_owners = discover_all([scoped(name, path)])
-        report = build_report(build, modules, file_owners, with_autocode=True)
+        modules, file_owners = discover_all([scoped(path)])
+        report = build_report(build, modules, file_owners, with_autocode=has_cache)
     elif any(path == section.root for section in sections):
         modules, file_owners = discover_all(sections)
         report = build_report(build, modules, file_owners, with_autocode=has_cache)
@@ -847,7 +881,6 @@ def run_sloc(
                 f"'{path}' is not part of an F Prime module. Use --recursive to count a "
                 "directory tree."
             )
-        name = find_section_name(context.path, sections)
         if context.is_deployment:
             if not has_cache:
                 raise SlocException(
@@ -859,7 +892,7 @@ def run_sloc(
             selected = deployment_modules(build, context.path, modules)
             report = build_report(build, selected, file_owners, with_autocode=True)
         else:
-            modules, file_owners = discover_all([scoped(name, context.path)])
+            modules, file_owners = discover_all([scoped(context.path)])
             report = build_report(build, modules, file_owners, with_autocode=has_cache)
 
     render_table(report)
@@ -900,7 +933,7 @@ def add_sloc_parsers(
         "--recursive",
         default=False,
         action="store_true",
-        help="Count all modules under the current directory (requires a build cache)",
+        help="Count all modules under the current directory",
     )
     sloc_parser.add_argument(
         "--include-submodules",
