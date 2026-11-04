@@ -307,11 +307,12 @@ def analyze_file(path: Path) -> Optional[SourceAnalysis]:
             with tempfile.NamedTemporaryFile(
                 "wb", suffix=".cmake", delete=False
             ) as temporary:
-                temporary.write(path.read_bytes())
+                temporary_path = Path(temporary.name)
             try:
-                return analyze_file(Path(temporary.name))
+                temporary_path.write_bytes(path.read_bytes())
+                return analyze_file(temporary_path)
             finally:
-                Path(temporary.name).unlink()
+                temporary_path.unlink()
         analysis = SourceAnalysis.from_file(
             str(path), "sloc", fallback_encoding="utf-8"
         )
