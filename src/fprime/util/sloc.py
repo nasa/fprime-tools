@@ -21,6 +21,7 @@ import argparse
 import json
 import re
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
@@ -49,6 +50,25 @@ NON_CODE_LANGUAGES = {
 UT_PATH_NAMES = {"test", "tests", "ut"}
 OTHER_MODULE_NAME = "(non-module files)"
 
+# Language classification: FPP model files, CMake, C/C++ (with UT and autocode splits), other
+CPP_LANGUAGES = {"C++", "C"}
+CATEGORY_FPP = "FPP"
+CATEGORY_CMAKE = "CMake"
+CATEGORY_CPP = "C/C++"
+CATEGORY_CPP_AC = "C/C++ AC"
+CATEGORY_CPP_UT = "C/C++ UT"
+CATEGORY_CPP_AC_UT = "C/C++ AC UT"
+BASE_CATEGORIES = [
+    CATEGORY_FPP,
+    CATEGORY_CMAKE,
+    CATEGORY_CPP,
+    CATEGORY_CPP_AC,
+    CATEGORY_CPP_UT,
+    CATEGORY_CPP_AC_UT,
+]
+AC_CATEGORIES = {CATEGORY_CPP_AC, CATEGORY_CPP_AC_UT}
+AC_UT_FILE_PATTERN = re.compile(r"(TesterBase|GTestBase|TesterHelpers)")
+
 
 @dataclass
 class Counts:
@@ -76,22 +96,64 @@ class Counts:
         }
 
 
+def classify(language: str, is_ut: bool, is_ac: bool) -> str:
+    """Map a pygount language (and UT/AC context) to a report category"""
+    if language == "FPP":
+        return CATEGORY_FPP
+    if language == "CMake":
+        return CATEGORY_CMAKE
+    if language in CPP_LANGUAGES:
+        if is_ac:
+            return CATEGORY_CPP_AC_UT if is_ut else CATEGORY_CPP_AC
+        return CATEGORY_CPP_UT if is_ut else CATEGORY_CPP
+    return language
+
+
 @dataclass
 class ModuleSloc:
-    """SLOC results for a single module"""
+    """SLOC results for a single module, split into categories"""
 
     name: str
     path: Path
     section: str
     is_deployment: bool = False
-    counts: Counts = field(default_factory=Counts)
-    ut_counts: Counts = field(default_factory=Counts)
-    ac_counts: Optional[Counts] = None
+    categories: Dict[str, Counts] = field(default_factory=dict)
+
+    def add(self, category: str, counts: Counts):
+        """Accumulate counts into a category"""
+        self.categories.setdefault(category, Counts()).accumulate(counts)
+
+    def category(self, category: str) -> Counts:
+        """Counts for a category (zero counts if absent)"""
+        return self.categories.get(category, Counts())
+
+    def cpp_total(self) -> int:
+        """Total C/C++ code lines across code, UT, and autocode"""
+        return sum(
+            self.category(category).code
+            for category in (
+                CATEGORY_CPP,
+                CATEGORY_CPP_AC,
+                CATEGORY_CPP_UT,
+                CATEGORY_CPP_AC_UT,
+            )
+        )
+
+    def other_languages(self) -> List[str]:
+        """Languages outside the base categories"""
+        return [c for c in self.categories if c not in BASE_CATEGORIES]
+
+    def other_total(self) -> int:
+        """Total code lines across all 'other' languages"""
+        return sum(self.categories[c].code for c in self.other_languages())
 
     def total_code(self) -> int:
-        """Total code lines including UT and autocoded lines"""
-        total = self.counts.code + self.ut_counts.code
-        return total + (self.ac_counts.code if self.ac_counts else 0)
+        """Total code lines across all categories"""
+        return sum(counts.code for counts in self.categories.values())
+
+    def total_files(self) -> int:
+        """Total files across all categories"""
+        return sum(counts.files for counts in self.categories.values())
 
 
 @dataclass
@@ -109,23 +171,31 @@ class SlocReport:
             seen.setdefault(module.section, None)
         return list(seen.keys())
 
-    def section_totals(self, section: str) -> Tuple[Counts, Counts, Counts]:
-        """Totals (flight, ut, ac) for a section"""
+    def other_languages(self) -> List[str]:
+        """All 'other' languages in the report, largest first"""
+        totals: Dict[str, int] = {}
+        for module in self.modules:
+            for language in module.other_languages():
+                totals[language] = (
+                    totals.get(language, 0) + module.categories[language].code
+                )
+        return sorted(totals, key=lambda language: -totals[language])
+
+    def section_totals(self, section: str) -> ModuleSloc:
+        """Totals for a section, as a pseudo-module"""
         return self._totals([m for m in self.modules if m.section == section])
 
-    def grand_totals(self) -> Tuple[Counts, Counts, Counts]:
-        """Totals (flight, ut, ac) for the whole report"""
+    def grand_totals(self) -> ModuleSloc:
+        """Totals for the whole report, as a pseudo-module"""
         return self._totals(self.modules)
 
     @staticmethod
-    def _totals(modules: List[ModuleSloc]) -> Tuple[Counts, Counts, Counts]:
-        flight, ut, autocoded = Counts(), Counts(), Counts()
+    def _totals(modules: List[ModuleSloc]) -> ModuleSloc:
+        total = ModuleSloc(name="TOTAL", path=Path("."), section="")
         for module in modules:
-            flight.accumulate(module.counts)
-            ut.accumulate(module.ut_counts)
-            if module.ac_counts is not None:
-                autocoded.accumulate(module.ac_counts)
-        return flight, ut, autocoded
+            for category, counts in module.categories.items():
+                total.add(category, counts)
+        return total
 
 
 def is_build_cache(path: Path) -> bool:
@@ -229,6 +299,17 @@ def is_ut_file(path: Path, module_path: Path) -> bool:
 def analyze_file(path: Path) -> Optional[SourceAnalysis]:
     """Run pygount on a single file, returning None for non-code files"""
     try:
+        # pygount treats any *.txt (including CMakeLists.txt) as plain text; reanalyze
+        # CMakeLists.txt under a .cmake name so it counts as CMake
+        if path.name == "CMakeLists.txt":
+            with tempfile.NamedTemporaryFile(
+                "wb", suffix=".cmake", delete=False
+            ) as temporary:
+                temporary.write(path.read_bytes())
+            try:
+                return analyze_file(Path(temporary.name))
+            finally:
+                Path(temporary.name).unlink()
         analysis = SourceAnalysis.from_file(
             str(path), "sloc", fallback_encoding="utf-8"
         )
@@ -256,8 +337,10 @@ def count_files(
             comment=analysis.documentation_count,
             blank=analysis.empty_count,
         )
-        target = module.ut_counts if is_ut_file(path, module.path) else module.counts
-        target.accumulate(counts)
+        module.add(
+            classify(analysis.language, is_ut_file(path, module.path), is_ac=False),
+            counts,
+        )
         languages.setdefault(analysis.language, Counts()).accumulate(counts)
 
 
@@ -275,7 +358,6 @@ def count_autocoded(
             cache_path = build.get_build_cache_path(module.path)
         except Exception:
             continue
-        module.ac_counts = Counts()
         # Generated files land directly in the module's mirrored cache directory;
         # do not recurse as subdirectories belong to other modules or CMake internals
         for path in sorted(cache_path.iterdir()):
@@ -292,7 +374,8 @@ def count_autocoded(
                 comment=analysis.documentation_count,
                 blank=analysis.empty_count,
             )
-            module.ac_counts.accumulate(counts)
+            is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
+            module.add(classify(analysis.language, is_ut, is_ac=True), counts)
             languages.setdefault(analysis.language, Counts()).accumulate(counts)
     return True
 
@@ -446,71 +529,52 @@ def build_report(
 ####
 # Output rendering
 ####
-COLUMNS = [
-    "Module",
-    "Files",
-    "Code",
-    "Comment",
-    "Blank",
-    "UT Code",
-    "AC Code",
-    "Total Code",
-]
+def report_columns(report: SlocReport) -> List[str]:
+    """Column headers: base categories, C/C++ total, per-language others, other/grand totals"""
+    columns = ["Module", "Files"] + BASE_CATEGORIES + ["C/C++ Total"]
+    columns += [f"other ({language})" for language in report.other_languages()]
+    return columns + ["other (Total)", "Total"]
 
 
-def module_row(module: ModuleSloc) -> List[str]:
-    """Build a display row for a module"""
-    return [
-        module.name,
-        str(module.counts.files + module.ut_counts.files),
-        str(module.counts.code),
-        str(module.counts.comment),
-        str(module.counts.blank),
-        str(module.ut_counts.code),
-        str(module.ac_counts.code) if module.ac_counts is not None else "-",
-        str(module.total_code()),
+def module_row(module: ModuleSloc, report: SlocReport, label: str = None) -> List[str]:
+    """Build a display row for a module (or totals pseudo-module)"""
+
+    def cell(category: str) -> str:
+        if category in AC_CATEGORIES and not report.ac_counted:
+            return "-"
+        return str(module.category(category).code)
+
+    row = [label if label is not None else module.name, str(module.total_files())]
+    row += [cell(category) for category in BASE_CATEGORIES]
+    row.append(str(module.cpp_total()))
+    row += [
+        str(module.category(language).code) for language in report.other_languages()
     ]
-
-
-def totals_row(
-    label: str, totals: Tuple[Counts, Counts, Counts], ac_counted: bool
-) -> List[str]:
-    """Build a display row for section or grand totals"""
-    flight, ut, autocoded = totals
-    total_code = flight.code + ut.code + (autocoded.code if ac_counted else 0)
-    return [
-        label,
-        str(flight.files + ut.files),
-        str(flight.code),
-        str(flight.comment),
-        str(flight.blank),
-        str(ut.code),
-        str(autocoded.code) if ac_counted else "-",
-        str(total_code),
-    ]
+    return row + [str(module.other_total()), str(module.total_code())]
 
 
 def render_table(report: SlocReport, output=None):
     """Render the report as an aligned text table to the given stream"""
     output = output if output is not None else sys.stdout
+    columns = report_columns(report)
     rows: List[List[str]] = []
     separators: List[int] = []
     for section in report.sections():
-        rows.append([f"[{section}]", "", "", "", "", "", "", ""])
+        rows.append([f"[{section}]"] + [""] * (len(columns) - 1))
         rows.extend(
-            module_row(module) for module in report.modules if module.section == section
+            module_row(module, report)
+            for module in report.modules
+            if module.section == section
         )
         rows.append(
-            totals_row(
-                f"TOTAL [{section}]", report.section_totals(section), report.ac_counted
-            )
+            module_row(report.section_totals(section), report, f"TOTAL [{section}]")
         )
         separators.append(len(rows))
     if len(report.sections()) > 1:
-        rows.append(totals_row("GRAND TOTAL", report.grand_totals(), report.ac_counted))
+        rows.append(module_row(report.grand_totals(), report, "GRAND TOTAL"))
     widths = [
-        max(len(COLUMNS[i]), max((len(row[i]) for row in rows), default=0))
-        for i in range(len(COLUMNS))
+        max(len(columns[i]), max((len(row[i]) for row in rows), default=0))
+        for i in range(len(columns))
     ]
 
     def print_row(cells):
@@ -519,7 +583,7 @@ def render_table(report: SlocReport, output=None):
         ]
         print("  ".join(padded), file=output)
 
-    print_row(COLUMNS)
+    print_row(columns)
     print("-" * (sum(widths) + 2 * (len(widths) - 1)), file=output)
     for index, row in enumerate(rows, 1):
         print_row(row)
@@ -539,14 +603,15 @@ def render_table(report: SlocReport, output=None):
 
 def render_markdown(report: SlocReport) -> str:
     """Render the report as a Markdown document"""
+    columns = report_columns(report)
     lines = ["# SLOC Report", ""]
     if report.ac_counted:
         lines += ["Autocoded (AC) files counted from the build cache.", ""]
     for section in report.sections():
-        lines += [f"## {section}", "", "| " + " | ".join(COLUMNS) + " |"]
-        lines.append("|" + "|".join(["---"] * len(COLUMNS)) + "|")
+        lines += [f"## {section}", "", "| " + " | ".join(columns) + " |"]
+        lines.append("|" + "|".join(["---"] * len(columns)) + "|")
         lines.extend(
-            "| " + " | ".join(module_row(module)) + " |"
+            "| " + " | ".join(module_row(module, report)) + " |"
             for module in report.modules
             if module.section == section
         )
@@ -554,21 +619,19 @@ def render_markdown(report: SlocReport) -> str:
             "| "
             + " | ".join(
                 f"**{cell}**" if cell else ""
-                for cell in totals_row(
-                    "TOTAL", report.section_totals(section), report.ac_counted
-                )
+                for cell in module_row(report.section_totals(section), report, "TOTAL")
             )
             + " |"
         )
         lines.append("")
     if len(report.sections()) > 1:
-        lines += ["## Grand Total", "", "| " + " | ".join(COLUMNS) + " |"]
-        lines.append("|" + "|".join(["---"] * len(COLUMNS)) + "|")
+        lines += ["## Grand Total", "", "| " + " | ".join(columns) + " |"]
+        lines.append("|" + "|".join(["---"] * len(columns)) + "|")
         lines.append(
             "| "
             + " | ".join(
                 f"**{cell}**" if cell else ""
-                for cell in totals_row("ALL", report.grand_totals(), report.ac_counted)
+                for cell in module_row(report.grand_totals(), report, "ALL")
             )
             + " |"
         )
@@ -585,42 +648,34 @@ def render_markdown(report: SlocReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def categories_dict(module: ModuleSloc) -> dict:
+    """Per-category counts dictionary for JSON output"""
+    return {
+        category: counts.to_dict() for category, counts in module.categories.items()
+    }
+
+
 def render_json(report: SlocReport) -> str:
     """Render the report as JSON"""
     sections = {}
     for section in report.sections():
-        flight, ut, autocoded = report.section_totals(section)
         sections[section] = {
             "modules": {
                 module.name: {
                     "path": str(module.path),
                     "deployment": module.is_deployment,
-                    "counts": module.counts.to_dict(),
-                    "ut_counts": module.ut_counts.to_dict(),
-                    **(
-                        {"ac_counts": module.ac_counts.to_dict()}
-                        if module.ac_counts is not None
-                        else {}
-                    ),
+                    "categories": categories_dict(module),
                 }
                 for module in report.modules
                 if module.section == section
             },
-            "totals": {
-                "counts": flight.to_dict(),
-                "ut_counts": ut.to_dict(),
-                **({"ac_counts": autocoded.to_dict()} if report.ac_counted else {}),
-            },
+            "totals": categories_dict(report.section_totals(section)),
         }
-    flight, ut, autocoded = report.grand_totals()
     return json.dumps(
         {
+            "autocode_counted": report.ac_counted,
             "sections": sections,
-            "totals": {
-                "counts": flight.to_dict(),
-                "ut_counts": ut.to_dict(),
-                **({"ac_counts": autocoded.to_dict()} if report.ac_counted else {}),
-            },
+            "totals": categories_dict(report.grand_totals()),
             "languages": {
                 language: counts.to_dict()
                 for language, counts in report.languages.items()

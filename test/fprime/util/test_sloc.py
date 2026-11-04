@@ -3,7 +3,12 @@
 from pathlib import Path
 
 from fprime.util.sloc import (
+    CATEGORY_CMAKE,
+    CATEGORY_CPP,
+    CATEGORY_CPP_UT,
+    CATEGORY_FPP,
     OTHER_MODULE_NAME,
+    classify,
     SlocReport,
     count_files,
     discover_modules,
@@ -97,24 +102,37 @@ def test_discover_modules(tmp_path):
 
 
 def test_counting_and_rollups(tmp_path):
-    """Counts accumulate per module with UT separation and section totals"""
+    """Counts accumulate per module into categories with section totals"""
     root = make_project(tmp_path)
     modules, file_owners = discover_modules(root, "project", [])
     report = SlocReport(modules=modules)
     count_files(file_owners, report.languages)
     by_name = {module.name: module for module in modules}
     my_module = by_name["MyModule"]
-    assert my_module.counts.files == 2  # source.cpp + model.fpp
-    assert my_module.ut_counts.files == 1  # test/ut/tester.cpp
-    assert my_module.counts.code == 2 + 2  # cpp code lines + fpp code lines
-    assert my_module.counts.comment == 1 + 2  # cpp comment + fpp comment/annotation
-    flight, ut, _ = report.section_totals("project")
-    assert flight.files == 4
-    assert ut.files == 1
-    grand_flight, grand_ut, _ = report.grand_totals()
-    assert grand_flight.code == flight.code
-    assert grand_ut.code == ut.code
+    assert my_module.category(CATEGORY_CPP).files == 1  # source.cpp
+    assert my_module.category(CATEGORY_FPP).files == 1  # model.fpp
+    assert my_module.category(CATEGORY_CMAKE).files == 1  # CMakeLists.txt
+    assert my_module.category(CATEGORY_CPP_UT).files == 1  # test/ut/tester.cpp
+    assert my_module.category(CATEGORY_CPP).code == 2
+    assert my_module.category(CATEGORY_FPP).code == 2
+    assert my_module.cpp_total() == 2 + 2  # code + UT code
+    section = report.section_totals("project")
+    assert section.total_files() == 8  # 5 sources + 3 CMakeLists.txt
+    assert section.category(CATEGORY_CPP_UT).files == 1
+    grand = report.grand_totals()
+    assert grand.total_code() == section.total_code()
     assert "C++" in report.languages
+
+
+def test_classify():
+    """Language-to-category classification"""
+    assert classify("FPP", True, False) == "FPP"
+    assert classify("CMake", False, False) == "CMake"
+    assert classify("C++", False, False) == "C/C++"
+    assert classify("C", True, False) == "C/C++ UT"
+    assert classify("C++", False, True) == "C/C++ AC"
+    assert classify("C++", True, True) == "C/C++ AC UT"
+    assert classify("Python", False, False) == "Python"
 
 
 def test_rendering(tmp_path, capsys):
