@@ -1,13 +1,17 @@
 """test_sloc.py: tests for fprime.util.sloc"""
 
+import argparse
 import csv
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 from fprime.fbuild.types import MissingBuildCachePath
 from fprime.util.sloc import (
+    AcStatus,
     CATEGORY_CMAKE,
     CATEGORY_CPP,
     CATEGORY_CPP_AC,
@@ -26,6 +30,11 @@ from fprime.util.sloc import (
     render_json,
     render_markdown,
     render_table,
+    SlocException,
+    deployment_modules,
+    ninja_link_tokens,
+    read_submodule_paths,
+    run_sloc,
 )
 
 MODULE_CMAKE = """
@@ -128,19 +137,22 @@ def test_counting_and_rollups(tmp_path):
     assert section.total_files() == 8  # 5 sources + 3 CMakeLists.txt
     assert section.category(CATEGORY_CPP_UT).files == 1
     grand = report.grand_totals()
-    assert grand.total_code() == section.total_code()
+    assert (
+        grand.total_code() == 3 + 4 + 12
+    )  # (non-module files) + MyDeployment + MyModule
+    assert grand.total_code() == sum(module.total_code() for module in modules)
     assert "C++" in report.languages
 
 
 def test_classify():
     """Language-to-category classification"""
-    assert classify("FPP", True, False) == "FPP"
-    assert classify("CMake", False, False) == "CMake"
-    assert classify("C++", False, False) == "C/C++"
-    assert classify("C", True, False) == "C/C++ UT"
-    assert classify("C++", False, True) == "C/C++ AC"
-    assert classify("C++", True, True) == "C/C++ AC UT"
-    assert classify("Python", False, False) == "Python"
+    assert classify("FPP", is_ut=True, is_ac=False) == "FPP"
+    assert classify("CMake", is_ut=False, is_ac=False) == "CMake"
+    assert classify("C++", is_ut=False, is_ac=False) == "C/C++"
+    assert classify("C", is_ut=True, is_ac=False) == "C/C++ UT"
+    assert classify("C++", is_ut=False, is_ac=True) == "C/C++ AC"
+    assert classify("C++", is_ut=True, is_ac=True) == "C/C++ AC UT"
+    assert classify("Python", is_ut=False, is_ac=False) == "Python"
 
 
 def test_rendering(tmp_path, capsys):
@@ -180,11 +192,15 @@ def test_helpers(tmp_path):
 
 
 class FakeBuild:
-    """Minimal stand-in for fprime.fbuild.builder.Build: a build cache with per-module dirs"""
+    """Minimal stand-in for fprime.fbuild.builder.Build: settings and per-module cache dirs"""
 
-    def __init__(self, build_dir: Path, cached: dict):
+    def __init__(self, build_dir: Path, cached: dict, settings: dict = None):
         self.build_dir = build_dir
         self.cached = cached
+        self.settings = settings or {}
+
+    def get_settings(self, setting: str, default):
+        return self.settings.get(setting, default)
 
     def get_build_cache_path(self, context: Path) -> Path:
         if context in self.cached:
@@ -206,11 +222,11 @@ def test_partial_autocode_cache(tmp_path):
     by_name = {module.name: module for module in modules}
     build = FakeBuild(cache, {by_name["MyModule"].path: module_cache})
     count_autocoded(build, report.modules, report.languages)
-    assert by_name["MyModule"].ac_counted is True
+    assert by_name["MyModule"].ac_status is AcStatus.COUNTED
     assert by_name["MyModule"].category(CATEGORY_CPP_AC).files == 1
     assert by_name["MyModule"].category("C/C++ AC UT").files == 1
-    assert by_name["MyDeployment"].ac_counted is False
-    assert by_name[OTHER_MODULE_NAME].ac_counted is None
+    assert by_name["MyDeployment"].ac_status is AcStatus.MISSING
+    assert by_name[OTHER_MODULE_NAME].ac_status is AcStatus.NOT_ATTEMPTED
     assert report.ac_counted() and report.ac_missing() == ["MyDeployment"]
     assert "partial" in report.ac_note()
     markdown = render_markdown(report)
@@ -220,8 +236,8 @@ def test_partial_autocode_cache(tmp_path):
     parsed = json.loads(render_json(report))
     assert parsed["autocode_missing"] == ["MyDeployment"]
     modules_json = parsed["sections"]["project"]["modules"]
-    assert modules_json["MyDeployment"]["autocode_counted"] is False
-    assert modules_json["MyModule"]["autocode_counted"] is True
+    assert modules_json["MyDeployment"]["autocode"] == "missing"
+    assert modules_json["MyModule"]["autocode"] == "counted"
 
 
 def test_no_autocode_cache(tmp_path):
@@ -231,6 +247,170 @@ def test_no_autocode_cache(tmp_path):
     report = SlocReport(modules=modules)
     count_files(file_owners, report.languages)
     count_autocoded(FakeBuild(None, {}), report.modules, report.languages)
-    assert all(module.ac_counted is None for module in report.modules)
+    assert all(module.ac_status is AcStatus.NOT_ATTEMPTED for module in report.modules)
     assert not report.ac_counted() and report.ac_note() is None
     assert '"autocode_counted": false' in render_json(report)
+
+
+def sloc_args(path: Path, **overrides) -> argparse.Namespace:
+    """Parsed-argument namespace for run_sloc"""
+    args = dict(
+        path=path,
+        recursive=False,
+        include_submodules=False,
+        markdown_report=None,
+        json_report=None,
+        csv_report=None,
+    )
+    args.update(overrides)
+    return argparse.Namespace(**args)
+
+
+def make_framework(tmp_path: Path) -> Path:
+    """Create a minimal 'framework' tree beside the project"""
+    framework = tmp_path / "fprime"
+    framework.mkdir()
+    (framework / "CMakeLists.txt").write_text("add_library(fw a.cpp)\n")
+    (framework / "a.cpp").write_text(CPP_SOURCE)
+    return framework
+
+
+def test_run_sloc_contexts(tmp_path, capsys):
+    """Module, project-root and --recursive contexts count the documented scope"""
+    root = make_project(tmp_path)
+    framework = make_framework(tmp_path)
+    settings = {"framework_path": str(framework), "project_root": str(root)}
+    no_cache = FakeBuild(None, {}, settings)
+
+    assert run_sloc(no_cache, sloc_args(root / "MyModule"), {}, {}, []) == 0
+    table = capsys.readouterr().out
+    assert "MyModule" in table and "MyDeployment" not in table
+    assert "[fprime]" not in table
+
+    json_path = tmp_path / "out.json"
+    csv_path = tmp_path / "out.csv"
+    markdown_path = tmp_path / "out.md"
+    arguments = sloc_args(
+        root, json_report=json_path, csv_report=csv_path, markdown_report=markdown_path
+    )
+    assert run_sloc(no_cache, arguments, {}, {}, []) == 0
+    parsed = json.loads(json_path.read_text())
+    assert set(parsed["sections"]) == {"fprime", "project: project"}
+    assert parsed["autocode_counted"] is False
+    assert "GRAND TOTAL" in csv_path.read_text()
+    assert "## Grand Total" in markdown_path.read_text()
+
+    cache = root / "build-fprime-automatic-native"
+    with_cache = FakeBuild(cache, {}, settings)
+    assert (
+        run_sloc(with_cache, sloc_args(root / "MyModule", recursive=True), {}, {}, [])
+        == 0
+    )
+    assert "MyModule" in capsys.readouterr().out
+
+
+def test_run_sloc_errors(tmp_path):
+    """Every documented failure of run_sloc raises SlocException with a clear message"""
+    root = make_project(tmp_path)
+    framework = make_framework(tmp_path)
+    settings = {"framework_path": str(framework), "project_root": str(root)}
+    no_cache = FakeBuild(None, {}, settings)
+    with pytest.raises(SlocException, match="--recursive requires a build cache"):
+        run_sloc(no_cache, sloc_args(root, recursive=True), {}, {}, [])
+    with pytest.raises(SlocException, match="require a build cache"):
+        run_sloc(no_cache, sloc_args(root / "MyDeployment"), {}, {}, [])
+    with pytest.raises(SlocException, match="not part of an F Prime module"):
+        run_sloc(no_cache, sloc_args(tmp_path), {}, {}, [])
+    with pytest.raises(SlocException, match="framework_path"):
+        run_sloc(FakeBuild(None, {}, {}), sloc_args(root), {}, {}, [])
+
+
+NINJA = """build Ref/CMakeFiles/Ref.dir/Main.cpp.o: CXX_COMPILER__Ref_ /src/Ref/Main.cpp || cmake_object_order_depends_target_Ref
+build bin/Linux/Ref: CXX_EXECUTABLE_LINKER__Ref_ Ref/CMakeFiles/Ref.dir/Main.cpp.o | Svc/CmdDispatcher/libSvc_CmdDispatcher.a $
+    Fw/Cmd/libFw_Cmd.a || Svc/CmdDispatcher/libSvc_CmdDispatcher.a Fw/Cmd/libFw_Cmd.a
+build Svc/CmdDispatcher/libSvc_CmdDispatcher.a: CXX_STATIC_LIBRARY_LINKER__Svc_CmdDispatcher_ Svc/CmdDispatcher/CMakeFiles/x.o || Fw/Types/libFw_Types.a
+build Fw/Cmd/libFw_Cmd.a: CXX_STATIC_LIBRARY_LINKER__Fw_Cmd_ Fw/Cmd/CMakeFiles/y.o
+build Fw/Types/libFw_Types.a: CXX_STATIC_LIBRARY_LINKER__Fw_Types_ Fw/Types/CMakeFiles/z.o
+build Svc/Unused/libSvc_Unused.a: CXX_STATIC_LIBRARY_LINKER__Svc_Unused_ Svc/Unused/CMakeFiles/w.o
+"""
+
+
+def test_ninja_link_tokens(tmp_path):
+    """Transitive library tokens are collected from the deployment's link edge only"""
+    ninja = tmp_path / "build.ninja"
+    ninja.write_text(NINJA)
+    assert ninja_link_tokens(ninja, "Ref") == {
+        "Svc_CmdDispatcher",
+        "Fw_Cmd",
+        "Fw_Types",
+    }
+    assert ninja_link_tokens(ninja, "Other") == set()
+
+
+def test_deployment_modules(tmp_path):
+    """Deployment closure follows link.txt / build.ninja; missing link info is an error"""
+    root = make_project(tmp_path)
+    modules, _ = discover_modules(root, "project", [])
+    cache = root / "build-fprime-automatic-native"
+    deployment = root / "MyDeployment"
+    with pytest.raises(SlocException, match="Could not determine dependencies"):
+        deployment_modules(FakeBuild(cache, {}), deployment, modules)
+    deployment_cache = cache / "MyDeployment" / "CMakeFiles" / "MyDeployment.dir"
+    deployment_cache.mkdir(parents=True)
+    (deployment_cache / "link.txt").write_text(
+        "/usr/bin/c++ main.o -o MyDeployment ../MyModule/libMyModule.a ../libOther.a\n"
+    )
+    selected = deployment_modules(
+        FakeBuild(cache, {deployment: cache / "MyDeployment"}), deployment, modules
+    )
+    assert {module.name for module in selected} == {"MyDeployment", "MyModule"}
+    (cache / "build.ninja").write_text(
+        NINJA.replace("Ref", "MyDeployment").replace("Svc_CmdDispatcher", "MyModule")
+    )
+    selected = deployment_modules(FakeBuild(cache, {}), deployment, modules)
+    assert {module.name for module in selected} == {"MyDeployment", "MyModule"}
+
+
+def test_submodule_exclusion(tmp_path):
+    """Git submodule paths from .gitmodules are excluded unless requested"""
+    root = make_project(tmp_path)
+    submodule = root / "MyModule" / "googletest"
+    submodule.mkdir()
+    (submodule / "CMakeLists.txt").write_text("add_library(gtest gtest.cpp)\n")
+    (submodule / "gtest.cpp").write_text(CPP_SOURCE)
+    (root / ".gitmodules").write_text(
+        '[submodule "googletest"]\n\tpath = MyModule/googletest\n\turl = https://example.invalid/gtest\n'
+    )
+    excludes = read_submodule_paths(root)
+    assert excludes == [submodule.resolve()]
+    modules, owners = discover_modules(root, "project", excludes)
+    assert "MyModule_googletest" not in {module.name for module in modules}
+    assert not any("googletest" in str(path) for path in owners)
+    modules, _ = discover_modules(root, "project", [])
+    assert "MyModule_googletest" in {module.name for module in modules}
+
+
+def test_other_languages(tmp_path):
+    """Non-base languages get their own 'other' column, largest first, and an 'other' total"""
+    root = make_project(tmp_path)
+    (root / "MyModule" / "tool.py").write_text("import os\n\nprint(os.name)\n")
+    (root / "MyDeployment" / "run.sh").write_text("#!/bin/sh\necho hi\n")
+    modules, file_owners = discover_modules(root, "project", [])
+    report = SlocReport(modules=sorted(modules, key=lambda module: module.name))
+    count_files(file_owners, report.languages)
+    by_name = {module.name: module for module in modules}
+    assert by_name["MyModule"].other_languages() == ["Python"]
+    assert by_name["MyModule"].other_total() == 2
+    assert report.other_languages() == ["Python", "Bash"]
+    markdown = render_markdown(report)
+    assert "| other (Python) | other (Bash) | other (Total) |" in markdown
+    assert "| MyModule | 5 | 2 | 6 | 2 | - | 2 | - | 4 | 2 | 0 | 2 | 14 |" in markdown
+
+
+def test_cli_import_is_light():
+    """Importing the CLI must not load pygount (it imports GitPython, which runs git)"""
+    code = "import sys, fprime.util.cli; print(sorted(m for m in sys.modules if m in ('pygount', 'git')))"
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert result.stdout.strip() == "[]"

@@ -8,6 +8,9 @@ The lexer is intentionally minimal: it distinguishes comments, annotations, stri
 everything else. That is all line counting needs, and it avoids maintaining a copy of the FPP
 keyword list (which lives in fpp-tools) here.
 
+Keep this module import-light (pygments only): every Pygments consumer on the host (pytest, rich,
+sphinx, ...) imports it when enumerating lexer plugins through the entry point.
+
 @author lestarch
 """
 
