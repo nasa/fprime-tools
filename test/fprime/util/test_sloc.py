@@ -13,7 +13,7 @@ from fprime.fbuild.types import MissingBuildCachePath
 from fprime.util.sloc import (
     AcStatus,
     Section,
-    csv_text,
+    csv_safe_text,
     discover_all,
     CATEGORY_CMAKE,
     CATEGORY_CPP,
@@ -33,6 +33,7 @@ from fprime.util.sloc import (
     render_json,
     render_markdown,
     render_table,
+    add_sloc_parsers,
     find_context_module,
     SlocException,
     deployment_modules,
@@ -475,6 +476,41 @@ def test_autocode_states(tmp_path):
     count_autocoded(build, report.modules, report.languages)
     assert by_name["MyModule"].ac_status is AcStatus.COUNTED
     assert by_name["MyModule"].category(CATEGORY_CPP_AC).files == 1
+    # a module without FPP models and without autocode is simply counted (AC = 0, not unknown)
+    deployment_cache = cache / "MyDeployment"
+    deployment_cache.mkdir()
+    build = FakeBuild(cache, {by_name["MyDeployment"].path: deployment_cache})
+    count_autocoded(build, report.modules, report.languages)
+    assert by_name["MyDeployment"].ac_status is AcStatus.COUNTED
+    assert "MyDeployment" not in report.ac_missing()
+
+
+def test_orphan_cache_path_is_missing(tmp_path):
+    """A module CMake never configured (CMakeOrphanException) reports AC as unknown"""
+    from fprime.fbuild.cmake import CMakeOrphanException
+
+    class OrphanBuild(FakeBuild):
+        def get_build_cache_path(self, context: Path) -> Path:
+            raise CMakeOrphanException(f"orphan {context}")
+
+    root = make_project(tmp_path)
+    modules, file_owners = discover_modules(root, "project", [])
+    report = SlocReport(modules=modules)
+    count_files(file_owners, report.languages)
+    count_autocoded(
+        OrphanBuild(root / "build-fprime-automatic-native", {}),
+        report.modules,
+        report.languages,
+    )
+    by_name = {module.name: module for module in modules}
+    assert by_name["MyModule"].ac_status is AcStatus.MISSING
+    assert by_name["MyDeployment"].ac_status is AcStatus.MISSING
+    with pytest.raises(SlocException, match="Could not determine dependencies"):
+        deployment_modules(
+            OrphanBuild(root / "build-fprime-automatic-native", {}),
+            root / "MyDeployment",
+            modules,
+        )
 
 
 def test_module_names_relative_to_section_root(tmp_path):
@@ -494,10 +530,78 @@ def test_module_names_relative_to_section_root(tmp_path):
     assert {module.name for module in modules} == {"MyModule", "MyModule_Sub"}
 
 
-def test_csv_text_guard():
+def test_csv_safe_text_guard():
     """Spreadsheet formula prefixes are neutralized in CSV name cells"""
-    assert csv_text("=HYPERLINK(1)") == "'=HYPERLINK(1)"
+    assert csv_safe_text("=HYPERLINK(1)") == "'=HYPERLINK(1)"
     assert (
-        csv_text("+x") == "'+x" and csv_text("-x") == "'-x" and csv_text("@x") == "'@x"
+        csv_safe_text("+x") == "'+x"
+        and csv_safe_text("-x") == "'-x"
+        and csv_safe_text("@x") == "'@x"
     )
-    assert csv_text("MyModule") == "MyModule" and csv_text("") == ""
+    assert csv_safe_text("MyModule") == "MyModule" and csv_safe_text("") == ""
+
+
+def test_run_sloc_deployment(tmp_path, capsys):
+    """Deployment context counts the deployment plus its linked modules, with autocode"""
+    root = make_project(tmp_path)
+    framework = make_framework(tmp_path)
+    settings = {"framework_path": str(framework), "project_root": str(root)}
+    cache = root / "build-fprime-automatic-native"
+    deployment = root / "MyDeployment"
+    link_dir = cache / "MyDeployment" / "CMakeFiles" / "MyDeployment.dir"
+    link_dir.mkdir(parents=True)
+    (link_dir / "link.txt").write_text(
+        "c++ main.o -o MyDeployment ../MyModule/libMyModule.a\n"
+    )
+    module_cache = cache / "MyModule"
+    module_cache.mkdir()
+    (module_cache / "CompComponentAc.cpp").write_text(CPP_SOURCE)
+    configured = {deployment: cache / "MyDeployment", root / "MyModule": module_cache}
+    build = FakeBuild(cache, configured, settings)
+    json_path = tmp_path / "deployment.json"
+    assert (
+        run_sloc(build, sloc_args(deployment, json_report=json_path), {}, {}, []) == 0
+    )
+    table = capsys.readouterr().out
+    assert "MyDeployment" in table and "MyModule" in table
+    assert OTHER_MODULE_NAME not in table and "[fprime]" not in table
+    parsed = json.loads(json_path.read_text())
+    modules_json = parsed["sections"]["project: project"]["modules"]
+    assert set(modules_json) == {"MyDeployment", "MyModule"}
+    assert modules_json["MyModule"]["autocode"] == "counted"
+    assert modules_json["MyModule"]["categories"]["C/C++ AC"]["files"] == 1
+    assert parsed["autocode_counted"] is True and parsed["autocode_missing"] == []
+
+
+def test_sloc_argparse_surface():
+    """The sloc subparser exposes exactly the documented flags with the expected defaults"""
+    parser = argparse.ArgumentParser()
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("-p", "--path", default=".")
+    subparsers = parser.add_subparsers(dest="command")
+
+    class HelpText:
+        @staticmethod
+        def long(key):
+            return f"long {key}"
+
+        @staticmethod
+        def short(key):
+            return f"short {key}"
+
+    runners, parsers = add_sloc_parsers(subparsers, common, HelpText)
+    assert runners == {"sloc": run_sloc} and set(parsers) == {"sloc"}
+    parsed = parser.parse_args(["sloc"])
+    assert parsed.recursive is False and parsed.include_submodules is False
+    assert (parsed.markdown_report, parsed.json_report, parsed.csv_report) == (
+        None,
+        None,
+        None,
+    )
+    parsed = parser.parse_args(
+        ["sloc", "--recursive", "--include-submodules", "--csv-report", "out.csv"]
+    )
+    assert parsed.recursive and parsed.include_submodules
+    assert parsed.csv_report == Path("out.csv")
+    with pytest.raises(SystemExit):
+        parser.parse_args(["sloc", "--excel-report", "x.xlsx"])

@@ -1,9 +1,11 @@
 """fprime.util.sloc: SLOC counting for F Prime projects
 
 Implements the (experimental) 'fprime-util sloc' command: a thin wrapper around pygount that
-segments an F Prime project into modules (any directory whose CMakeLists.txt calls
-register_fprime_*, add_library, or add_executable), counts SLOC per module, and rolls totals up
-per section (project, framework, libraries) and for the whole repository.
+segments an F Prime project into modules (any directory whose CMakeLists.txt defines a build
+target: register_fprime_module/library/executable/deployment/ut/config/implementation, add_library,
+or add_executable; register_fprime_project, register_fprime_target and autocoder registrations do
+not make a module), counts SLOC per module, and rolls totals up per section (project, framework,
+libraries) and for the whole repository.
 
 The command is context aware:
     - In a component/module directory: counts just that module
@@ -33,9 +35,8 @@ from fprime.fbuild.cmake import CMakeOrphanException
 from fprime.fbuild.types import MissingBuildCachePath
 from fprime.util.build_helper import parse_gitmodules
 
-if (
-    TYPE_CHECKING
-):  # pygount is imported lazily (see analyze_file): it pulls in GitPython
+# pygount is imported lazily (see analyze_file): it pulls in GitPython
+if TYPE_CHECKING:
     from pygount import SourceAnalysis
 
 # Target-defining CMake calls: register_fprime_project/target/build_autocoder define no module
@@ -168,9 +169,8 @@ class AcStatus(Enum):
     COUNTED = "counted"  # autocoded files counted from the module's cache directory
 
 
-@dataclass(
-    eq=False
-)  # identity semantics: modules are tracked by instance, never by value
+# eq=False: identity semantics, modules are tracked by instance and never compared by value
+@dataclass(eq=False)
 class ModuleSloc:
     """SLOC results for a single module, split into categories"""
 
@@ -491,7 +491,8 @@ def count_autocoded(
     """Count autocoded files in the build cache for each module
 
     Records availability per module in ModuleSloc.ac_status so that modules without a build
-    cache directory are reported as unknown rather than zero.
+    cache directory are reported as unknown rather than zero. Must run after count_files(): the
+    not-built check reads the module's FPP file count.
     """
     if not cache_available(build):
         return
@@ -503,22 +504,23 @@ def count_autocoded(
         except (MissingBuildCachePath, CMakeOrphanException):
             module.ac_status = AcStatus.MISSING
             continue
-        module.ac_status = AcStatus.COUNTED
         counted = 0
         # Generated files land directly in the module's mirrored cache directory;
         # do not recurse as subdirectories belong to other modules or CMake internals
         for path in sorted(cache_path.iterdir()):
             if not path.is_file() or path.suffix not in AC_SUFFIXES:
                 continue
+            # a copy of a hand-written source (register_fprime_config), not autocode
             if (module.path / path.name).is_file():
-                continue  # a copy of a hand-written source (register_fprime_config), not autocode
+                continue
             is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
             count_file(path, module, languages, is_ut=is_ut, is_ac=True)
             counted += 1
-        if counted == 0 and module.category(CATEGORY_FPP).files > 0:
-            module.ac_status = (
-                AcStatus.NOT_BUILT
-            )  # generated but not built: autocode unknown
+        # a module with FPP models but no autocode in its cache was generated, not built
+        has_models = module.category(CATEGORY_FPP).files > 0
+        module.ac_status = (
+            AcStatus.NOT_BUILT if counted == 0 and has_models else AcStatus.COUNTED
+        )
 
 
 def build_report(
@@ -631,9 +633,8 @@ def deployment_modules(
     try:
         link_files = list(build.get_build_cache_path(deployment).rglob("link.txt"))
     except (MissingBuildCachePath, CMakeOrphanException):
-        link_files = (
-            []
-        )  # no mirrored cache directory for the deployment; try build.ninja
+        # no mirrored cache directory for the deployment; try build.ninja below
+        link_files = []
     for link_file in link_files:
         tokens.update(
             LIBRARY_TOKEN_PATTERN.findall(link_file.read_text(errors="replace"))
@@ -774,21 +775,21 @@ def render_markdown(report: SlocReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def csv_safe_text(text: str) -> str:
+    """Neutralize spreadsheet formula injection: names starting with = + - @ get a quote prefix"""
+    return f"'{text}" if text and text[0] in "=+-@" else text
+
+
 def render_csv(report: SlocReport, path: Path):
     """Render the report as CSV: a section column followed by the report columns"""
     with path.open("w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["Section"] + report_columns(report))
         writer.writerows(
-            [section, csv_text(cells[0])] + cells[1:]
+            [section, csv_safe_text(cells[0])] + cells[1:]
             for kind, section, cells in report_rows(report)
             if kind != ROW_SECTION
         )
-
-
-def csv_text(text: str) -> str:
-    """Neutralize spreadsheet formula injection: names starting with = + - @ get a quote prefix"""
-    return f"'{text}" if text and text[0] in "=+-@" else text
 
 
 def categories_dict(module: ModuleSloc) -> dict:
@@ -857,15 +858,13 @@ def run_sloc(
         """The owning section narrowed to a scope directory: its name, its excludes under the
         scope, and module names still relative to the section root"""
         owner = find_section(scope, sections)
+        if owner is None:
+            return Section(f"directory: {scope.name}", scope, [])
         return Section(
-            owner.name if owner else "project",
+            owner.name,
             scope,
-            [
-                exclude
-                for exclude in (owner.excludes if owner else [])
-                if exclude.is_relative_to(scope)
-            ],
-            owner.root if owner else None,
+            [exclude for exclude in owner.excludes if exclude.is_relative_to(scope)],
+            owner.root,
         )
 
     if parsed.recursive:
