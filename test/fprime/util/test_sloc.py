@@ -233,7 +233,7 @@ def test_partial_autocode_cache(tmp_path):
     assert by_name["MyDeployment"].ac_status is AcStatus.MISSING
     assert by_name[OTHER_MODULE_NAME].ac_status is AcStatus.NOT_ATTEMPTED
     assert report.ac_counted() and report.ac_missing() == ["MyDeployment"]
-    assert "partial" in report.ac_note()
+    assert "1 not configured in this build cache (MyDeployment)" in report.ac_note()
     markdown = render_markdown(report)
     assert "| MyDeployment | 2 | 0 | 2 | 2 | - | 0 | - | 2 | 0 | 4 |" in markdown
     assert "| MyModule | 6 | 2 | 6 | 2 | 2 | 2 | 2 | 8 | 0 | 16 |" in markdown
@@ -495,6 +495,12 @@ def test_autocode_states(tmp_path):
     count_autocoded(build, report.modules, report.languages)
     assert by_name["MyDeployment"].ac_status is AcStatus.COUNTED
     assert "MyDeployment" not in report.ac_missing()
+    # ... unless the fpp autocoder's record says autocode is expected (record beats heuristic)
+    (deployment_cache / "fpp-cache").mkdir()
+    (deployment_cache / "fpp-cache" / "generated.txt").write_text("TopologyAc.cpp\n")
+    count_autocoded(build, report.modules, report.languages)
+    assert by_name["MyDeployment"].ac_status is AcStatus.NOT_BUILT
+    assert "1 configured but not yet built (MyDeployment)" in report.ac_note()
 
 
 def test_orphan_cache_path_is_missing(tmp_path):
@@ -592,17 +598,12 @@ def test_sloc_argparse_surface():
     common.add_argument("-p", "--path", default=".")
     subparsers = parser.add_subparsers(dest="command")
 
-    class HelpText:
-        @staticmethod
-        def long(key):
-            return f"long {key}"
-
-        @staticmethod
-        def short(key):
-            return f"short {key}"
+    from fprime.util.help_text import HelpText
 
     runners, parsers = add_sloc_parsers(subparsers, common, HelpText)
     assert runners == {"sloc": run_sloc} and set(parsers) == {"sloc"}
+    assert HelpText.short("sloc").startswith("(Experimental)")
+    assert "experimental" in parsers["sloc"].format_help()
     parsed = parser.parse_args(["sloc"])
     assert parsed.recursive is False and parsed.include_submodules is False
     assert (parsed.markdown_report, parsed.json_report, parsed.csv_report) == (
@@ -633,3 +634,19 @@ def test_module_under_test_directory_is_ut(tmp_path):
     assert by_name["MyModule_test_Support"].category(CATEGORY_CPP_UT).files == 1
     assert by_name["MyModule_test_Support"].category(CATEGORY_CPP).files == 0
     assert by_name["MyModule"].category(CATEGORY_CPP).files == 1  # source.cpp unchanged
+
+
+def test_recursive_outside_sections(tmp_path, capsys):
+    """--recursive on a tree outside every section is labelled as a plain directory"""
+    root = make_project(tmp_path)
+    framework = make_framework(tmp_path)
+    settings = {"framework_path": str(framework), "project_root": str(root)}
+    elsewhere = tmp_path / "elsewhere" / "Lib"
+    elsewhere.mkdir(parents=True)
+    (elsewhere / "CMakeLists.txt").write_text("add_library(lib a.cpp)\n")
+    (elsewhere / "a.cpp").write_text(CPP_SOURCE)
+    build = FakeBuild(None, {}, settings)
+    arguments = sloc_args(tmp_path / "elsewhere", recursive=True)
+    assert run_sloc(build, arguments, {}, {}, []) == 0
+    table = capsys.readouterr().out
+    assert "[directory: elsewhere]" in table and "Lib" in table
