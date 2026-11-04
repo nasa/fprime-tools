@@ -239,7 +239,7 @@ Examples:
 
   -- Whole project --
   cd MyProject
-  {EXECUTABLE} sloc --markdown-report sloc.md --json-report sloc.json
+  {EXECUTABLE} sloc --markdown-report sloc.md --json-report sloc.json --excel-report sloc.xlsx
 
   -- Single component --
   cd MyProject/Components/MyComponent

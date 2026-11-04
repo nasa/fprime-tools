@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from openpyxl import load_workbook
+
 from fprime.util.sloc import (
     CATEGORY_CMAKE,
     CATEGORY_CPP,
@@ -15,6 +17,7 @@ from fprime.util.sloc import (
     is_build_cache,
     is_ut_file,
     registers_module,
+    render_excel,
     render_json,
     render_markdown,
     render_table,
@@ -148,6 +151,11 @@ def test_rendering(tmp_path, capsys):
     assert "| Module |" in markdown and "MyDeployment" in markdown
     json_output = render_json(report)
     assert '"MyModule"' in json_output and '"totals"' in json_output
+    excel_path = tmp_path / "sloc.xlsx"
+    render_excel(report, excel_path)
+    sheet = load_workbook(excel_path).active
+    cells = [cell.value for row in sheet.iter_rows() for cell in row]
+    assert "MyModule" in cells and "TOTAL [project]" in cells
 
 
 def test_helpers(tmp_path):

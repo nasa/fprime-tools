@@ -39,6 +39,7 @@ dependencies = [
     "cookiecutter>=2.2.3",
     "gcovr>=6.0",
     "pygount>=1.8",
+    "openpyxl>=3.0.0",
     "urllib3>=2.5.0",
     "requests>=2.31.0",
 ]

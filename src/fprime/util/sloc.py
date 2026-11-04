@@ -26,6 +26,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
+from openpyxl import Workbook
+from openpyxl.styles import Font
 from pygount import SourceAnalysis, SourceState
 
 from fprime.fbuild.builder import Build
@@ -589,16 +591,6 @@ def render_table(report: SlocReport, output=None):
         print_row(row)
         if index in separators:
             print("-" * (sum(widths) + 2 * (len(widths) - 1)), file=output)
-    if report.languages:
-        print("\nBy language:", file=output)
-        for language, counts in sorted(
-            report.languages.items(), key=lambda item: -item[1].code
-        ):
-            print(
-                f"    {language}: {counts.code} code, {counts.comment} comment, "
-                f"{counts.blank} blank in {counts.files} files",
-                file=output,
-            )
 
 
 def render_markdown(report: SlocReport) -> str:
@@ -636,16 +628,43 @@ def render_markdown(report: SlocReport) -> str:
             + " |"
         )
         lines.append("")
-    lines += ["## By Language", ""]
-    lines.append("| Language | Files | Code | Comment | Blank |")
-    lines.append("|---|---|---|---|---|")
-    for language, counts in sorted(
-        report.languages.items(), key=lambda item: -item[1].code
-    ):
-        lines.append(
-            f"| {language} | {counts.files} | {counts.code} | {counts.comment} | {counts.blank} |"
-        )
     return "\n".join(lines) + "\n"
+
+
+def render_excel(report: SlocReport, path: Path):
+    """Render the report as an Excel workbook"""
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "SLOC"
+    bold = Font(bold=True)
+
+    def append_row(cells: List[str], is_bold: bool = False):
+        sheet.append(
+            [int(cell) if cell.lstrip("-").isdigit() else cell for cell in cells]
+        )
+        if is_bold:
+            for cell in sheet[sheet.max_row]:
+                cell.font = bold
+
+    append_row(report_columns(report), is_bold=True)
+    for section in report.sections():
+        append_row([f"[{section}]"], is_bold=True)
+        for module in report.modules:
+            if module.section == section:
+                append_row(module_row(module, report))
+        append_row(
+            module_row(report.section_totals(section), report, f"TOTAL [{section}]"),
+            is_bold=True,
+        )
+    if len(report.sections()) > 1:
+        append_row(
+            module_row(report.grand_totals(), report, "GRAND TOTAL"), is_bold=True
+        )
+    sheet.column_dimensions["A"].width = max(
+        len(str(row[0].value or "")) for row in sheet.iter_rows(min_col=1, max_col=1)
+    )
+    sheet.freeze_panes = "B2"
+    workbook.save(path)
 
 
 def categories_dict(module: ModuleSloc) -> dict:
@@ -785,6 +804,9 @@ def run_sloc(
     if parsed.json_report:
         Path(parsed.json_report).write_text(render_json(report))
         print(f"[INFO] JSON report written to {parsed.json_report}")
+    if parsed.excel_report:
+        render_excel(report, Path(parsed.excel_report))
+        print(f"[INFO] Excel report written to {parsed.excel_report}")
     return 0
 
 
@@ -832,6 +854,12 @@ def add_sloc_parsers(
         default=None,
         type=Path,
         help="Write a JSON report to the given path",
+    )
+    sloc_parser.add_argument(
+        "--excel-report",
+        default=None,
+        type=Path,
+        help="Write an Excel (.xlsx) report to the given path",
     )
     return {"sloc": run_sloc}, {"sloc": sloc_parser}
 
