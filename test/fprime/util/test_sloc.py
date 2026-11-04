@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from openpyxl import load_workbook
+import pytest
 
 from fprime.util.sloc import (
     CATEGORY_CMAKE,
@@ -151,9 +151,10 @@ def test_rendering(tmp_path, capsys):
     assert "| Module |" in markdown and "MyDeployment" in markdown
     json_output = render_json(report)
     assert '"MyModule"' in json_output and '"totals"' in json_output
+    openpyxl = pytest.importorskip("openpyxl")
     excel_path = tmp_path / "sloc.xlsx"
     render_excel(report, excel_path)
-    sheet = load_workbook(excel_path).active
+    sheet = openpyxl.load_workbook(excel_path).active
     cells = [cell.value for row in sheet.iter_rows() for cell in row]
     assert "MyModule" in cells and "TOTAL [project]" in cells
 

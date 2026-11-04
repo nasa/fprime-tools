@@ -26,9 +26,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-from openpyxl import Workbook
-from openpyxl.styles import Font
 from pygount import SourceAnalysis, SourceState
+
+# openpyxl is optional: only needed for --excel-report
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+except ImportError:
+    Workbook = None
+    Font = None
 
 from fprime.fbuild.builder import Build
 
@@ -634,6 +640,10 @@ def render_markdown(report: SlocReport) -> str:
 
 def render_excel(report: SlocReport, path: Path):
     """Render the report as an Excel workbook"""
+    if Workbook is None:
+        raise SlocException(
+            "openpyxl is not installed. Install it (e.g. 'pip install openpyxl') to use --excel-report."
+        )
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "SLOC"
