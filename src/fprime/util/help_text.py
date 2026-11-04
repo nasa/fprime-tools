@@ -223,6 +223,32 @@ Usage:
   -- New Subtopology --
   Generate a new F' subtopology. This command prompts for the name of the subtopology, and outputs a folder containing the structure for one. The user can then add the subtopology to their own project depending on where the subtopology is generated.
 """,
+    "sloc": f"""Count source lines of code (SLOC) for F' modules
+
+'{EXECUTABLE} sloc' segments the project into modules (any directory whose CMakeLists.txt calls register_fprime_*, add_library, or add_executable) and counts SLOC per module using pygount. FPP and FPPI files are supported through a bundled pygments lexer plugin. Results roll up per section (project, framework, each library from 'library_locations' in settings.ini) and for the whole repository. Unit test code (files under test/ or ut/ directories) is reported in a separate column.
+
+The command is context aware:
+  - In a component/module directory: counts just that module
+  - In a deployment directory: counts the deployment and its linked dependencies (requires a build cache)
+  - At the project root: counts everything, segmented by project/framework/libraries
+  - With '--recursive': counts all modules under the current directory (requires a build cache)
+
+When a build cache is available, autocoded (AC) files generated into the build cache are counted in a separate column. Without a build cache, build directories are ignored and AC counts are omitted. Git submodules (e.g. googletest) are excluded unless '--include-submodules' is supplied.
+
+Examples:
+
+  -- Whole project --
+  cd MyProject
+  {EXECUTABLE} sloc --markdown-report sloc.md --json-report sloc.json
+
+  -- Single component --
+  cd MyProject/Components/MyComponent
+  {EXECUTABLE} sloc
+
+  -- Deployment (requires build cache) --
+  cd MyProject/MyDeployment
+  {EXECUTABLE} sloc
+""",
     "format": f"""Format C/C++ files using clang-format
 
 '{EXECUTABLE} format' uses 'clang-format' to format C/C++ files. It uses the style specified in the .clang-format file found at the root of the F' framework used by the project (i.e. the 'framework_path' specified in settings.ini).

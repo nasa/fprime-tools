@@ -38,6 +38,7 @@ dependencies = [
     "pytest>=6.2.4",
     "cookiecutter>=2.2.3",
     "gcovr>=6.0",
+    "pygount>=1.8",
     "urllib3>=2.5.0",
     "requests>=2.31.0",
 ]
@@ -73,6 +74,13 @@ Repository = "https://github.com/fprime-community/fprime-tools"
 [project.scripts]
 fprime-util = "fprime.util.__main__:main"
 fprime-version-check = "fprime.util.versioning:main"
+
+####
+# Pygments plugin registering the FPP lexer, enabling pygments-based tools
+# (e.g. pygount used by 'fprime-util sloc') to process .fpp/.fppi files.
+####
+[project.entry-points."pygments.lexers"]
+fpp = "fprime.fpp.lexer:FppLexer"
 
 ####
 # setuptools_scm dynamically generates version number from git, as well as automatically
