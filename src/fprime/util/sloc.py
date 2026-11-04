@@ -1,9 +1,9 @@
 """fprime.util.sloc: SLOC counting for F Prime projects
 
-Implements the 'fprime-util sloc' command. Segments an F Prime project into modules (any
-directory whose CMakeLists.txt calls register_fprime_*, add_library, or add_executable), counts
-SLOC per module using pygount, and rolls totals up per section (project, framework, libraries)
-and for the whole repository.
+Implements the (experimental) 'fprime-util sloc' command: a thin wrapper around pygount that
+segments an F Prime project into modules (any directory whose CMakeLists.txt calls
+register_fprime_*, add_library, or add_executable), counts SLOC per module, and rolls totals up
+per section (project, framework, libraries) and for the whole repository.
 
 The command is context aware:
     - In a component/module directory: counts just that module
@@ -18,25 +18,19 @@ picks up automatically.
 """
 
 import argparse
+import csv
 import json
 import re
 import sys
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
 from pygount import SourceAnalysis, SourceState
 
-# openpyxl is optional: only needed for --excel-report
-try:
-    from openpyxl import Workbook
-    from openpyxl.styles import Font
-except ImportError:
-    Workbook = None
-    Font = None
-
+from fprime.common.error import FprimeException
 from fprime.fbuild.builder import Build
+from fprime.fbuild.types import MissingBuildCachePath
 
 MODULE_PATTERN = re.compile(
     r"^\s*(register_fprime_\w+|add_library|add_executable)\s*\(", re.MULTILINE
@@ -57,6 +51,7 @@ NON_CODE_LANGUAGES = {
 }
 UT_PATH_NAMES = {"test", "tests", "ut"}
 OTHER_MODULE_NAME = "(non-module files)"
+AC_SUFFIXES = {".hpp", ".cpp", ".h", ".c", ".fppi", ".py"}
 
 # Language classification: FPP model files, CMake, C/C++ (with UT and autocode splits), other
 CPP_LANGUAGES = {"C++", "C"}
@@ -78,6 +73,10 @@ AC_CATEGORIES = {CATEGORY_CPP_AC, CATEGORY_CPP_AC_UT}
 AC_UT_FILE_PATTERN = re.compile(r"(TesterBase|GTestBase|TesterHelpers)")
 
 
+class SlocException(FprimeException):
+    """Error raised by the sloc command"""
+
+
 @dataclass
 class Counts:
     """Line counts for a set of files"""
@@ -86,6 +85,16 @@ class Counts:
     code: int = 0
     comment: int = 0
     blank: int = 0
+
+    @classmethod
+    def from_analysis(cls, analysis: SourceAnalysis) -> "Counts":
+        """Counts for one pygount analysis (strings count as code)"""
+        return cls(
+            files=1,
+            code=analysis.code_count + analysis.string_count,
+            comment=analysis.documentation_count,
+            blank=analysis.empty_count,
+        )
 
     def accumulate(self, other: "Counts"):
         """Add another set of counts into this one"""
@@ -119,13 +128,19 @@ def classify(language: str, is_ut: bool, is_ac: bool) -> str:
 
 @dataclass
 class ModuleSloc:
-    """SLOC results for a single module, split into categories"""
+    """SLOC results for a single module, split into categories
+
+    ac_counted records autocode availability for this module: None when autocode counting was not
+    attempted (no build cache), False when the module has no build cache directory, True when its
+    autocoded files were counted.
+    """
 
     name: str
     path: Path
     section: str
     is_deployment: bool = False
     categories: Dict[str, Counts] = field(default_factory=dict)
+    ac_counted: Optional[bool] = None
 
     def add(self, category: str, counts: Counts):
         """Accumulate counts into a category"""
@@ -170,14 +185,14 @@ class SlocReport:
 
     modules: List[ModuleSloc] = field(default_factory=list)
     languages: Dict[str, Counts] = field(default_factory=dict)
-    ac_counted: bool = False
 
     def sections(self) -> List[str]:
         """Ordered unique section names"""
-        seen = {}
-        for module in self.modules:
-            seen.setdefault(module.section, None)
-        return list(seen.keys())
+        return list(dict.fromkeys(module.section for module in self.modules))
+
+    def section_modules(self, section: str) -> List[ModuleSloc]:
+        """Modules belonging to a section"""
+        return [module for module in self.modules if module.section == section]
 
     def other_languages(self) -> List[str]:
         """All 'other' languages in the report, largest first"""
@@ -189,9 +204,32 @@ class SlocReport:
                 )
         return sorted(totals, key=lambda language: -totals[language])
 
+    def ac_counted(self) -> bool:
+        """True when autocode was counted for at least one module"""
+        return any(module.ac_counted for module in self.modules)
+
+    def ac_missing(self) -> List[str]:
+        """Names of modules whose autocode could not be counted (no build cache directory)"""
+        return [module.name for module in self.modules if module.ac_counted is False]
+
+    def ac_note(self) -> Optional[str]:
+        """Human readable note on autocode coverage, None when autocode was not attempted"""
+        missing = self.ac_missing()
+        if not missing:
+            return (
+                "Autocoded (AC) files counted from the build cache."
+                if self.ac_counted()
+                else None
+            )
+        shown = ", ".join(missing[:5]) + (", ..." if len(missing) > 5 else "")
+        return (
+            f"Autocoded (AC) counts are partial: no build cache directory for {len(missing)} "
+            f"module(s) ({shown}); their AC columns show '-' and are excluded from totals."
+        )
+
     def section_totals(self, section: str) -> ModuleSloc:
         """Totals for a section, as a pseudo-module"""
-        return self._totals([m for m in self.modules if m.section == section])
+        return self._totals(self.section_modules(section))
 
     def grand_totals(self) -> ModuleSloc:
         """Totals for the whole report, as a pseudo-module"""
@@ -200,12 +238,16 @@ class SlocReport:
     @staticmethod
     def _totals(modules: List[ModuleSloc]) -> ModuleSloc:
         total = ModuleSloc(name="TOTAL", path=Path("."), section="")
+        total.ac_counted = any(module.ac_counted for module in modules)
         for module in modules:
             for category, counts in module.categories.items():
                 total.add(category, counts)
         return total
 
 
+####
+# Module discovery
+####
 def is_build_cache(path: Path) -> bool:
     """Check if a directory is (or holds) a build cache"""
     return (
@@ -286,7 +328,6 @@ def discover_modules(
                 walk(entry, owner)
             elif entry.is_file():
                 file_owners[entry] = owner if owner is not None else other
-        return
 
     walk(root, None)
     module_list = list(modules.values())
@@ -295,6 +336,36 @@ def discover_modules(
     return module_list, file_owners
 
 
+def discover_all(
+    scope_roots: List[Tuple[str, Path, List[Path]]],
+) -> Tuple[List[ModuleSloc], Dict[Path, ModuleSloc]]:
+    """Discover modules across several (section, root, excludes) scopes"""
+    all_modules: List[ModuleSloc] = []
+    all_owners: Dict[Path, ModuleSloc] = {}
+    for section, root, excludes in scope_roots:
+        modules, owners = discover_modules(root, section, excludes)
+        all_modules.extend(modules)
+        all_owners.update(owners)
+    return all_modules, all_owners
+
+
+def find_context_module(path: Path) -> Optional[Tuple[Path, bool]]:
+    """Find the nearest ancestor (inclusive) module directory of a path
+
+    Returns (module_directory, is_deployment) or None when no module is found.
+    """
+    for candidate in [path, *path.parents]:
+        cmake_lists = candidate / "CMakeLists.txt"
+        if cmake_lists.is_file():
+            is_module, is_deployment = registers_module(cmake_lists)
+            if is_module:
+                return candidate, is_deployment
+    return None
+
+
+####
+# Counting (pygount)
+####
 def is_ut_file(path: Path, module_path: Path) -> bool:
     """Check if a file is unit-test code based on its path within the module"""
     try:
@@ -305,24 +376,24 @@ def is_ut_file(path: Path, module_path: Path) -> bool:
 
 
 def analyze_file(path: Path) -> Optional[SourceAnalysis]:
-    """Run pygount on a single file, returning None for non-code files"""
+    """Run pygount on a single file, returning None for non-code or unreadable files"""
     try:
-        # pygount treats any *.txt (including CMakeLists.txt) as plain text; reanalyze
-        # CMakeLists.txt under a .cmake name so it counts as CMake
         if path.name == "CMakeLists.txt":
-            with tempfile.NamedTemporaryFile(
-                "wb", suffix=".cmake", delete=False
-            ) as temporary:
-                temporary_path = Path(temporary.name)
-            try:
-                temporary_path.write_bytes(path.read_bytes())
-                return analyze_file(temporary_path)
-            finally:
-                temporary_path.unlink()
-        analysis = SourceAnalysis.from_file(
-            str(path), "sloc", fallback_encoding="utf-8"
-        )
-    except Exception:  # pygount can raise on odd encodings; skip such files
+            # pygount keys the language off the file name and treats *.txt as plain text, so
+            # analyze CMakeLists.txt content under a .cmake name
+            with path.open("rb") as handle:
+                analysis = SourceAnalysis.from_file(
+                    str(path.with_suffix(".cmake")),
+                    "sloc",
+                    fallback_encoding="utf-8",
+                    file_handle=handle,
+                )
+        else:
+            analysis = SourceAnalysis.from_file(
+                str(path), "sloc", fallback_encoding="utf-8"
+            )
+    except (OSError, UnicodeError, LookupError):
+        # unreadable file or undecodable/unknown encoding: not countable, skip it
         return None
     if (
         analysis.state != SourceState.analyzed
@@ -340,12 +411,7 @@ def count_files(
         analysis = analyze_file(path)
         if analysis is None:
             continue
-        counts = Counts(
-            files=1,
-            code=analysis.code_count + analysis.string_count,
-            comment=analysis.documentation_count,
-            blank=analysis.empty_count,
-        )
+        counts = Counts.from_analysis(analysis)
         module.add(
             classify(analysis.language, is_ut_file(path, module.path), is_ac=False),
             counts,
@@ -353,42 +419,66 @@ def count_files(
         languages.setdefault(analysis.language, Counts()).accumulate(counts)
 
 
+def cache_available(build: Build) -> bool:
+    """Check whether the build has a generated build cache"""
+    return build.build_dir is not None and (build.build_dir / "CMakeCache.txt").exists()
+
+
 def count_autocoded(
     build: Build, modules: List[ModuleSloc], languages: Dict[str, Counts]
-) -> bool:
+) -> None:
     """Count autocoded files in the build cache for each module
 
-    Returns True if the build cache was available and AC files were counted.
+    Records availability per module in ModuleSloc.ac_counted so that modules without a build
+    cache directory are reported as unknown rather than zero.
     """
-    if build.build_dir is None or not (build.build_dir / "CMakeCache.txt").exists():
-        return False
+    if not cache_available(build):
+        return
     for module in modules:
+        if module.name == OTHER_MODULE_NAME:
+            continue  # loose files outside any module have no autocode
         try:
             cache_path = build.get_build_cache_path(module.path)
-        except Exception:
+        except MissingBuildCachePath:
+            module.ac_counted = False
             continue
+        module.ac_counted = True
         # Generated files land directly in the module's mirrored cache directory;
         # do not recurse as subdirectories belong to other modules or CMake internals
         for path in sorted(cache_path.iterdir()):
-            if not path.is_file():
-                continue
-            if path.suffix not in {".hpp", ".cpp", ".h", ".c", ".fppi", ".py"}:
+            if not path.is_file() or path.suffix not in AC_SUFFIXES:
                 continue
             analysis = analyze_file(path)
             if analysis is None:
                 continue
-            counts = Counts(
-                files=1,
-                code=analysis.code_count + analysis.string_count,
-                comment=analysis.documentation_count,
-                blank=analysis.empty_count,
-            )
+            counts = Counts.from_analysis(analysis)
             is_ut = AC_UT_FILE_PATTERN.search(path.name) is not None
             module.add(classify(analysis.language, is_ut, is_ac=True), counts)
             languages.setdefault(analysis.language, Counts()).accumulate(counts)
-    return True
 
 
+def build_report(
+    build: Build,
+    modules: List[ModuleSloc],
+    file_owners: Dict[Path, ModuleSloc],
+    with_autocode: bool,
+) -> SlocReport:
+    """Count SLOC for the given modules and produce a report"""
+    report = SlocReport(modules=list(modules))
+    selected = set(id(module) for module in modules)
+    owners = {
+        path: module for path, module in file_owners.items() if id(module) in selected
+    }
+    count_files(owners, report.languages)
+    if with_autocode:
+        count_autocoded(build, report.modules, report.languages)
+    report.modules.sort(key=lambda module: (module.section, module.name))
+    return report
+
+
+####
+# Sections and deployment closure
+####
 def get_sections(
     build: Build, include_submodules: bool
 ) -> List[Tuple[str, Path, List[Path]]]:
@@ -406,7 +496,6 @@ def get_sections(
         for library in build.get_settings("library_locations", [])
     ]
     sections = []
-    roots = []
     if project != framework and project not in libraries:
         sections.append((f"project: {project.name}", project))
     sections.append(("fprime", framework))
@@ -478,13 +567,13 @@ def deployment_module_paths(
     """
     tokens = set()
     try:
-        cache_path = build.get_build_cache_path(deployment)
-        for link_file in cache_path.rglob("link.txt"):
-            tokens.update(
-                LIBRARY_TOKEN_PATTERN.findall(link_file.read_text(errors="replace"))
-            )
-    except Exception:
-        pass
+        link_files = list(build.get_build_cache_path(deployment).rglob("link.txt"))
+    except MissingBuildCachePath:
+        link_files = []  # not a Makefile build cache; fall back to build.ninja below
+    for link_file in link_files:
+        tokens.update(
+            LIBRARY_TOKEN_PATTERN.findall(link_file.read_text(errors="replace"))
+        )
     ninja_file = build.build_dir / "build.ninja" if build.build_dir else None
     if not tokens and ninja_file is not None and ninja_file.exists():
         tokens.update(ninja_link_tokens(ninja_file, deployment.name))
@@ -493,51 +582,23 @@ def deployment_module_paths(
             f"Could not determine dependencies for deployment '{deployment.name}' from the "
             "build cache. Ensure the deployment has been generated and built."
         )
-    selected = []
-    for module in modules:
-        in_deployment = module.path == deployment or module.path.is_relative_to(
-            deployment
-        )
-        if in_deployment or module.name in tokens:
-            selected.append(module)
-    return selected
-
-
-def discover_all(
-    scope_roots: List[Tuple[str, Path, List[Path]]],
-) -> Tuple[List[ModuleSloc], Dict[Path, ModuleSloc]]:
-    """Discover modules and file ownership under each scope root"""
-    all_modules: List[ModuleSloc] = []
-    all_owners: Dict[Path, ModuleSloc] = {}
-    for name, root, excludes in scope_roots:
-        modules, file_owners = discover_modules(root, name, excludes)
-        all_modules.extend(modules)
-        all_owners.update(file_owners)
-    return all_modules, all_owners
-
-
-def build_report(
-    build: Build,
-    modules: List[ModuleSloc],
-    file_owners: Dict[Path, ModuleSloc],
-    with_autocode: bool,
-) -> SlocReport:
-    """Count SLOC for the given modules and produce a report"""
-    report = SlocReport(modules=list(modules))
-    selected = set(id(module) for module in modules)
-    owners = {
-        path: module for path, module in file_owners.items() if id(module) in selected
-    }
-    count_files(owners, report.languages)
-    if with_autocode:
-        report.ac_counted = count_autocoded(build, report.modules, report.languages)
-    report.modules.sort(key=lambda module: (module.section, module.name))
-    return report
+    return [
+        module
+        for module in modules
+        if module.path == deployment
+        or module.path.is_relative_to(deployment)
+        or module.name in tokens
+    ]
 
 
 ####
-# Output rendering
+# Output rendering: one row grid shared by the table, Markdown, and CSV outputs
 ####
+ROW_SECTION = "section"
+ROW_MODULE = "module"
+ROW_TOTAL = "total"
+
+
 def report_columns(report: SlocReport) -> List[str]:
     """Column headers: base categories, C/C++ total, per-language others, other/grand totals"""
     columns = ["Module", "Files"] + BASE_CATEGORIES + ["C/C++ Total"]
@@ -549,7 +610,7 @@ def module_row(module: ModuleSloc, report: SlocReport, label: str = None) -> Lis
     """Build a display row for a module (or totals pseudo-module)"""
 
     def cell(category: str) -> str:
-        if category in AC_CATEGORIES and not report.ac_counted:
+        if category in AC_CATEGORIES and not module.ac_counted:
             return "-"
         return str(module.category(category).code)
 
@@ -562,120 +623,95 @@ def module_row(module: ModuleSloc, report: SlocReport, label: str = None) -> Lis
     return row + [str(module.other_total()), str(module.total_code())]
 
 
+def report_rows(report: SlocReport) -> List[Tuple[str, str, List[str]]]:
+    """Report grid as (row kind, section, cells) tuples: per section its modules and total, then
+    a grand total when there is more than one section"""
+    rows = []
+    width = len(report_columns(report))
+    for section in report.sections():
+        rows.append((ROW_SECTION, section, [f"[{section}]"] + [""] * (width - 1)))
+        rows.extend(
+            (ROW_MODULE, section, module_row(module, report))
+            for module in report.section_modules(section)
+        )
+        rows.append(
+            (
+                ROW_TOTAL,
+                section,
+                module_row(
+                    report.section_totals(section), report, f"TOTAL [{section}]"
+                ),
+            )
+        )
+    if len(report.sections()) > 1:
+        rows.append(
+            (ROW_TOTAL, "", module_row(report.grand_totals(), report, "GRAND TOTAL"))
+        )
+    return rows
+
+
 def render_table(report: SlocReport, output=None):
     """Render the report as an aligned text table to the given stream"""
     output = output if output is not None else sys.stdout
     columns = report_columns(report)
-    rows: List[List[str]] = []
-    separators: List[int] = []
-    for section in report.sections():
-        rows.append([f"[{section}]"] + [""] * (len(columns) - 1))
-        rows.extend(
-            module_row(module, report)
-            for module in report.modules
-            if module.section == section
-        )
-        rows.append(
-            module_row(report.section_totals(section), report, f"TOTAL [{section}]")
-        )
-        separators.append(len(rows))
-    if len(report.sections()) > 1:
-        rows.append(module_row(report.grand_totals(), report, "GRAND TOTAL"))
+    rows = report_rows(report)
     widths = [
-        max(len(columns[i]), max((len(row[i]) for row in rows), default=0))
-        for i in range(len(columns))
+        max(len(cells[index]) for _, _, cells in [("", "", columns)] + rows)
+        for index in range(len(columns))
     ]
+    rule = "-" * (sum(widths) + 2 * (len(widths) - 1))
 
     def print_row(cells):
         padded = [cells[0].ljust(widths[0])] + [
             cell.rjust(width) for cell, width in zip(cells[1:], widths[1:])
         ]
-        print("  ".join(padded), file=output)
+        print("  ".join(padded).rstrip(), file=output)
 
     print_row(columns)
-    print("-" * (sum(widths) + 2 * (len(widths) - 1)), file=output)
-    for index, row in enumerate(rows, 1):
-        print_row(row)
-        if index in separators:
-            print("-" * (sum(widths) + 2 * (len(widths) - 1)), file=output)
+    print(rule, file=output)
+    for kind, _, cells in rows:
+        print_row(cells)
+        if kind == ROW_TOTAL:
+            print(rule, file=output)
+    if report.ac_note():
+        print(report.ac_note(), file=output)
 
 
 def render_markdown(report: SlocReport) -> str:
-    """Render the report as a Markdown document"""
+    """Render the report as a Markdown document: one table per section plus a grand total"""
     columns = report_columns(report)
+    header = [
+        "| " + " | ".join(columns) + " |",
+        "|" + "|".join(["---"] * len(columns)) + "|",
+    ]
     lines = ["# SLOC Report", ""]
-    if report.ac_counted:
-        lines += ["Autocoded (AC) files counted from the build cache.", ""]
-    for section in report.sections():
-        lines += [f"## {section}", "", "| " + " | ".join(columns) + " |"]
-        lines.append("|" + "|".join(["---"] * len(columns)) + "|")
-        lines.extend(
-            "| " + " | ".join(module_row(module, report)) + " |"
-            for module in report.modules
-            if module.section == section
-        )
-        lines.append(
-            "| "
-            + " | ".join(
-                f"**{cell}**" if cell else ""
-                for cell in module_row(report.section_totals(section), report, "TOTAL")
-            )
-            + " |"
-        )
-        lines.append("")
-    if len(report.sections()) > 1:
-        lines += ["## Grand Total", "", "| " + " | ".join(columns) + " |"]
-        lines.append("|" + "|".join(["---"] * len(columns)) + "|")
-        lines.append(
-            "| "
-            + " | ".join(
-                f"**{cell}**" if cell else ""
-                for cell in module_row(report.grand_totals(), report, "ALL")
-            )
-            + " |"
-        )
-        lines.append("")
+    if report.ac_note():
+        lines += [report.ac_note(), ""]
+    for kind, section, cells in report_rows(report):
+        if kind == ROW_SECTION:
+            lines += [f"## {section}", ""] + header
+        elif kind == ROW_MODULE:
+            lines.append("| " + " | ".join(cells) + " |")
+        elif section:
+            lines.append("| " + " | ".join(f"**{cell}**" for cell in cells) + " |")
+            lines.append("")
+        else:
+            lines += ["## Grand Total", ""] + header
+            lines.append("| " + " | ".join(f"**{cell}**" for cell in cells) + " |")
+            lines.append("")
     return "\n".join(lines) + "\n"
 
 
-def render_excel(report: SlocReport, path: Path):
-    """Render the report as an Excel workbook"""
-    if Workbook is None:
-        raise SlocException(
-            "openpyxl is not installed. Install it (e.g. 'pip install openpyxl') to use --excel-report."
+def render_csv(report: SlocReport, path: Path):
+    """Render the report as CSV: a section column followed by the report columns"""
+    with path.open("w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["Section"] + report_columns(report))
+        writer.writerows(
+            [section] + cells
+            for kind, section, cells in report_rows(report)
+            if kind != ROW_SECTION
         )
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "SLOC"
-    bold = Font(bold=True)
-
-    def append_row(cells: List[str], is_bold: bool = False):
-        sheet.append(
-            [int(cell) if cell.lstrip("-").isdigit() else cell for cell in cells]
-        )
-        if is_bold:
-            for cell in sheet[sheet.max_row]:
-                cell.font = bold
-
-    append_row(report_columns(report), is_bold=True)
-    for section in report.sections():
-        append_row([f"[{section}]"], is_bold=True)
-        for module in report.modules:
-            if module.section == section:
-                append_row(module_row(module, report))
-        append_row(
-            module_row(report.section_totals(section), report, f"TOTAL [{section}]"),
-            is_bold=True,
-        )
-    if len(report.sections()) > 1:
-        append_row(
-            module_row(report.grand_totals(), report, "GRAND TOTAL"), is_bold=True
-        )
-    sheet.column_dimensions["A"].width = max(
-        len(str(row[0].value or "")) for row in sheet.iter_rows(min_col=1, max_col=1)
-    )
-    sheet.freeze_panes = "B2"
-    workbook.save(path)
 
 
 def categories_dict(module: ModuleSloc) -> dict:
@@ -687,23 +723,25 @@ def categories_dict(module: ModuleSloc) -> dict:
 
 def render_json(report: SlocReport) -> str:
     """Render the report as JSON"""
-    sections = {}
-    for section in report.sections():
-        sections[section] = {
+    sections = {
+        section: {
             "modules": {
                 module.name: {
                     "path": str(module.path),
                     "deployment": module.is_deployment,
+                    "autocode_counted": module.ac_counted,
                     "categories": categories_dict(module),
                 }
-                for module in report.modules
-                if module.section == section
+                for module in report.section_modules(section)
             },
             "totals": categories_dict(report.section_totals(section)),
         }
+        for section in report.sections()
+    }
     return json.dumps(
         {
-            "autocode_counted": report.ac_counted,
+            "autocode_counted": report.ac_counted(),
+            "autocode_missing": report.ac_missing(),
             "sections": sections,
             "totals": categories_dict(report.grand_totals()),
             "languages": {
@@ -718,20 +756,6 @@ def render_json(report: SlocReport) -> str:
 ####
 # CLI handling
 ####
-def find_context_module(path: Path) -> Optional[Tuple[Path, bool]]:
-    """Find the nearest ancestor (inclusive) module directory of a path
-
-    Returns (module_directory, is_deployment) or None when no module is found.
-    """
-    for candidate in [path, *path.parents]:
-        cmake_lists = candidate / "CMakeLists.txt"
-        if cmake_lists.is_file():
-            is_module, is_deployment = registers_module(cmake_lists)
-            if is_module:
-                return candidate, is_deployment
-    return None
-
-
 def run_sloc(
     build: Build,
     parsed: argparse.Namespace,
@@ -751,6 +775,7 @@ def run_sloc(
     path = Path(parsed.path).resolve()
     sections = get_sections(build, parsed.include_submodules)
     section_roots = [root for _, root, _ in sections]
+    has_cache = cache_available(build)
 
     def scoped_excludes(scope: Path) -> List[Path]:
         """Section excludes (including submodules) that fall under a scope directory"""
@@ -761,12 +786,8 @@ def run_sloc(
             if exclude.is_relative_to(scope)
         ]
 
-    cache_available = (
-        build.build_dir is not None and (build.build_dir / "CMakeCache.txt").exists()
-    )
-
     if parsed.recursive:
-        if not cache_available:
+        if not has_cache:
             raise SlocException(
                 "--recursive requires a build cache. Run 'fprime-util generate' first."
             )
@@ -778,9 +799,7 @@ def run_sloc(
         or path == Path(build.get_settings("project_root", path)).resolve()
     ):
         modules, file_owners = discover_all(sections)
-        report = build_report(
-            build, modules, file_owners, with_autocode=cache_available
-        )
+        report = build_report(build, modules, file_owners, with_autocode=has_cache)
     else:
         context = find_context_module(path)
         if context is None:
@@ -791,7 +810,7 @@ def run_sloc(
         module_path, is_deployment = context
         name = find_section_name(module_path, sections)
         if is_deployment:
-            if not cache_available:
+            if not has_cache:
                 raise SlocException(
                     "Deployment SLOC counts require a build cache. Run 'fprime-util generate' "
                     "first."
@@ -804,9 +823,7 @@ def run_sloc(
             modules, file_owners = discover_all(
                 [(name, module_path, scoped_excludes(module_path))]
             )
-            report = build_report(
-                build, modules, file_owners, with_autocode=cache_available
-            )
+            report = build_report(build, modules, file_owners, with_autocode=has_cache)
 
     render_table(report)
     if parsed.markdown_report:
@@ -815,9 +832,9 @@ def run_sloc(
     if parsed.json_report:
         Path(parsed.json_report).write_text(render_json(report))
         print(f"[INFO] JSON report written to {parsed.json_report}")
-    if parsed.excel_report:
-        render_excel(report, Path(parsed.excel_report))
-        print(f"[INFO] Excel report written to {parsed.excel_report}")
+    if parsed.csv_report:
+        render_csv(report, Path(parsed.csv_report))
+        print(f"[INFO] CSV report written to {parsed.csv_report}")
     return 0
 
 
@@ -854,26 +871,10 @@ def add_sloc_parsers(
         action="store_true",
         help="Include git submodules (e.g. googletest) in counts",
     )
-    sloc_parser.add_argument(
-        "--markdown-report",
-        default=None,
-        type=Path,
-        help="Write a Markdown report to the given path",
-    )
-    sloc_parser.add_argument(
-        "--json-report",
-        default=None,
-        type=Path,
-        help="Write a JSON report to the given path",
-    )
-    sloc_parser.add_argument(
-        "--excel-report",
-        default=None,
-        type=Path,
-        help="Write an Excel (.xlsx) report to the given path",
-    )
+    for flag, description in (
+        ("--markdown-report", "Write a Markdown report to the given path"),
+        ("--json-report", "Write a JSON report to the given path"),
+        ("--csv-report", "Write a CSV report to the given path"),
+    ):
+        sloc_parser.add_argument(flag, default=None, type=Path, help=description)
     return {"sloc": run_sloc}, {"sloc": sloc_parser}
-
-
-class SlocException(Exception):
-    """An exception in SLOC counting"""

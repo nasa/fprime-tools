@@ -1,23 +1,28 @@
 """test_sloc.py: tests for fprime.util.sloc"""
 
+import csv
+import json
 from pathlib import Path
 
 import pytest
 
+from fprime.fbuild.types import MissingBuildCachePath
 from fprime.util.sloc import (
     CATEGORY_CMAKE,
     CATEGORY_CPP,
+    CATEGORY_CPP_AC,
     CATEGORY_CPP_UT,
     CATEGORY_FPP,
     OTHER_MODULE_NAME,
     classify,
+    count_autocoded,
     SlocReport,
     count_files,
     discover_modules,
     is_build_cache,
     is_ut_file,
     registers_module,
-    render_excel,
+    render_csv,
     render_json,
     render_markdown,
     render_table,
@@ -139,7 +144,7 @@ def test_classify():
 
 
 def test_rendering(tmp_path, capsys):
-    """Table, markdown, and JSON renderings include modules and totals"""
+    """Table, markdown, JSON, and CSV renderings include modules and totals"""
     root = make_project(tmp_path)
     modules, file_owners = discover_modules(root, "project", [])
     report = SlocReport(modules=sorted(modules, key=lambda module: module.name))
@@ -151,12 +156,17 @@ def test_rendering(tmp_path, capsys):
     assert "| Module |" in markdown and "MyDeployment" in markdown
     json_output = render_json(report)
     assert '"MyModule"' in json_output and '"totals"' in json_output
-    openpyxl = pytest.importorskip("openpyxl")
-    excel_path = tmp_path / "sloc.xlsx"
-    render_excel(report, excel_path)
-    sheet = openpyxl.load_workbook(excel_path).active
-    cells = [cell.value for row in sheet.iter_rows() for cell in row]
-    assert "MyModule" in cells and "TOTAL [project]" in cells
+    csv_path = tmp_path / "sloc.csv"
+    render_csv(report, csv_path)
+    rows = list(csv.reader(csv_path.open()))
+    assert rows[0][:2] == ["Section", "Module"]
+    assert [row[1] for row in rows[1:]] == [
+        OTHER_MODULE_NAME,
+        "MyDeployment",
+        "MyModule",
+        "TOTAL [project]",
+    ]
+    assert all(row[0] == "project" for row in rows[1:])
 
 
 def test_helpers(tmp_path):
@@ -167,3 +177,60 @@ def test_helpers(tmp_path):
     module = root / "MyModule"
     assert is_ut_file(module / "test" / "ut" / "tester.cpp", module)
     assert not is_ut_file(module / "source.cpp", module)
+
+
+class FakeBuild:
+    """Minimal stand-in for fprime.fbuild.builder.Build: a build cache with per-module dirs"""
+
+    def __init__(self, build_dir: Path, cached: dict):
+        self.build_dir = build_dir
+        self.cached = cached
+
+    def get_build_cache_path(self, context: Path) -> Path:
+        if context in self.cached:
+            return self.cached[context]
+        raise MissingBuildCachePath(f"no cache for {context}")
+
+
+def test_partial_autocode_cache(tmp_path):
+    """Modules without a build cache directory report AC as unknown, not zero"""
+    root = make_project(tmp_path)
+    cache = root / "build-fprime-automatic-native"
+    module_cache = cache / "MyModule"
+    module_cache.mkdir()
+    (module_cache / "CompComponentAc.cpp").write_text(CPP_SOURCE)
+    (module_cache / "CompTesterBase.cpp").write_text(CPP_SOURCE)
+    modules, file_owners = discover_modules(root, "project", [])
+    report = SlocReport(modules=sorted(modules, key=lambda module: module.name))
+    count_files(file_owners, report.languages)
+    by_name = {module.name: module for module in modules}
+    build = FakeBuild(cache, {by_name["MyModule"].path: module_cache})
+    count_autocoded(build, report.modules, report.languages)
+    assert by_name["MyModule"].ac_counted is True
+    assert by_name["MyModule"].category(CATEGORY_CPP_AC).files == 1
+    assert by_name["MyModule"].category("C/C++ AC UT").files == 1
+    assert by_name["MyDeployment"].ac_counted is False
+    assert by_name[OTHER_MODULE_NAME].ac_counted is None
+    assert report.ac_counted() and report.ac_missing() == ["MyDeployment"]
+    assert "partial" in report.ac_note()
+    markdown = render_markdown(report)
+    assert "| MyDeployment | 2 | 0 | 2 | 2 | - | 0 | - | 2 | 0 | 4 |" in markdown
+    assert "| MyModule | 6 | 2 | 6 | 2 | 2 | 2 | 2 | 8 | 0 | 16 |" in markdown
+    assert "partial" in markdown
+    parsed = json.loads(render_json(report))
+    assert parsed["autocode_missing"] == ["MyDeployment"]
+    modules_json = parsed["sections"]["project"]["modules"]
+    assert modules_json["MyDeployment"]["autocode_counted"] is False
+    assert modules_json["MyModule"]["autocode_counted"] is True
+
+
+def test_no_autocode_cache(tmp_path):
+    """Without any build cache autocode is not attempted and AC columns are unknown"""
+    root = make_project(tmp_path)
+    modules, file_owners = discover_modules(root, "project", [])
+    report = SlocReport(modules=modules)
+    count_files(file_owners, report.languages)
+    count_autocoded(FakeBuild(None, {}), report.modules, report.languages)
+    assert all(module.ac_counted is None for module in report.modules)
+    assert not report.ac_counted() and report.ac_note() is None
+    assert '"autocode_counted": false' in render_json(report)

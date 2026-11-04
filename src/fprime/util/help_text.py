@@ -223,7 +223,7 @@ Usage:
   -- New Subtopology --
   Generate a new F' subtopology. This command prompts for the name of the subtopology, and outputs a folder containing the structure for one. The user can then add the subtopology to their own project depending on where the subtopology is generated.
 """,
-    "sloc": f"""Count source lines of code (SLOC) for F' modules
+    "sloc": f"""(Experimental) Count source lines of code (SLOC) for F' modules
 
 '{EXECUTABLE} sloc' segments the project into modules (any directory whose CMakeLists.txt calls register_fprime_*, add_library, or add_executable) and counts SLOC per module using pygount. FPP and FPPI files are supported through a bundled pygments lexer plugin. Results roll up per section (project, framework, each library from 'library_locations' in settings.ini) and for the whole repository. Counts are classified as FPP (model files), CMake, C/C++ (with separate autocode and unit-test splits and a C/C++ total), and per-language 'other' buckets with an 'other' total. Unit test code is identified by test/ or ut/ directories.
 
@@ -239,7 +239,7 @@ Examples:
 
   -- Whole project --
   cd MyProject
-  {EXECUTABLE} sloc --markdown-report sloc.md --json-report sloc.json --excel-report sloc.xlsx
+  {EXECUTABLE} sloc --markdown-report sloc.md --json-report sloc.json --csv-report sloc.csv
 
   -- Single component --
   cd MyProject/Components/MyComponent
