@@ -180,6 +180,8 @@ class ModuleSloc:
     is_deployment: bool = False
     categories: Dict[str, Counts] = field(default_factory=dict)
     ac_status: AcStatus = AcStatus.NOT_ATTEMPTED
+    # directory module names (and the unit-test path check) are relative to
+    root: Optional[Path] = None
 
     def add(self, category: str, counts: Counts):
         """Accumulate counts into a category"""
@@ -257,18 +259,27 @@ class SlocReport:
 
     def ac_note(self) -> Optional[str]:
         """Human readable note on autocode coverage, None when autocode was not attempted"""
-        missing = self.ac_missing()
-        if not missing:
+        if not self.ac_missing():
             return (
                 "Autocoded (AC) files counted from the build cache."
                 if self.ac_counted()
                 else None
             )
-        shown = ", ".join(missing[:5]) + (", ..." if len(missing) > 5 else "")
+        reasons = {
+            AcStatus.MISSING: "not configured in this build cache",
+            AcStatus.NOT_BUILT: "configured but not yet built",
+        }
+        parts = []
+        for status, reason in reasons.items():
+            names = [m.name for m in self.modules if m.ac_status is status]
+            if names:
+                shown = ", ".join(names[:5]) + (", ..." if len(names) > 5 else "")
+                parts.append(f"{len(names)} {reason} ({shown})")
         return (
-            f"Autocoded (AC) counts are partial: no autocode in the build cache for {len(missing)} "
-            f"module(s) ({shown}); their AC columns show '-' and are excluded from totals. "
-            "Run 'fprime-util build' to generate autocode before counting."
+            "Autocoded (AC) counts are partial; modules without autocode in the build cache: "
+            + "; ".join(parts)
+            + ". Their AC columns show '-' and are excluded from totals; autocode appears "
+            "after 'fprime-util build' of a deployment that uses the module."
         )
 
     def section_totals(self, section: str) -> ModuleSloc:
@@ -342,7 +353,9 @@ def discover_modules(
     name_root = name_root if name_root is not None else root
     modules: Dict[Path, ModuleSloc] = {}
     file_owners: Dict[Path, ModuleSloc] = {}
-    other = ModuleSloc(name=OTHER_MODULE_NAME, path=root, section=section)
+    other = ModuleSloc(
+        name=OTHER_MODULE_NAME, path=root, section=section, root=name_root
+    )
 
     def walk(directory: Path, owner: Optional[ModuleSloc]):
         cmake_lists = directory / "CMakeLists.txt"
@@ -361,6 +374,7 @@ def discover_modules(
                         path=directory,
                         section=section,
                         is_deployment=is_deployment,
+                        root=name_root,
                     ),
                 )
         for entry in sorted(directory.iterdir()):
@@ -409,10 +423,14 @@ def find_context_module(path: Path) -> Optional[ModuleContext]:
 ####
 # Counting (pygount)
 ####
-def is_ut_file(path: Path, module_path: Path) -> bool:
-    """Check if a file is unit-test code based on its path within the module"""
+def is_ut_file(path: Path, root: Path) -> bool:
+    """Check if a file is unit-test code: some directory on its path below root is test/tests/ut
+
+    With root the section root this also classifies whole modules that live under such a
+    directory (test-support libraries) as unit-test code.
+    """
     try:
-        relative = path.relative_to(module_path)
+        relative = path.relative_to(root)
     except ValueError:
         return False
     return any(part.lower() in UT_PATH_NAMES for part in relative.parts[:-1])
@@ -475,9 +493,8 @@ def count_files(
 ) -> None:
     """Count all files, accumulating into their owning modules and the language rollup"""
     for path, module in file_owners.items():
-        count_file(
-            path, module, languages, is_ut=is_ut_file(path, module.path), is_ac=False
-        )
+        root = module.root if module.root is not None else module.path
+        count_file(path, module, languages, is_ut=is_ut_file(path, root), is_ac=False)
 
 
 def cache_available(build: Build) -> bool:

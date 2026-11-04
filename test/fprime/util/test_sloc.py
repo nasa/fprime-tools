@@ -471,7 +471,8 @@ def test_autocode_states(tmp_path):
     assert (
         by_name["MyModule"].ac_status is AcStatus.NOT_BUILT
     )  # has model.fpp, no autocode
-    assert "MyModule" in report.ac_missing() and "fprime-util build" in report.ac_note()
+    assert "MyModule" in report.ac_missing()
+    assert "1 configured but not yet built (MyModule)" in report.ac_note()
     # the fpp autocoder's record decides when present: nothing expected -> counted (AC = 0)
     fpp_cache = module_cache / "fpp-cache"
     fpp_cache.mkdir()
@@ -616,3 +617,19 @@ def test_sloc_argparse_surface():
     assert parsed.csv_report == Path("out.csv")
     with pytest.raises(SystemExit):
         parser.parse_args(["sloc", "--excel-report", "x.xlsx"])
+
+
+def test_module_under_test_directory_is_ut(tmp_path):
+    """A module whose own directory lives under test/ (a test-support library) is UT code"""
+    root = make_project(tmp_path)
+    support = root / "MyModule" / "test" / "Support"
+    support.mkdir(parents=True)
+    (support / "CMakeLists.txt").write_text("add_library(support stub.cpp)\n")
+    (support / "stub.cpp").write_text(CPP_SOURCE)
+    modules, file_owners = discover_modules(root, "project", [])
+    report = SlocReport(modules=modules)
+    count_files(file_owners, report.languages)
+    by_name = {module.name: module for module in modules}
+    assert by_name["MyModule_test_Support"].category(CATEGORY_CPP_UT).files == 1
+    assert by_name["MyModule_test_Support"].category(CATEGORY_CPP).files == 0
+    assert by_name["MyModule"].category(CATEGORY_CPP).files == 1  # source.cpp unchanged
