@@ -627,6 +627,16 @@ def run_sloc(
     path = Path(parsed.path).resolve()
     sections = get_sections(build, parsed.include_submodules)
     section_roots = [root for _, root, _ in sections]
+
+    def scoped_excludes(scope: Path) -> List[Path]:
+        """Section excludes (including submodules) that fall under a scope directory"""
+        return [
+            exclude
+            for _, _, excludes in sections
+            for exclude in excludes
+            if exclude.is_relative_to(scope)
+        ]
+
     cache_available = (
         build.build_dir is not None and (build.build_dir / "CMakeCache.txt").exists()
     )
@@ -637,7 +647,7 @@ def run_sloc(
                 "--recursive requires a build cache. Run 'fprime-util generate' first."
             )
         name = find_section_name(path, sections)
-        modules, file_owners = discover_all([(name, path, [])])
+        modules, file_owners = discover_all([(name, path, scoped_excludes(path))])
         report = build_report(build, modules, file_owners, with_autocode=True)
     elif (
         path in section_roots
@@ -667,7 +677,9 @@ def run_sloc(
             selected = deployment_module_paths(build, module_path, modules)
             report = build_report(build, selected, file_owners, with_autocode=True)
         else:
-            modules, file_owners = discover_all([(name, module_path, [])])
+            modules, file_owners = discover_all(
+                [(name, module_path, scoped_excludes(module_path))]
+            )
             report = build_report(
                 build, modules, file_owners, with_autocode=cache_available
             )
