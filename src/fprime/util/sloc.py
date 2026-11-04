@@ -36,7 +36,7 @@ DEPLOYMENT_PATTERN = re.compile(r"^\s*register_fprime_deployment\s*\(", re.MULTI
 LIBRARY_TOKEN_PATTERN = re.compile(r"lib([A-Za-z0-9_\-]+)\.(?:a|so|dylib)")
 SUBMODULE_PATH_PATTERN = re.compile(r"^\s*path\s*=\s*(.+)$", re.MULTILINE)
 
-SKIP_DIRECTORY_NAMES = {"__pycache__", "node_modules"}
+SKIP_DIRECTORY_NAMES = {"__pycache__", "node_modules", "build-artifacts"}
 NON_CODE_LANGUAGES = {
     "Text only",
     "Markdown",
@@ -301,7 +301,13 @@ def get_sections(
     build: Build, include_submodules: bool
 ) -> List[Tuple[str, Path, List[Path]]]:
     """Compute the (name, root, excludes) sections: project, framework, and libraries"""
-    framework = Path(build.get_settings("framework_path", None)).resolve()
+    framework_setting = build.get_settings("framework_path", None)
+    if framework_setting is None:
+        raise SlocException(
+            "Cannot determine 'framework_path'. Run from a directory with a settings.ini or "
+            "supply an existing build cache with --build-cache."
+        )
+    framework = Path(framework_setting).resolve()
     project = Path(build.get_settings("project_root", framework)).resolve()
     libraries = [
         Path(library).resolve()
@@ -350,7 +356,13 @@ def ninja_link_tokens(ninja_file: Path, executable: str) -> set:
         dependencies = remainder.replace("|", " ").split()[1:]  # drop the rule name
         for output in outputs.replace("|", " ").split():
             edges.setdefault(output, []).extend(dependencies)
-    starts = [output for output in edges if Path(output).name == executable]
+    # deployment targets may be mangled with path prefixes (e.g. Project_Deployment)
+    starts = [
+        output
+        for output in edges
+        if Path(output).name == executable
+        or Path(output).name.endswith(f"_{executable}")
+    ]
     tokens = set()
     visited = set()
     queue = list(starts)
