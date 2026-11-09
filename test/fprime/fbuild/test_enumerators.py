@@ -7,6 +7,7 @@ from fprime.fbuild.enumerator import (
     CliBuildTargetEnumerator,
     DesignateTargetAction,
     MultiBuildTargetEnumerator,
+    ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
 )
@@ -226,3 +227,33 @@ def test_cli_build_target_enumerator():
     builder_mock = MagicMock()
     builder_mock.cmake_root = Path("/project/root")
     assert cli_enumerator.enumerate(builder_mock, None)[0] == values
+
+
+def test_project_enumeration(tmp_path):
+    """Test project enumeration reads the root metadata regardless of context path"""
+    builder_mock = MagicMock()
+    builder_mock.build_dir = tmp_path
+    (tmp_path / "build-targets.fprime-util").write_text("all\n\nRef\n")
+    (tmp_path / "tests.fprime-util").write_text(".*\n")
+
+    enumerator = ProjectBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, tmp_path / "Svc" / "Health") == (
+        ["all", "Ref"],
+        None,
+    )
+    test_enumerator = ProjectBuildTargetEnumerator(
+        build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
+    )
+    assert test_enumerator.enumerate(builder_mock, tmp_path / "Svc") == ([".*"], None)
+
+
+def test_project_enumeration_fallback(tmp_path):
+    """Test project enumeration falls back to "all" when the root metadata is missing (older caches)"""
+    builder_mock = MagicMock()
+    builder_mock.build_dir = tmp_path
+    enumerator = ProjectBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, tmp_path) == (["all"], None)
+    custom = ProjectBuildTargetEnumerator(fallback_targets=["Ref"])
+    assert custom.enumerate(builder_mock, tmp_path) == (["Ref"], None)
+    (tmp_path / "build-targets.fprime-util").write_text("\n")
+    assert enumerator.enumerate(builder_mock, tmp_path) == (["all"], None)

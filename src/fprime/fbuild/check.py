@@ -63,10 +63,10 @@ class Check(EnumeratedAction):
 
         if not context:
             # This only happens if the provided path does not contain tests
-            # and neither '--all' nor '--recursive' were provided
+            # and none of '--all', '--project', nor '--recursive' were provided
             raise NoTargetFoundException(
                 "No tests were found in the given context. Did you mean to "
-                "use `fprime-util check --recursive` or `--all` ?"
+                "use `fprime-util check --recursive`, `--project`, or `--all` ?"
             )
 
         cli_args = [

@@ -559,3 +559,90 @@ def test_generate_exists(cmake_handler):
     Tests generate_build with pre-existing directory.
     """
     generate_build(({}, []), True, cmake_handler)
+
+
+@patch("fprime.fbuild.cmake.CMakeHandler.get_cmake_module")
+@patch("fprime.fbuild.cmake.CMakeHandler.validate_cmake_cache")
+@patch("fprime.fbuild.cmake.CMakeHandler._run_cmake")
+def test_execute_known_multiple_targets(
+    mock_run_cmake, mock_validate_cmake_cache, mock_get_cmake_module, cmake_handler
+):
+    """Test execute_known_target passes a list of targets to a single build invocation"""
+    build_dir = "/fake/build/dir"
+    mock_get_cmake_module.return_value = "CMake_Module"
+    cmake_handler.execute_known_target(
+        ["target_a", "", "target_b"],
+        build_dir,
+        None,
+        make_args={"--jobs": 4},
+        print_output=False,
+    )
+    mock_run_cmake.assert_called_once_with(
+        [
+            "--build",
+            build_dir,
+            "-j",
+            "4",
+            "--target",
+            "CMake_Module_target_a",
+            "CMake_Module",
+            "CMake_Module_target_b",
+            "--",
+        ],
+        write_override=True,
+        environment={},
+        print_output=False,
+    )
+
+
+@patch("fprime.fbuild.cmake.CMakeHandler.validate_cmake_cache")
+@patch("fprime.fbuild.cmake.CMakeHandler._run_cmake")
+def test_execute_known_multiple_top_targets(
+    mock_run_cmake, mock_validate_cmake_cache, cmake_handler
+):
+    """Test execute_known_target with a list of global targets does not consult the module name"""
+    build_dir = "/fake/build/dir"
+    cmake_handler.execute_known_target(
+        ["Ref", "Svc_Health_ut_exe"],
+        build_dir,
+        None,
+        top_target=True,
+        print_output=False,
+    )
+    mock_run_cmake.assert_called_once_with(
+        ["--build", build_dir, "--target", "Ref", "Svc_Health_ut_exe", "--"],
+        write_override=True,
+        environment={},
+        print_output=False,
+    )
+
+
+@patch("fprime.fbuild.cmake.CMakeHandler.cmake_refresh_cache")
+@patch("fprime.fbuild.cmake.CMakeHandler.validate_cmake_cache")
+@patch("fprime.fbuild.cmake.CMakeHandler._run_cmake")
+def test_refresh_and_execute_known_multiple_targets(
+    mock_run_cmake, mock_validate_cmake_cache, mock_cmake_refresh_cache, cmake_handler
+):
+    """Test the refresh-and-retry path re-issues the whole batch of targets"""
+    build_dir = "/fake/build/dir"
+    mock_run_cmake.side_effect = [
+        CMakeExecutionException(
+            ["No rule to make target"], ["No rule to make target"], False
+        ),
+        None,
+    ]
+    cmake_handler.execute_known_target(
+        ["Ref", "Svc_Health_ut_exe"],
+        build_dir,
+        None,
+        top_target=True,
+        print_output=False,
+    )
+    mock_cmake_refresh_cache.assert_called_once()
+    expected_call = call(
+        ["--build", build_dir, "--target", "Ref", "Svc_Health_ut_exe", "--"],
+        write_override=True,
+        environment={},
+        print_output=False,
+    )
+    assert mock_run_cmake.call_args_list == [expected_call, expected_call]

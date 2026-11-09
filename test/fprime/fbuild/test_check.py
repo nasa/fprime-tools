@@ -44,3 +44,32 @@ def test_resolve_test_directory_parent_relative(tmp_path):
 
     result = Check._resolve_test_directory(deploy_dir)
     assert result == tmp_path.resolve()
+
+
+def test_execute_all_root_context(tmp_path):
+    """Test CTest runs from the build cache root when the enumerated context path is None (check --project)"""
+    from unittest.mock import MagicMock, patch
+    from fprime.fbuild.target import TargetScope
+
+    builder = MagicMock()
+    builder.build_dir = tmp_path
+    builder.is_verbose.return_value = False
+    check = Check(TargetScope.GLOBAL)
+
+    with patch("fprime.fbuild.check.subprocess.run") as mock_run:
+        check.execute_all(builder, ([".*"], None), ({"--jobs": 4}, [], {}))
+
+    builder.get_build_cache_path.assert_not_called()
+    mock_run.assert_called_once_with(
+        [
+            "ctest",
+            "--test-dir",
+            str(tmp_path),
+            "--no-tests=error",
+            "--parallel",
+            "4",
+            "-R",
+            "^(.*)$",
+        ],
+        check=True,
+    )
