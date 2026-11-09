@@ -11,6 +11,7 @@ from fprime.fbuild.check import CheckTarget
 from .enumerator import (
     BasicBuildTargetEnumerator,
     MultiBuildTargetEnumerator,
+    ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
     CliBuildTargetEnumerator,
@@ -49,6 +50,17 @@ Target.register_target(
     )
 )
 
+Target.register_target(
+    BuildSystemTarget(
+        mnemonic="build",
+        desc="Build the targets the framework records at the build cache root, from any directory within the project (today the framework records the `all` target, so this matches --all; it may record a narrower project set in future)",
+        scope=TargetScope.GLOBAL,
+        flags={"project"},
+        # The project's targets are listed at the root of the build cache
+        build_target_enumerator=ProjectBuildTargetEnumerator(),
+    )
+)
+
 #### Build unittests ####
 Target.register_target(
     BuildSystemTarget(
@@ -83,6 +95,17 @@ Target.register_target(
         build_type=BuildType.BUILD_TESTING,
         # The build target for build all is "all"
         build_target_enumerator=SpecificBuildTargetEnumerator(["all"]),
+    )
+)
+
+Target.register_target(
+    BuildSystemTarget(
+        mnemonic="build",
+        desc="Build the targets the framework records at the build cache root, from any directory within the project (unit test build; today this is the `all` target and matches --all --ut)",
+        scope=TargetScope.GLOBAL,
+        flags={"project", "ut"},
+        build_type=BuildType.BUILD_TESTING,
+        build_target_enumerator=ProjectBuildTargetEnumerator(),
     )
 )
 
@@ -140,6 +163,23 @@ Target.register_target(
         build_target_enumerators=[
             SpecificBuildTargetEnumerator(["all"]),
             SpecificBuildTargetEnumerator(["all"]),
+        ],
+    )
+)
+
+Target.register_target(
+    CheckTarget(
+        mnemonic="check",
+        desc="Build and run the unit tests the framework records at the build cache root, from any directory within the project (unit test build; today this is every test and matches --all)",
+        scope=TargetScope.GLOBAL,
+        flags={"project"},
+        build_type=BuildType.BUILD_TESTING,
+        # Both steps enumerate from the root of the build cache: project build targets, then project tests
+        build_target_enumerators=[
+            ProjectBuildTargetEnumerator(),
+            ProjectBuildTargetEnumerator(
+                build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
+            ),
         ],
     )
 )
