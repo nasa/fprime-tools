@@ -7,6 +7,7 @@ from fprime.fbuild.enumerator import (
     CliBuildTargetEnumerator,
     DesignateTargetAction,
     MultiBuildTargetEnumerator,
+    EverythingBuildTargetEnumerator,
     ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
@@ -257,3 +258,28 @@ def test_project_enumeration_fallback(tmp_path):
     assert custom.enumerate(builder_mock, tmp_path) == (["Ref"], None)
     (tmp_path / "build-targets.fprime-util").write_text("\n")
     assert enumerator.enumerate(builder_mock, tmp_path) == (["all"], None)
+
+
+def test_everything_enumeration_with_universe():
+    """Test "all" is joined by the universe target named in the CMake cache"""
+    builder_mock = MagicMock()
+    builder_mock.cmake._read_values_from_cache.return_value = ("universe",)
+    enumerator = EverythingBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, Path(".")) == (
+        ["all", "universe"],
+        builder_mock.cmake_root,
+    )
+    builder_mock.cmake._read_values_from_cache.assert_called_once_with(
+        ["FPRIME_UNIVERSE_TARGET"], builder_mock.build_dir
+    )
+
+
+def test_everything_enumeration_without_universe():
+    """Test older caches (no FPRIME_UNIVERSE_TARGET) enumerate "all" only"""
+    builder_mock = MagicMock()
+    builder_mock.cmake._read_values_from_cache.return_value = (None,)
+    enumerator = EverythingBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, Path(".")) == (
+        ["all"],
+        builder_mock.cmake_root,
+    )

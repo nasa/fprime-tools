@@ -242,15 +242,20 @@ def test_project_and_all_targets_registered():
     """Test --project targets exist alongside the unchanged --all targets"""
     import fprime.fbuild.target_definitions  # noqa: F401 registers the targets
     from fprime.fbuild.enumerator import (
+        EverythingBuildTargetEnumerator,
         ProjectBuildTargetEnumerator,
         SpecificBuildTargetEnumerator,
     )
 
     all_build = Target.get_target("build", {"all"})
-    assert isinstance(all_build.build_target_enumerator, SpecificBuildTargetEnumerator)
-    assert all_build.build_target_enumerator.enumerate(MagicMock(), Path("."))[0] == [
-        "all"
-    ]
+    assert isinstance(
+        all_build.build_target_enumerator, EverythingBuildTargetEnumerator
+    )
+    old_cache_builder = MagicMock()
+    old_cache_builder.cmake._read_values_from_cache.return_value = (None,)
+    assert all_build.build_target_enumerator.enumerate(old_cache_builder, Path("."))[
+        0
+    ] == ["all"]
     for flags in ({"project"}, {"project", "ut"}):
         project_build = Target.get_target("build", flags)
         assert isinstance(
@@ -266,8 +271,11 @@ def test_project_and_all_targets_registered():
     assert test_enumerator.build_file_name == "tests.fprime-util"
     all_check = Target.get_target("check", {"all"})
     assert len(all_check.targets) == 2
-    for target in all_check.targets:
-        assert isinstance(target.build_target_enumerator, SpecificBuildTargetEnumerator)
+    build_step, test_step = all_check.targets
+    assert isinstance(
+        build_step.build_target_enumerator, EverythingBuildTargetEnumerator
+    )
+    assert isinstance(test_step.build_target_enumerator, SpecificBuildTargetEnumerator)
 
 
 def test_build_system_target_execute_all_verbose(mock_builder, capsys):
