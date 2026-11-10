@@ -664,14 +664,16 @@ class Build:
         relative_path, _ = self.cmake.get_include_info(path, self.build_dir)
         return Path(relative_path)
 
-    def execute_build_target(self, build_target: str, context: Path, make_args: dict):
-        """Execute a build target
+    def execute_build_target(
+        self, build_target: Union[str, List[str]], context: Path, make_args: dict
+    ):
+        """Execute a build target, or several build targets in one build system invocation
 
         Executes a target within the build system. This will execute the target by calling into the make system. Context
         is supplied such that the system can match local targets to the global target list.
 
         Args:
-            build_target: build system target to run as string
+            build_target: build system target to run as string, or list of such targets
             context: context path for local targets
             make_args: args to supply to the build tool (make or ninja)
         """

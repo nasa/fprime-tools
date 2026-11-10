@@ -1,7 +1,8 @@
 """fprime.fbuild.enumerator: build module enumeration strategies
 
 This file contains the necessary enumeration strategies for build system targets. Enumeration is used to determine
-what targets are available in the given contextual path (working directory). The results of the enumeration are then
+what targets are available in the given contextual path (working directory), or at the root of the build cache for
+project-wide enumeration. The results of the enumeration are then
 passed to the target for execution.
 
 Note: this file was created with the help of generative AI.
@@ -11,12 +12,12 @@ Note: this file was created with the help of generative AI.
 from abc import ABC, abstractmethod
 from argparse import Action
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from .types import MissingBuildCachePath
 
-
-EnumeratedContext = Tuple[List[str], Path]
+# Enumerated targets with the build-cache context they belong to; None means the root of the build cache
+EnumeratedContext = Tuple[List[str], Optional[Path]]
 """ Context for enumeration calls (execute_all, any_supported) """
 
 
@@ -162,6 +163,44 @@ class RecursiveMultiBuildTargetEnumerator(BuildTargetEnumerator):
         return enumerated_targets, context_path
 
 
+class ProjectBuildTargetEnumerator(BuildTargetEnumerator):
+    """Enumerates the project-level targets regardless of the contextual path
+
+    The build system records the project's own targets and tests in the metadata files at the root of the build cache
+    (written by ``fprime_setup_included_code`` in the project's top-level CMakeLists.txt). This enumerator reads those
+    root files so that a project build may be requested from any directory within the project. Contract: the framework
+    defines what "the project" is by what it records there. With the current F Prime framework the root records
+    ``all``/``.*`` and ``--project`` is equivalent to ``--all``; the companion F Prime change (nasa/fprime#4436,
+    EXCLUDE_FROM_ALL for framework and library modules) narrows ``all`` to the project and its dependencies without any
+    change here. When the root metadata is missing or empty (older build caches), the fallback targets are used.
+    """
+
+    def __init__(
+        self,
+        build_file_name: str = MultiBuildTargetEnumerator.BUILD_TARGETS_FILE,
+        fallback_targets: List[str] = None,
+    ):
+        """Set up the enumerator with the root metadata file to read and the targets used when it is missing or empty"""
+        self.build_file_name = build_file_name
+        self.fallback_targets = (
+            ["all"] if fallback_targets is None else fallback_targets
+        )
+
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
+        """Enumerate the targets listed at the root of the build cache; context is the root (None)"""
+        targets_file = Path(builder.build_dir) / self.build_file_name
+        try:
+            with open(targets_file, "r") as file_handle:
+                enumerated_targets = [
+                    line.strip() for line in file_handle.readlines() if line.strip()
+                ]
+        except FileNotFoundError:
+            enumerated_targets = []
+        if not enumerated_targets:
+            enumerated_targets = list(self.fallback_targets)
+        return enumerated_targets, None
+
+
 class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
     """Enumerates a specific singular build target"""
 
@@ -176,6 +215,30 @@ class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
     def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
         """Enumerates exactly a build target"""
         return self.build_targets, builder.cmake_root
+
+
+class EverythingBuildTargetEnumerator(SpecificBuildTargetEnumerator):
+    """Enumerates everything the build system defines: "all" plus the F Prime "universe" target when it exists
+
+    F Prime (FPRIME_EXCLUDE_LIBRARIES_FROM_ALL) excludes unused framework and library modules from "all" and gathers
+    every registered module in a "universe" target whose name is recorded in the CMake cache variable
+    FPRIME_UNIVERSE_TARGET. Older framework versions have no such variable and "all" already builds everything.
+    """
+
+    UNIVERSE_CACHE_VARIABLE = "FPRIME_UNIVERSE_TARGET"
+
+    def __init__(self):
+        super().__init__(["all"])
+
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
+        """Enumerate "all" and, when the cache defines it, the universe target"""
+        build_targets = list(self.build_targets)
+        (universe,) = builder.cmake._read_values_from_cache(
+            [self.UNIVERSE_CACHE_VARIABLE], builder.build_dir
+        )
+        if universe:
+            build_targets.append(universe)
+        return build_targets, builder.cmake_root
 
 
 class CliBuildTargetEnumerator(SpecificBuildTargetEnumerator):
