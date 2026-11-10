@@ -217,6 +217,30 @@ class SpecificBuildTargetEnumerator(BuildTargetEnumerator):
         return self.build_targets, builder.cmake_root
 
 
+class EverythingBuildTargetEnumerator(SpecificBuildTargetEnumerator):
+    """Enumerates everything the build system defines: "all" plus the F Prime "universe" target when it exists
+
+    F Prime (FPRIME_EXCLUDE_LIBRARIES_FROM_ALL) excludes unused framework and library modules from "all" and gathers
+    every registered module in a "universe" target whose name is recorded in the CMake cache variable
+    FPRIME_UNIVERSE_TARGET. Older framework versions have no such variable and "all" already builds everything.
+    """
+
+    UNIVERSE_CACHE_VARIABLE = "FPRIME_UNIVERSE_TARGET"
+
+    def __init__(self):
+        super().__init__(["all"])
+
+    def enumerate(self, builder: "Build", context_path: Path) -> EnumeratedContext:
+        """Enumerate "all" and, when the cache defines it, the universe target"""
+        build_targets = list(self.build_targets)
+        (universe,) = builder.cmake._read_values_from_cache(
+            [self.UNIVERSE_CACHE_VARIABLE], builder.build_dir
+        )
+        if universe:
+            build_targets.append(universe)
+        return build_targets, builder.cmake_root
+
+
 class CliBuildTargetEnumerator(SpecificBuildTargetEnumerator):
     """Allows users to specify a build target on the command line"""
 

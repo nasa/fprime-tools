@@ -14,6 +14,7 @@ from .enumerator import (
     ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
+    EverythingBuildTargetEnumerator,
     CliBuildTargetEnumerator,
 )
 from .target import Target, BuildSystemTarget, TargetScope
@@ -45,8 +46,8 @@ Target.register_target(
         desc="Build all components, ports, and deployments registered in the project",
         scope=TargetScope.GLOBAL,
         flags={"all"},
-        # The build target for building all is "all"
-        build_target_enumerator=SpecificBuildTargetEnumerator(["all"]),
+        # Everything: "all" plus the F Prime "universe" target when the cache defines it
+        build_target_enumerator=EverythingBuildTargetEnumerator(),
     )
 )
 
@@ -93,8 +94,8 @@ Target.register_target(
         scope=TargetScope.GLOBAL,
         flags={"all", "ut"},
         build_type=BuildType.BUILD_TESTING,
-        # The build target for build all is "all"
-        build_target_enumerator=SpecificBuildTargetEnumerator(["all"]),
+        # Everything: "all" plus the F Prime "universe" target when the cache defines it
+        build_target_enumerator=EverythingBuildTargetEnumerator(),
     )
 )
 
@@ -161,7 +162,7 @@ Target.register_target(
         build_type=BuildType.BUILD_TESTING,
         # Both steps will enumerate with "all"
         build_target_enumerators=[
-            SpecificBuildTargetEnumerator(["all"]),
+            EverythingBuildTargetEnumerator(),
             SpecificBuildTargetEnumerator(["all"]),
         ],
     )
@@ -230,7 +231,7 @@ Target.register_target(
         build_type=BuildType.BUILD_TESTING,
         # Both steps will enumerate with "all"
         build_target_enumerators=[
-            SpecificBuildTargetEnumerator(["all"]),
+            EverythingBuildTargetEnumerator(),
             SpecificBuildTargetEnumerator(["all"]),
         ],
     )
