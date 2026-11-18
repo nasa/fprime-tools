@@ -132,3 +132,18 @@ def test_execute_all_root_label(tmp_path):
     cli_args = _run_check(tmp_path, check, (["A_ut_exe"], sub_directory), cache)
     assert cli_args[-2:] == ["-R", "^(A_ut_exe)$"]
     assert "-L" not in cli_args
+
+
+def test_execute_all_global_scope_runs_at_root(tmp_path):
+    """Test a global check runs CTest at the build cache root, whatever the enumerated context path maps to"""
+    from fprime.fbuild.target import TargetScope
+
+    project_root = tmp_path / "Ref"
+    project_root.mkdir()
+    check = Check(TargetScope.GLOBAL)
+    cli_args = _run_check(tmp_path, check, (["all"], project_root), {})
+    assert cli_args[1:3] == ["--test-dir", str(tmp_path)]
+
+    check = Check(TargetScope.LOCAL)
+    cli_args = _run_check(tmp_path, check, (["A_ut_exe"], project_root), {})
+    assert cli_args[1:3] == ["--test-dir", str(project_root)]

@@ -108,6 +108,10 @@ class MultiBuildTargetEnumerator(BuildTargetEnumerator):
             return self.enumerate_helper(builder, context_path), context_path
         # should an error occur, delegate to a basic enumeration strategy
         except (MissingBuildCachePath, FileNotFoundError):
+            # The root of a project names no module: without recorded targets everything is built and every test run
+            if Path(context_path).resolve() == Path(builder.cmake_root).resolve():
+                is_tests = self.build_file_name == self.TEST_BUILD_TARGETS_FILE
+                return [".*" if is_tests else "all"], context_path
             return self.fail_safe_enumerator.enumerate(builder, context_path)
 
 

@@ -83,6 +83,7 @@ def test_multi_build_target_enumerator_fallback():
     fallback_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
     builder_mock = MagicMock()
     builder_mock.get_build_cache_path.return_value = fallback_path
+    builder_mock.cmake_root = ENUMERATOR_DATA_PATH
     fail_safe_mock = MagicMock()
     fail_safe_mock.enumerate.return_value = ["fallback_target"], fallback_path
     fallback_enumerator = MultiBuildTargetEnumerator(
@@ -283,3 +284,20 @@ def test_everything_enumeration_without_universe():
         ["all"],
         builder_mock.cmake_root,
     )
+
+
+def test_multi_build_target_enumerator_project_root_fallback():
+    """Test the root of a project without recorded targets enumerates "all" to build and ".*" to test"""
+    root_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
+    builder_mock = MagicMock()
+    builder_mock.get_build_cache_path.return_value = root_path
+    builder_mock.cmake_root = root_path
+    fail_safe_mock = MagicMock()
+    build_enumerator = MultiBuildTargetEnumerator(fail_safe_enumerator=fail_safe_mock)
+    assert build_enumerator.enumerate(builder_mock, root_path) == (["all"], root_path)
+    test_enumerator = MultiBuildTargetEnumerator(
+        build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE,
+        fail_safe_enumerator=fail_safe_mock,
+    )
+    assert test_enumerator.enumerate(builder_mock, root_path) == ([".*"], root_path)
+    fail_safe_mock.enumerate.assert_not_called()

@@ -84,9 +84,11 @@ class Check(EnumeratedAction):
     ):
         """Execute this target"""
         context, context_path = context_with_path
+        # A global check covers the whole build cache and runs from its root. The project's CMake root does not map to
+        # the root of the build cache when the project lives inside the F Prime checkout.
         build_cache_path = (
             builder.get_build_cache_path(context_path)
-            if context_path
+            if context_path and self.scope != TargetScope.GLOBAL
             else builder.build_dir
         )
         test_directory = self._resolve_test_directory(build_cache_path)
