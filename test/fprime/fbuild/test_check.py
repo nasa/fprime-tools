@@ -73,3 +73,62 @@ def test_execute_all_root_context(tmp_path):
         ],
         check=True,
     )
+
+
+def _run_check(tmp_path, check, context_with_path, cache):
+    """Run a check action against a mocked builder whose CMake cache holds the given values"""
+    from unittest.mock import MagicMock, patch
+
+    builder = MagicMock()
+    builder.build_dir = tmp_path
+    builder.is_verbose.return_value = False
+    builder.get_build_cache_path.side_effect = lambda path: path
+    builder.cmake._read_values_from_cache.side_effect = lambda keys, _: tuple(
+        cache.get(key) for key in keys
+    )
+    with patch("fprime.fbuild.check.subprocess.run") as mock_run:
+        check.execute_all(builder, context_with_path, ({}, [], {}))
+    return mock_run.call_args[0][0]
+
+
+def test_execute_all_by_label(tmp_path):
+    """Test CTest runs by label, not by name, when the cache records the label (check --project, --all)"""
+    from fprime.fbuild.target import TargetScope
+
+    check = Check(
+        TargetScope.GLOBAL, label_cache_variable=Check.PROJECT_LABEL_CACHE_VARIABLE
+    )
+    cache = {Check.PROJECT_LABEL_CACHE_VARIABLE: "fprime_project"}
+    cli_args = _run_check(tmp_path, check, (["A_ut_exe", "B_ut_exe"], None), cache)
+    assert cli_args[-2:] == ["-L", "^fprime_project$"]
+    assert "-R" not in cli_args
+
+
+def test_execute_all_label_fallback(tmp_path):
+    """Test CTest falls back to the enumerated names when the cache records no label (older frameworks)"""
+    from fprime.fbuild.target import TargetScope
+
+    check = Check(
+        TargetScope.GLOBAL, label_cache_variable=Check.PROJECT_LABEL_CACHE_VARIABLE
+    )
+    cli_args = _run_check(tmp_path, check, (["A_ut_exe", "B_ut_exe"], None), {})
+    assert cli_args[-2:] == ["-R", "^(A_ut_exe|B_ut_exe)$"]
+    assert "-L" not in cli_args
+
+
+def test_execute_all_root_label(tmp_path):
+    """Test the label applies at the root of the build cache only (check in a directory)"""
+    from fprime.fbuild.target import TargetScope
+
+    check = Check(
+        TargetScope.LOCAL, label_cache_variable=Check.PROJECT_LABEL_CACHE_VARIABLE
+    )
+    cache = {Check.PROJECT_LABEL_CACHE_VARIABLE: "fprime_project"}
+    cli_args = _run_check(tmp_path, check, (["A_ut_exe"], tmp_path), cache)
+    assert cli_args[-2:] == ["-L", "^fprime_project$"]
+
+    sub_directory = tmp_path / "Component"
+    sub_directory.mkdir()
+    cli_args = _run_check(tmp_path, check, (["A_ut_exe"], sub_directory), cache)
+    assert cli_args[-2:] == ["-R", "^(A_ut_exe)$"]
+    assert "-L" not in cli_args

@@ -169,10 +169,10 @@ class ProjectBuildTargetEnumerator(BuildTargetEnumerator):
     The build system records the project's own targets and tests in the metadata files at the root of the build cache
     (written by ``fprime_setup_included_code`` in the project's top-level CMakeLists.txt). This enumerator reads those
     root files so that a project build may be requested from any directory within the project. Contract: the framework
-    defines what "the project" is by what it records there. With the current F Prime framework the root records
-    ``all``/``.*`` and ``--project`` is equivalent to ``--all``; the companion F Prime change (nasa/fprime#4436,
-    EXCLUDE_FROM_ALL for framework and library modules) narrows ``all`` to the project and its dependencies without any
-    change here. When the root metadata is missing or empty (older build caches), the fallback targets are used.
+    defines what "the project" is by what it records there. Released F Prime frameworks record
+    ``all``/``.*`` there and ``--project`` is equivalent to ``--all``; the companion F Prime change (nasa/fprime#4436,
+    EXCLUDE_FROM_ALL for framework and library modules) narrows ``all`` to the project and its dependencies and lists
+    the project's tests by name. The check action prefers the framework's CTest labels to these test names. When the root metadata is missing or empty (older build caches), the fallback targets are used.
     """
 
     def __init__(
