@@ -6,13 +6,14 @@ as such, each target need only be instantiated but need not be assigned to anyth
 """
 
 from .gcovr import ExistingCoverageTarget, GcovrTarget
-from .check import CheckTarget
-from fprime.fbuild.check import CheckTarget
+from .check import Check, CheckTarget
 from .enumerator import (
     BasicBuildTargetEnumerator,
     MultiBuildTargetEnumerator,
+    ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
+    EverythingBuildTargetEnumerator,
     CliBuildTargetEnumerator,
 )
 from .target import Target, BuildSystemTarget, TargetScope
@@ -44,8 +45,19 @@ Target.register_target(
         desc="Build all components, ports, and deployments registered in the project",
         scope=TargetScope.GLOBAL,
         flags={"all"},
-        # The build target for building all is "all"
-        build_target_enumerator=SpecificBuildTargetEnumerator(["all"]),
+        # Everything: "all" plus the F Prime "universe" target when the cache defines it
+        build_target_enumerator=EverythingBuildTargetEnumerator(),
+    )
+)
+
+Target.register_target(
+    BuildSystemTarget(
+        mnemonic="build",
+        desc="Build the targets the framework records at the build cache root, from any directory within the project (today the framework records the `all` target, so this matches --all; it may record a narrower project set in future)",
+        scope=TargetScope.GLOBAL,
+        flags={"project"},
+        # The project's targets are listed at the root of the build cache
+        build_target_enumerator=ProjectBuildTargetEnumerator(),
     )
 )
 
@@ -81,8 +93,19 @@ Target.register_target(
         scope=TargetScope.GLOBAL,
         flags={"all", "ut"},
         build_type=BuildType.BUILD_TESTING,
-        # The build target for build all is "all"
-        build_target_enumerator=SpecificBuildTargetEnumerator(["all"]),
+        # Everything: "all" plus the F Prime "universe" target when the cache defines it
+        build_target_enumerator=EverythingBuildTargetEnumerator(),
+    )
+)
+
+Target.register_target(
+    BuildSystemTarget(
+        mnemonic="build",
+        desc="Build the targets the framework records at the build cache root, from any directory within the project (unit test build; today this is the `all` target and matches --all --ut)",
+        scope=TargetScope.GLOBAL,
+        flags={"project", "ut"},
+        build_type=BuildType.BUILD_TESTING,
+        build_target_enumerator=ProjectBuildTargetEnumerator(),
     )
 )
 
@@ -107,6 +130,8 @@ Target.register_target(
             check_multi_build_enumerator,
             check_multi_test_enumerator,
         ],
+        # The label applies at the project root only: there the project's tests are run by label
+        label_cache_variable=Check.PROJECT_LABEL_CACHE_VARIABLE,
     )
 )
 
@@ -138,9 +163,30 @@ Target.register_target(
         build_type=BuildType.BUILD_TESTING,
         # Both steps will enumerate with "all"
         build_target_enumerators=[
-            SpecificBuildTargetEnumerator(["all"]),
+            EverythingBuildTargetEnumerator(),
             SpecificBuildTargetEnumerator(["all"]),
         ],
+        # Every test is run by label when the framework labels them
+        label_cache_variable=Check.UNIVERSE_LABEL_CACHE_VARIABLE,
+    )
+)
+
+Target.register_target(
+    CheckTarget(
+        mnemonic="check",
+        desc="Build and run the project's unit tests, from any directory within the project (unit test build; selected by the framework's project test label, or the test names recorded at the build cache root when it has none)",
+        scope=TargetScope.GLOBAL,
+        flags={"project"},
+        build_type=BuildType.BUILD_TESTING,
+        # Both steps enumerate from the root of the build cache: project build targets, then project test names
+        build_target_enumerators=[
+            ProjectBuildTargetEnumerator(),
+            ProjectBuildTargetEnumerator(
+                build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
+            ),
+        ],
+        # The project's tests are run by label when the framework labels them, the root test names are the fallback
+        label_cache_variable=Check.PROJECT_LABEL_CACHE_VARIABLE,
     )
 )
 
@@ -190,7 +236,7 @@ Target.register_target(
         build_type=BuildType.BUILD_TESTING,
         # Both steps will enumerate with "all"
         build_target_enumerators=[
-            SpecificBuildTargetEnumerator(["all"]),
+            EverythingBuildTargetEnumerator(),
             SpecificBuildTargetEnumerator(["all"]),
         ],
     )

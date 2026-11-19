@@ -7,6 +7,8 @@ from fprime.fbuild.enumerator import (
     CliBuildTargetEnumerator,
     DesignateTargetAction,
     MultiBuildTargetEnumerator,
+    EverythingBuildTargetEnumerator,
+    ProjectBuildTargetEnumerator,
     RecursiveMultiBuildTargetEnumerator,
     SpecificBuildTargetEnumerator,
 )
@@ -81,6 +83,7 @@ def test_multi_build_target_enumerator_fallback():
     fallback_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
     builder_mock = MagicMock()
     builder_mock.get_build_cache_path.return_value = fallback_path
+    builder_mock.cmake.get_cmake_module.return_value = "Module"
     fail_safe_mock = MagicMock()
     fail_safe_mock.enumerate.return_value = ["fallback_target"], fallback_path
     fallback_enumerator = MultiBuildTargetEnumerator(
@@ -173,9 +176,7 @@ def test_recursive_enumerator_fallback_on_file_not_found():
     # Since enumerate_helper returns [], the fallback enumerator should be called
     assert enumerator.enumerate(builder_mock, path)[0] == ["fallback_target"]
     # Verify that the fallback was indeed triggered
-    builder_mock.cmake.get_cmake_module.assert_called_once_with(
-        path, builder_mock.build_dir
-    )
+    builder_mock.cmake.get_cmake_module.assert_called_with(path, builder_mock.build_dir)
 
 
 def test_specific_build_target_enumerator_constructor():
@@ -226,3 +227,89 @@ def test_cli_build_target_enumerator():
     builder_mock = MagicMock()
     builder_mock.cmake_root = Path("/project/root")
     assert cli_enumerator.enumerate(builder_mock, None)[0] == values
+
+
+def test_project_enumeration(tmp_path):
+    """Test project enumeration reads the root metadata regardless of context path"""
+    builder_mock = MagicMock()
+    builder_mock.build_dir = tmp_path
+    (tmp_path / "build-targets.fprime-util").write_text("all\n\nRef\n")
+    (tmp_path / "tests.fprime-util").write_text(".*\n")
+
+    enumerator = ProjectBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, tmp_path / "Svc" / "Health") == (
+        ["all", "Ref"],
+        None,
+    )
+    test_enumerator = ProjectBuildTargetEnumerator(
+        build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE
+    )
+    assert test_enumerator.enumerate(builder_mock, tmp_path / "Svc") == ([".*"], None)
+
+
+def test_project_enumeration_fallback(tmp_path):
+    """Test project enumeration falls back to "all" when the root metadata is missing (older caches)"""
+    builder_mock = MagicMock()
+    builder_mock.build_dir = tmp_path
+    enumerator = ProjectBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, tmp_path) == (["all"], None)
+    custom = ProjectBuildTargetEnumerator(fallback_targets=["Ref"])
+    assert custom.enumerate(builder_mock, tmp_path) == (["Ref"], None)
+    (tmp_path / "build-targets.fprime-util").write_text("\n")
+    assert enumerator.enumerate(builder_mock, tmp_path) == (["all"], None)
+
+
+def test_everything_enumeration_with_universe():
+    """Test "all" is joined by the universe target named in the CMake cache"""
+    builder_mock = MagicMock()
+    builder_mock.cmake._read_values_from_cache.return_value = ("universe",)
+    enumerator = EverythingBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, Path(".")) == (
+        ["all", "universe"],
+        builder_mock.cmake_root,
+    )
+    builder_mock.cmake._read_values_from_cache.assert_called_once_with(
+        ["FPRIME_UNIVERSE_TARGET"], builder_mock.build_dir
+    )
+
+
+def test_everything_enumeration_without_universe():
+    """Test older caches (no FPRIME_UNIVERSE_TARGET) enumerate "all" only"""
+    builder_mock = MagicMock()
+    builder_mock.cmake._read_values_from_cache.return_value = (None,)
+    enumerator = EverythingBuildTargetEnumerator()
+    assert enumerator.enumerate(builder_mock, Path(".")) == (
+        ["all"],
+        builder_mock.cmake_root,
+    )
+
+
+def test_multi_build_target_enumerator_project_root_fallback():
+    """Test a root naming no module, without recorded targets, enumerates "all" to build and ".*" to test"""
+    root_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
+    builder_mock = MagicMock()
+    builder_mock.get_build_cache_path.return_value = root_path
+    builder_mock.cmake.get_cmake_module.return_value = ""
+    fail_safe_mock = MagicMock()
+    build_enumerator = MultiBuildTargetEnumerator(fail_safe_enumerator=fail_safe_mock)
+    assert build_enumerator.enumerate(builder_mock, root_path) == (["all"], root_path)
+    test_enumerator = MultiBuildTargetEnumerator(
+        build_file_name=MultiBuildTargetEnumerator.TEST_BUILD_TARGETS_FILE,
+        fail_safe_enumerator=fail_safe_mock,
+    )
+    assert test_enumerator.enumerate(builder_mock, root_path) == ([".*"], root_path)
+    fail_safe_mock.enumerate.assert_not_called()
+
+
+def test_multi_build_target_enumerator_module_root_fallback():
+    """Test a root that names a module, without recorded targets, keeps the fail-safe enumeration"""
+    root_path = ENUMERATOR_DATA_PATH / "BasicBuildTargetEnumerator"
+    builder_mock = MagicMock()
+    builder_mock.get_build_cache_path.return_value = root_path
+    builder_mock.cmake_root = root_path
+    builder_mock.cmake.get_cmake_module.return_value = "Ref"
+    fail_safe_mock = MagicMock()
+    fail_safe_mock.enumerate.return_value = ["Ref"], root_path
+    enumerator = MultiBuildTargetEnumerator(fail_safe_enumerator=fail_safe_mock)
+    assert enumerator.enumerate(builder_mock, root_path) == (["Ref"], root_path)
+    fail_safe_mock.enumerate.assert_called_once_with(builder_mock, root_path)

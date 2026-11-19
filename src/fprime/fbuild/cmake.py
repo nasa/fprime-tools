@@ -82,7 +82,8 @@ class CMakeHandler:
         Executes a known target for a given build_dir. Path will default to a known path.
 
         :param build_dir: build_dir to use to run this.
-        :param target: target to execute at the path, using above build_dir
+        :param target: target, or list of targets, to execute at the path, using above build_dir. Several targets are
+                       passed to a single build tool invocation (CMake 3.15+ supports multiple --target arguments)
         :param path: path to run target against. (default) current working directory
         :param cmake_args: cmake args input
         :param make_args: arguments to pass to make
@@ -109,24 +110,28 @@ class CMakeHandler:
             map(lambda key: f"{key}={make_args[key]}", make_args.keys())
         )
 
-        if target != "" and top_target:
-            cmake_target = target
-        else:
+        targets = [target] if isinstance(target, str) else list(target)
+        cmake_targets = []
+        for single_target in targets:
+            if single_target != "" and top_target:
+                cmake_targets.append(single_target)
+                continue
             module = self.get_cmake_module(path, build_dir)
-            if target == "":
-                cmake_target = module
-            elif top_target:
-                cmake_target = target
+            if single_target == "":
+                cmake_targets.append(module)
             else:
-                cmake_target = f"{module}_{target}".lstrip("_")
+                cmake_targets.append(f"{module}_{single_target}".lstrip("_"))
 
         environment = {} if environment is None else copy.copy(environment)
         if self.verbose:
             environment["VERBOSE"] = "1"
 
         # The cmake target is "" when running build in the root of the F' repo.
-        if cmake_target != "":
-            run_args.extend(["--target", cmake_target])
+        cmake_targets = [
+            cmake_target for cmake_target in cmake_targets if cmake_target != ""
+        ]
+        if cmake_targets:
+            run_args.extend(["--target"] + cmake_targets)
 
         try:
             return self._run_cmake(

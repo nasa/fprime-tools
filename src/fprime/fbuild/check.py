@@ -26,12 +26,42 @@ class Check(EnumeratedAction):
 
     EXECUTABLE = "ctest"
     TEST_DIR_FILE = "test-dir.fprime-util"
+    # CMake cache variables in which F Prime records the CTest labels of the project's tests and of every test
+    PROJECT_LABEL_CACHE_VARIABLE = "FPRIME_PROJECT_TEST_LABEL"
+    UNIVERSE_LABEL_CACHE_VARIABLE = "FPRIME_UNIVERSE_TEST_LABEL"
 
     def __init__(
-        self, scope: TargetScope, build_target_enumerator: BuildTargetEnumerator = None
+        self,
+        scope: TargetScope,
+        build_target_enumerator: BuildTargetEnumerator = None,
+        label_cache_variable: str = None,
     ):
-        """Initialize this action with the test enumerator"""
+        """Initialize this action with the test enumerator
+
+        Args:
+            scope: scope of this action
+            build_target_enumerator: enumerator of the tests to run by name
+            label_cache_variable: CMake cache variable naming the CTest label to run by when the context is the root
+                of the build cache, as it always is for a global scope
+        """
         super().__init__(scope=scope, build_target_enumerator=build_target_enumerator)
+        self.label_cache_variable = label_cache_variable
+
+    def _resolve_label(self, builder: "Build", build_cache_path: Path):
+        """Resolve the CTest label to run by, or None to run the enumerated tests by name
+
+        The label is read from the CMake cache and selects tests across the whole build cache, so it applies only when
+        the context is the root of the build cache. Frameworks that do not label tests record no label, and the
+        enumerated test names are used instead.
+        """
+        if self.label_cache_variable is None:
+            return None
+        if Path(build_cache_path).resolve() != Path(builder.build_dir).resolve():
+            return None
+        (label,) = builder.cmake._read_values_from_cache(
+            [self.label_cache_variable], builder.build_dir
+        )
+        return label if label else None
 
     def any_supported(self, builder: "Build", context_with_path: EnumeratedContext):
         """Check if this target is supported in the given context
@@ -54,19 +84,21 @@ class Check(EnumeratedAction):
     ):
         """Execute this target"""
         context, context_path = context_with_path
+        # A global check covers the whole build cache and runs from its root. The project's CMake root does not map to
+        # the root of the build cache when the project lives inside the F Prime checkout.
         build_cache_path = (
             builder.get_build_cache_path(context_path)
-            if context_path
+            if context_path and self.scope != TargetScope.GLOBAL
             else builder.build_dir
         )
         test_directory = self._resolve_test_directory(build_cache_path)
 
         if not context:
             # This only happens if the provided path does not contain tests
-            # and neither '--all' nor '--recursive' were provided
+            # and none of '--all', '--project', nor '--recursive' were provided
             raise NoTargetFoundException(
                 "No tests were found in the given context. Did you mean to "
-                "use `fprime-util check --recursive` or `--all` ?"
+                "use `fprime-util check --recursive`, `--project`, or `--all` ?"
             )
 
         cli_args = [
@@ -90,9 +122,15 @@ class Check(EnumeratedAction):
         ):
             cli_args.append("-V")
 
-        print(f"[INFO] Running CTest with context: {context}")
+        label = self._resolve_label(builder, build_cache_path)
+        # Run by label when the framework labels tests, the enumerated names are the fallback
+        if label is not None:
+            print(f"[INFO] Running CTest with label: {label}")
+            cli_args.extend(["-L", f"^{label}$"])
+        else:
+            print(f"[INFO] Running CTest with context: {context}")
         # When not "all" append a regex to filter tests. .* works as a regex
-        if context and context != ["all"]:
+        if label is None and context and context != ["all"]:
             test_regex = f"^({'|'.join(context)})$"
             cli_args.extend(["-R", test_regex])
         # Extend with "pass through" arguments
@@ -141,6 +179,7 @@ class CheckTarget(CompositeTarget):
         scope: TargetScope,
         build_target_enumerators: List[BuildTargetEnumerator],
         *args,
+        label_cache_variable: str = None,
         **kwargs,
     ):
         """Constructor setting child targets"""
@@ -151,7 +190,9 @@ class CheckTarget(CompositeTarget):
             **kwargs,
         )
         check_action = Check(
-            scope=scope, build_target_enumerator=build_target_enumerators[1]
+            scope=scope,
+            build_target_enumerator=build_target_enumerators[1],
+            label_cache_variable=label_cache_variable,
         )
         super().__init__(
             composite_targets=[build_target, check_action],
