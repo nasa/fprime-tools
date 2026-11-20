@@ -72,7 +72,7 @@ def validate_tools_from_requirements(build: Build):
             print(message)
 
 
-def _parse_gitmodules(gitmodules_path: Path):
+def parse_gitmodules(gitmodules_path: Path):
     """Parse a .gitmodules file and return a list of submodule paths.
 
     Args:
@@ -83,7 +83,7 @@ def _parse_gitmodules(gitmodules_path: Path):
     """
     if not gitmodules_path.is_file():
         return []
-    content = gitmodules_path.read_text()
+    content = gitmodules_path.read_text(errors="replace")
     return [
         match.strip()
         for match in re.findall(r"^\s*path\s*=\s*(.+)", content, re.MULTILINE)
@@ -120,7 +120,7 @@ def _check_submodules(build: Build):
     # Check submodules declared in .gitmodules
     for root in roots_to_check:
         gitmodules_file = root / ".gitmodules"
-        submodule_paths = _parse_gitmodules(gitmodules_file)
+        submodule_paths = parse_gitmodules(gitmodules_file)
         for sub_path in submodule_paths:
             full_path = root / sub_path
             if full_path.is_dir():
