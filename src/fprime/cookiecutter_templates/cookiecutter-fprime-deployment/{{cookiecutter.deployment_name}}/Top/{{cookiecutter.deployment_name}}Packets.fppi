@@ -162,6 +162,8 @@ telemetry packets {{cookiecutter.deployment_name}}Packets {
   }
 
 } omit {
+  FileHandling.prmDb.PrmFileLoadStatus
+  FileHandling.prmDb.PrmFileLoadRecords
   CdhCore.cmdDisp.CommandErrors
 {%- if cookiecutter.com_driver_type == "UART" %}
   comDriver.BytesRecv
